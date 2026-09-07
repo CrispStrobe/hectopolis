@@ -91,6 +91,9 @@ class GoalGuidance {
 /// UI-facing state around the simulation: level, brush, overlay, selection,
 /// clock, autosave.
 class GameController extends ChangeNotifier {
+  // A public named `store` parameter cannot be an initializing formal for the
+  // private field without exposing a private parameter name.
+  // ignore: prefer_initializing_formals
   GameController({int size = 16, SaveStore? store})
     : sim = Simulation.sandbox(width: size, height: size),
       _store = store {

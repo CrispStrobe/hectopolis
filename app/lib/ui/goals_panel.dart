@@ -61,7 +61,7 @@ class GoalsPanel extends StatelessWidget {
             child: Column(
               children: [
                 Wrap(spacing: 8, runSpacing: 2, children: [header, ...rows]),
-                if (guidanceCard != null) guidanceCard,
+                ?guidanceCard,
               ],
             ),
           );
@@ -70,7 +70,7 @@ class GoalsPanel extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [header, ...rows, if (guidanceCard != null) guidanceCard],
+            children: [header, ...rows, ?guidanceCard],
           ),
         );
       },

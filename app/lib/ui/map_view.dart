@@ -663,11 +663,12 @@ class _PlacementPreviewCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (!simpleMode && preview.costKEur case final cost?)
-                  Text(
-                    l10n.placementPreviewCost(l10n.kEur(number.format(cost))),
-                    style: theme.textTheme.bodySmall,
-                  ),
+                if (!simpleMode)
+                  if (preview.costKEur case final cost?)
+                    Text(
+                      l10n.placementPreviewCost(l10n.kEur(number.format(cost))),
+                      style: theme.textTheme.bodySmall,
+                    ),
                 if (error != null)
                   Text(
                     error,
