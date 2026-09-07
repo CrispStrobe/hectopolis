@@ -177,6 +177,25 @@ void main() {
   });
 
   group('commands', () {
+    test('simulation copies are independent and retain finite tile limits', () {
+      final sim = Simulation(
+        state: WorldState.empty(width: 8, height: 8, budgetKEur: 5000),
+        tileBudget: TileBudget({TileType.road: 2}),
+      );
+      sim.apply(const PlaceTile(0, 0, TileType.road));
+      sim.apply(const AdvanceTick(2));
+
+      final copy = sim.copy();
+      expect(copy.state.hash(), sim.state.hash());
+      expect(copy.tileBudget.remaining(TileType.road), 1);
+      expect(copy.log.length, sim.log.length);
+
+      copy.apply(const PlaceTile(1, 0, TileType.road));
+      expect(copy.tileBudget.remaining(TileType.road), 0);
+      expect(sim.tileBudget.remaining(TileType.road), 1);
+      expect(sim.state.tileAt(1, 0), TileType.terrain);
+    });
+
     test('budget and tile limits are enforced', () {
       final sim = Simulation(
         state: WorldState.empty(width: 8, height: 8, budgetKEur: 350),

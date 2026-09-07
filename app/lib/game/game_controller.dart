@@ -89,6 +89,13 @@ class GameController extends ChangeNotifier {
   int _previewChangedMs = 0;
   bool _previewComplete = false;
 
+  static const _historyLimit = 30;
+  final List<Simulation> _undo = [];
+  final List<Simulation> _redo = [];
+
+  bool get canUndo => _undo.isNotEmpty;
+  bool get canRedo => _redo.isNotEmpty;
+
   /// Cell the keyboard cursor sits on, or null while the keyboard is unused
   /// (task T-203). Drawn with a double outline, distinct from the selection.
   int? cursorCell;
@@ -154,6 +161,8 @@ class GameController extends ChangeNotifier {
     _endShown = false;
     visualRevision++;
     _cachedPreview = null;
+    _undo.clear();
+    _redo.clear();
   }
 
   void _evaluate() {
@@ -281,7 +290,7 @@ class GameController extends ChangeNotifier {
       );
     }
 
-    final prospective = Simulation(state: sim.state.copy(), params: sim.params);
+    final prospective = sim.copy();
     prospective.apply(PlaceTile(x, y, tile));
     final deltas = <Indicator, double>{
       for (final indicator in Indicator.values)
@@ -403,10 +412,12 @@ class GameController extends ChangeNotifier {
   }
 
   bool place(int x, int y, TileType t) {
+    final before = sim.copy();
     final result = sim.apply(PlaceTile(x, y, t));
     lastError = result.error;
     selectedCell = sim.state.index(x, y);
     if (result.ok) {
+      _remember(before);
       visualRevision++;
       _cachedPreview = null;
       _evaluate();
@@ -417,9 +428,11 @@ class GameController extends ChangeNotifier {
   }
 
   bool clear(int x, int y) {
+    final before = sim.copy();
     final result = sim.apply(RemoveTile(x, y));
     lastError = result.error;
     if (result.ok) {
+      _remember(before);
       visualRevision++;
       _cachedPreview = null;
       _evaluate();
@@ -430,7 +443,46 @@ class GameController extends ChangeNotifier {
   }
 
   void step() {
+    // Editing history deliberately does not cross time: undoing a build must
+    // never silently rewind population, finances, or level progress.
+    _undo.clear();
+    _redo.clear();
     sim.apply(const AdvanceTick());
+    visualRevision++;
+    _cachedPreview = null;
+    _evaluate();
+    _scheduleSave();
+    notifyListeners();
+  }
+
+  void _remember(Simulation before) {
+    _undo.add(before);
+    if (_undo.length > _historyLimit) _undo.removeAt(0);
+    _redo.clear();
+  }
+
+  void undo() {
+    if (!canUndo) return;
+    _stopTimer();
+    speed = 0;
+    _redo.add(sim.copy());
+    sim = _undo.removeLast();
+    _afterHistoryChange();
+  }
+
+  void redo() {
+    if (!canRedo) return;
+    _stopTimer();
+    speed = 0;
+    _undo.add(sim.copy());
+    sim = _redo.removeLast();
+    _afterHistoryChange();
+  }
+
+  void _afterHistoryChange() {
+    lastError = null;
+    endPending = false;
+    _endShown = false;
     visualRevision++;
     _cachedPreview = null;
     _evaluate();

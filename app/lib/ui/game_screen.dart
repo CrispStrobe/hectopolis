@@ -210,6 +210,7 @@ class _GameScreenState extends State<GameScreen> {
                     _Clock(controller: c),
                     const SizedBox(width: 8),
                     _Transport(controller: c),
+                    _HistoryControls(controller: c),
                     _OverlayMenu(controller: c),
                     IconButton(
                       tooltip: l10n.actionZoomOut,
@@ -475,6 +476,35 @@ class _Legend extends StatelessWidget {
   }
 }
 
+class _HistoryControls extends StatelessWidget {
+  const _HistoryControls({required this.controller});
+
+  final GameController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: l10n.actionUndo,
+            icon: const Icon(Icons.undo),
+            onPressed: controller.canUndo ? controller.undo : null,
+          ),
+          IconButton(
+            tooltip: l10n.actionRedo,
+            icon: const Icon(Icons.redo),
+            onPressed: controller.canRedo ? controller.redo : null,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Overflow menu for narrow layouts: speeds, zoom, new game, language, about.
 class _MoreMenu extends StatelessWidget {
   const _MoreMenu({
@@ -501,6 +531,23 @@ class _MoreMenu extends StatelessWidget {
         icon: const Icon(Icons.more_vert),
         onSelected: (action) => action(),
         itemBuilder: (context) => [
+          PopupMenuItem(
+            value: controller.undo,
+            enabled: controller.canUndo,
+            child: ListTile(
+              leading: const Icon(Icons.undo),
+              title: Text(l10n.actionUndo),
+            ),
+          ),
+          PopupMenuItem(
+            value: controller.redo,
+            enabled: controller.canRedo,
+            child: ListTile(
+              leading: const Icon(Icons.redo),
+              title: Text(l10n.actionRedo),
+            ),
+          ),
+          const PopupMenuDivider(),
           for (final s in GameController.speeds)
             PopupMenuItem(
               value: () => controller.setSpeed(s),

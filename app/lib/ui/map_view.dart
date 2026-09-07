@@ -284,6 +284,16 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
   KeyEventResult _onKey(KeyEvent event, Size size) {
     if (event is KeyUpEvent) return KeyEventResult.ignored;
     final key = event.logicalKey;
+    final keyboard = HardwareKeyboard.instance;
+    final command = keyboard.isControlPressed || keyboard.isMetaPressed;
+    if (command && key == LogicalKeyboardKey.keyZ) {
+      keyboard.isShiftPressed ? c.redo() : c.undo();
+      return KeyEventResult.handled;
+    }
+    if (command && key == LogicalKeyboardKey.keyY) {
+      c.redo();
+      return KeyEventResult.handled;
+    }
     final delta = _arrows[key];
     if (delta != null) {
       c.moveCursor(delta.dx.round(), delta.dy.round());
@@ -488,6 +498,15 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                             right: 8,
                             child: _PlacementPreviewCard(preview: preview),
                           ),
+                        if (c.brush case final brush?)
+                          Positioned(
+                            left: 8,
+                            bottom: 8,
+                            child: _PlacementModeChip(
+                              tile: brush,
+                              onCancel: c.clearBrush,
+                            ),
+                          ),
                       ],
                     ),
                   );
@@ -497,6 +516,27 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
           ),
         );
       },
+    );
+  }
+}
+
+class _PlacementModeChip extends StatelessWidget {
+  const _PlacementModeChip({required this.tile, required this.onCancel});
+
+  final TileType tile;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final style = TileStyle.of(tile);
+    return InputChip(
+      elevation: 3,
+      avatar: Icon(style.icon, size: 18, color: style.iconColor),
+      label: Text(l10n.placementMode(l10n.tileName(tile.id))),
+      deleteIcon: const Icon(Icons.close, size: 18),
+      deleteButtonTooltipMessage: l10n.actionCancelPlacement,
+      onDeleted: onCancel,
     );
   }
 }

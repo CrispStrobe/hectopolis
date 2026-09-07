@@ -73,6 +73,42 @@ void main() {
     c.dispose();
   });
 
+  test('controller undo and redo restore complete build state', () {
+    final c = GameController(size: 8);
+    c.sim = Simulation(
+      state: WorldState.empty(width: 8, height: 8, budgetKEur: 1000),
+      tileBudget: TileBudget({TileType.road: 1, TileType.forest: null}),
+    );
+    final initialBudget = c.sim.state.budgetKEur;
+
+    expect(c.place(1, 1, TileType.road), isTrue);
+    final builtBudget = c.sim.state.budgetKEur;
+    expect(c.sim.tileBudget.remaining(TileType.road), 0);
+    expect(c.canUndo, isTrue);
+    expect(c.canRedo, isFalse);
+
+    c.undo();
+    expect(c.sim.state.tileAt(1, 1), TileType.terrain);
+    expect(c.sim.state.budgetKEur, initialBudget);
+    expect(c.sim.tileBudget.remaining(TileType.road), 1);
+    expect(c.canUndo, isFalse);
+    expect(c.canRedo, isTrue);
+
+    c.redo();
+    expect(c.sim.state.tileAt(1, 1), TileType.road);
+    expect(c.sim.state.budgetKEur, builtBudget);
+    expect(c.sim.tileBudget.remaining(TileType.road), 0);
+    expect(c.canUndo, isTrue);
+    expect(c.canRedo, isFalse);
+
+    c.undo();
+    expect(c.place(2, 2, TileType.forest), isTrue);
+    expect(c.canRedo, isFalse, reason: 'a new edit forks history');
+    c.step();
+    expect(c.canUndo, isFalse, reason: 'time advancement closes history');
+    c.dispose();
+  });
+
   test(
     'placement preview uses a copied simulation and real field changes',
     () async {

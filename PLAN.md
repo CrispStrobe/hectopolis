@@ -301,6 +301,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   remove. Touch and mouse. Keyboard accessible (select tile, arrow keys, Enter).
   *Note 2026-09-05:* Drag & drop, brush tap placement, long-press clear, placement preview outline. Keyboard access still open.
   *Note 2026-09-05 (4):* Keyboard access done: focusable map with a cursor cell (arrows, Enter/Space place, Delete/Backspace clear, 1–9/0 pick a tile, Esc drops the brush), shortcut digits on the palette cards, `Semantics` label on the map. Tests in `app/test/map_view_test.dart`.
+  *Note 2026-09-07:* Build/remove actions now have bounded undo/redo history, toolbar and keyboard controls, plus a persistent, cancellable placement-mode chip on the map. Simulation ticks intentionally close editing history so undo never rewinds time implicitly.
 - [x] **T-204 Indicator panel.** Ten gauges with trend arrows, tap opens detail sheet
   with raw values, units and a "Quelle / Source" link into `docs/model`.
   *Note 2026-09-05:* Ten gauges with detail line and tooltip hint. Source links into docs/model still open.

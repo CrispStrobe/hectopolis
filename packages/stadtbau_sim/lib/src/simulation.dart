@@ -18,9 +18,13 @@ class TileBudget {
   TileBudget(Map<TileType, int?> remaining) : _remaining = Map.of(remaining);
 
   /// Everything unlimited.
-  TileBudget.unlimited() : _remaining = {for (final t in TileType.values) t: null};
+  TileBudget.unlimited()
+    : _remaining = {for (final t in TileType.values) t: null};
 
   final Map<TileType, int?> _remaining;
+
+  /// An independent snapshot, including finite remaining counts.
+  TileBudget copy() => TileBudget(_remaining);
 
   bool allowed(TileType t) => _remaining.containsKey(t);
 
@@ -47,13 +51,10 @@ class TileBudget {
 /// The game engine: owns the state, applies commands, advances ticks and
 /// exposes fields and indicators. Deterministic for a given command log.
 class Simulation {
-  Simulation({
-    required this.state,
-    SimParams? params,
-    TileBudget? tileBudget,
-  })  : params = params ?? SimParams.defaults(),
-        tileBudget = tileBudget ?? TileBudget.unlimited(),
-        fields = Fields(state.cellCount) {
+  Simulation({required this.state, SimParams? params, TileBudget? tileBudget})
+    : params = params ?? SimParams.defaults(),
+      tileBudget = tileBudget ?? TileBudget.unlimited(),
+      fields = Fields(state.cellCount) {
     recompute();
   }
 
@@ -77,6 +78,20 @@ class Simulation {
 
   late IndicatorSnapshot indicators;
   double _lastBudgetDelta = 0;
+
+  /// An independent snapshot suitable for forecasts and UI history.
+  Simulation copy() {
+    final result = Simulation(
+      state: state.copy(),
+      params: params,
+      tileBudget: tileBudget.copy(),
+    );
+    result
+      .._lastBudgetDelta = _lastBudgetDelta
+      ..log.addAll(log)
+      ..recompute();
+    return result;
+  }
 
   /// Recompute all fields and indicators from the current state without
   /// advancing time. Called after every placement.
@@ -115,7 +130,8 @@ class Simulation {
     final current = state.tileAt(x, y);
     if (current == tile) return null;
     var cost = params.tile(tile).buildCostKEur.value;
-    if (params.tile(current).category.isBuilt) cost += params.economy.demolitionCostKEur;
+    if (params.tile(current).category.isBuilt)
+      cost += params.economy.demolitionCostKEur;
     return cost;
   }
 
@@ -130,13 +146,17 @@ class Simulation {
   }
 
   CommandResult _place(int x, int y, TileType tile) {
-    if (!state.inBounds(x, y)) return const CommandResult.failed(CommandError.outOfBounds);
-    if (!tileBudget.allowed(tile)) return const CommandResult.failed(CommandError.tileNotAllowed);
+    if (!state.inBounds(x, y))
+      return const CommandResult.failed(CommandError.outOfBounds);
+    if (!tileBudget.allowed(tile))
+      return const CommandResult.failed(CommandError.tileNotAllowed);
     final cost = placementCost(x, y, tile);
     if (cost == null) return const CommandResult.failed(CommandError.sameTile);
     final remaining = tileBudget.remaining(tile);
-    if (remaining != null && remaining <= 0) return const CommandResult.failed(CommandError.tileExhausted);
-    if (cost > state.budgetKEur) return const CommandResult.failed(CommandError.insufficientBudget);
+    if (remaining != null && remaining <= 0)
+      return const CommandResult.failed(CommandError.tileExhausted);
+    if (cost > state.budgetKEur)
+      return const CommandResult.failed(CommandError.insufficientBudget);
     tileBudget._take(tile);
     final i = state.index(x, y);
     final previous = state.tiles[i];
@@ -150,12 +170,17 @@ class Simulation {
   }
 
   CommandResult _remove(int x, int y) {
-    if (!state.inBounds(x, y)) return const CommandResult.failed(CommandError.outOfBounds);
+    if (!state.inBounds(x, y))
+      return const CommandResult.failed(CommandError.outOfBounds);
     final i = state.index(x, y);
     final current = state.tiles[i];
-    if (current == TileType.terrain) return const CommandResult.failed(CommandError.sameTile);
-    final cost = params.tile(current).category.isBuilt ? params.economy.demolitionCostKEur : 0.0;
-    if (cost > state.budgetKEur) return const CommandResult.failed(CommandError.insufficientBudget);
+    if (current == TileType.terrain)
+      return const CommandResult.failed(CommandError.sameTile);
+    final cost = params.tile(current).category.isBuilt
+        ? params.economy.demolitionCostKEur
+        : 0.0;
+    if (cost > state.budgetKEur)
+      return const CommandResult.failed(CommandError.insufficientBudget);
     tileBudget._giveBack(current);
     state.tiles[i] = TileType.terrain;
     state.tileAge[i] = 0;
@@ -185,7 +210,11 @@ class Simulation {
   }
 
   /// Rebuild a simulation by replaying a command log onto an initial state.
-  static Simulation replay(WorldState initial, List<CommandRecord> records, {SimParams? params}) {
+  static Simulation replay(
+    WorldState initial,
+    List<CommandRecord> records, {
+    SimParams? params,
+  }) {
     final sim = Simulation(state: initial.copy(), params: params);
     for (final r in records) {
       sim.apply(r.command);
@@ -194,7 +223,7 @@ class Simulation {
   }
 
   Map<String, dynamic> toJson() => {
-        'state': state.toJson(),
-        'log': [for (final r in log) r.toJson()],
-      };
+    'state': state.toJson(),
+    'log': [for (final r in log) r.toJson()],
+  };
 }

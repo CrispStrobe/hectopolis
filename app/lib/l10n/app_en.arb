@@ -204,6 +204,11 @@
   "actionZoomIn": "Zoom in",
   "actionZoomOut": "Zoom out",
   "actionZoomReset": "Reset view",
-  "keyboardHint": "Arrow keys move the cursor, Enter places the selected tile, Delete or Backspace clears the cell, 1–9 and 0 pick a tile, Escape drops the brush.",
+  "actionUndo": "Undo build",
+  "actionRedo": "Redo build",
+  "actionCancelPlacement": "Cancel placement mode",
+  "placementMode": "Placing {tile}",
+  "@placementMode": {"placeholders": {"tile": {"type": "String"}}},
+  "keyboardHint": "Arrow keys move the cursor, Enter places the selected tile, Delete or Backspace clears the cell, 1–9 and 0 pick a tile, Escape drops the brush. Control or Command Z undoes a build.",
   "actionMore": "More"
 }

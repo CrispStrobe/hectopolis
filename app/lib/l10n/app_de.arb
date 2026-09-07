@@ -158,6 +158,10 @@
   "actionZoomIn": "Vergrößern",
   "actionZoomOut": "Verkleinern",
   "actionZoomReset": "Ansicht zurücksetzen",
-  "keyboardHint": "Pfeiltasten bewegen den Cursor, Enter setzt das gewählte Feld, Entf oder Rücktaste leert die Zelle, 1–9 und 0 wählen ein Feld, Esc legt den Pinsel ab.",
+  "actionUndo": "Bau rückgängig",
+  "actionRedo": "Bau wiederholen",
+  "actionCancelPlacement": "Platzierungsmodus beenden",
+  "placementMode": "Setzen: {tile}",
+  "keyboardHint": "Pfeiltasten bewegen den Cursor, Enter setzt das gewählte Feld, Entf oder Rücktaste leert die Zelle, 1–9 und 0 wählen ein Feld, Esc legt den Pinsel ab. Strg oder Command Z macht einen Bau rückgängig.",
   "actionMore": "Mehr"
 }
