@@ -626,7 +626,7 @@ class _PlacementPreviewCard extends StatelessWidget {
           ..sort((a, b) => b.value.abs().compareTo(a.value.abs()));
     final error = switch (preview.error) {
       CommandError.outOfBounds => l10n.errorOutOfBounds,
-      CommandError.sameTile => l10n.errorSameTile,
+      CommandError.sameTile => null,
       CommandError.insufficientBudget => l10n.errorInsufficientBudget,
       CommandError.tileNotAllowed => l10n.errorTileNotAllowed,
       CommandError.tileExhausted => l10n.errorTileExhausted,

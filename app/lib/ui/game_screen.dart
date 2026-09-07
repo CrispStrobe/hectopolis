@@ -59,16 +59,18 @@ class _GameScreenState extends State<GameScreen> {
       final l10n = AppLocalizations.of(context);
       final text = switch (err) {
         CommandError.outOfBounds => l10n.errorOutOfBounds,
-        CommandError.sameTile => l10n.errorSameTile,
         CommandError.insufficientBudget => l10n.errorInsufficientBudget,
         CommandError.tileNotAllowed => l10n.errorTileNotAllowed,
         CommandError.tileExhausted => l10n.errorTileExhausted,
+        CommandError.sameTile => null,
       };
-      ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(
-          SnackBar(content: Text(text), duration: const Duration(seconds: 2)),
-        );
+      if (text != null) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(content: Text(text), duration: const Duration(seconds: 2)),
+          );
+      }
       c.lastError = null;
       _shownError = null;
     }
