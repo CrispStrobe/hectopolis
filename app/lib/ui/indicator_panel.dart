@@ -8,7 +8,8 @@ import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
 
 /// Base URL of the model documentation in the repository (T-204).
-const indicatorDocsBaseUrl = 'https://github.com/CrispStrobe/stadtbau/blob/main/docs/model/';
+const indicatorDocsBaseUrl =
+    'https://github.com/CrispStrobe/stadtbau/blob/main/docs/model/';
 
 /// The model document that explains each indicator.
 const indicatorDocFile = <Indicator, String>{
@@ -25,22 +26,32 @@ const indicatorDocFile = <Indicator, String>{
 };
 
 /// The documentation URL for [indicator].
-String indicatorDocUrl(Indicator indicator) => '$indicatorDocsBaseUrl${indicatorDocFile[indicator]!}';
+String indicatorDocUrl(Indicator indicator) =>
+    '$indicatorDocsBaseUrl${indicatorDocFile[indicator]!}';
 
 /// Opens the detail sheet of one indicator: name, hint, current detail line,
 /// how the score is computed and a link into `docs/model` (T-204).
-Future<void> showIndicatorDetails(BuildContext context, {required Indicator indicator, required String detail}) {
+Future<void> showIndicatorDetails(
+  BuildContext context, {
+  required Indicator indicator,
+  required String detail,
+}) {
   return showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
-    builder: (context) => _IndicatorDetailsSheet(indicator: indicator, detail: detail),
+    builder: (context) =>
+        _IndicatorDetailsSheet(indicator: indicator, detail: detail),
   );
 }
 
 /// Ten gauges with a detail line each. Compact mode renders a horizontal strip.
 class IndicatorPanel extends StatelessWidget {
-  const IndicatorPanel({super.key, required this.controller, this.compact = false});
+  const IndicatorPanel({
+    super.key,
+    required this.controller,
+    this.compact = false,
+  });
 
   final GameController controller;
   final bool compact;
@@ -66,9 +77,18 @@ class IndicatorPanel extends StatelessWidget {
       builder: (context, _) {
         final ind = controller.sim.indicators;
         final locale = Localizations.localeOf(context).toString();
-        final n0 = NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 0);
-        final n1 = NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 1);
-        final n2 = NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 2);
+        final n0 = NumberFormat.decimalPatternDigits(
+          locale: locale,
+          decimalDigits: 0,
+        );
+        final n1 = NumberFormat.decimalPatternDigits(
+          locale: locale,
+          decimalDigits: 1,
+        );
+        final n2 = NumberFormat.decimalPatternDigits(
+          locale: locale,
+          decimalDigits: 2,
+        );
 
         String detail(Indicator i) => switch (i) {
           Indicator.biodiversity => l10n.statsHabitat(
@@ -76,17 +96,26 @@ class IndicatorPanel extends StatelessWidget {
             n2.format(ind.habitatConnectivity),
           ),
           Indicator.air => l10n.statsPopulation(n0.format(ind.population)),
-          Indicator.noise => l10n.statsNoise(l10n.dbValue(n0.format(ind.meanNoiseDb))),
+          Indicator.noise => l10n.statsNoise(
+            l10n.dbValue(n0.format(ind.meanNoiseDb)),
+          ),
           Indicator.housing => l10n.statsPopulation(n0.format(ind.population)),
-          Indicator.economy => l10n.statsJobs(n0.format(ind.jobsFilled), n0.format(ind.jobsCapacity)),
+          Indicator.economy => l10n.statsJobs(
+            n0.format(ind.jobsFilled),
+            n0.format(ind.jobsCapacity),
+          ),
           Indicator.shopping => l10n.statsPopulation(n0.format(ind.population)),
-          Indicator.recreation => l10n.statsHeat(l10n.degreesValue(n1.format(ind.meanHeatDeltaC))),
+          Indicator.recreation => l10n.statsHeat(
+            l10n.degreesValue(n1.format(ind.meanHeatDeltaC)),
+          ),
           Indicator.commuting => l10n.statsCommute(
             l10n.kmValue(n1.format(ind.meanCommuteKm)),
             l10n.percentValue(n0.format(ind.carShare * 100)),
           ),
           Indicator.climate => l10n.tonsPerYear(n0.format(ind.co2TonsPerYear)),
-          Indicator.budget => l10n.statsBudgetDelta(l10n.kEur(n0.format(ind.budgetDeltaKEur))),
+          Indicator.budget => l10n.statsBudgetDelta(
+            l10n.kEur(n0.format(ind.budgetDeltaKEur)),
+          ),
         };
 
         final tiles = [
@@ -121,10 +150,19 @@ class IndicatorPanel extends StatelessWidget {
           children: [
             Row(
               children: [
-                Expanded(child: Text(l10n.indicatorsTitle, style: Theme.of(context).textTheme.titleMedium)),
+                Expanded(
+                  child: Text(
+                    l10n.indicatorsTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
                 IconButton(
-                  icon: Icon(controller.simpleMode ? Icons.mood : Icons.analytics),
-                  tooltip: controller.simpleMode ? 'Expert mode' : 'Simple mode',
+                  icon: Icon(
+                    controller.simpleMode ? Icons.mood : Icons.analytics,
+                  ),
+                  tooltip: controller.simpleMode
+                      ? l10n.indicatorModeExpert
+                      : l10n.indicatorModeSimple,
                   onPressed: controller.toggleSimpleMode,
                 ),
               ],
@@ -158,7 +196,8 @@ class _Gauge extends StatelessWidget {
   final bool simpleMode;
   final VoidCallback onTap;
 
-  void _open(BuildContext context) => showIndicatorDetails(context, indicator: indicator, detail: detail);
+  void _open(BuildContext context) =>
+      showIndicatorDetails(context, indicator: indicator, detail: detail);
 
   Color _color(BuildContext context) {
     final v = value.clamp(0, 100) / 100;
@@ -186,7 +225,7 @@ class _Gauge extends StatelessWidget {
     final theme = Theme.of(context);
     final v = value.clamp(0, 100) / 100;
     final rounded = value.clamp(0, 100).round();
-    
+
     if (compact) {
       return Tooltip(
         message: '$hint\n$detail',
@@ -208,17 +247,32 @@ class _Gauge extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.labelSmall),
-                simpleMode 
-                  ? Text(_smiley(v), style: theme.textTheme.titleMedium?.copyWith(color: _smileyColor(v)))
-                  : Text('$rounded', style: theme.textTheme.titleMedium?.copyWith(color: _color(context))),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall,
+                ),
+                simpleMode
+                    ? Text(
+                        _smiley(v),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: _smileyColor(v),
+                        ),
+                      )
+                    : Text(
+                        '$rounded',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: _color(context),
+                        ),
+                      ),
               ],
             ),
           ),
         ),
       );
     }
-    
+
     return Tooltip(
       message: hint,
       waitDuration: const Duration(milliseconds: 600),
@@ -235,11 +289,23 @@ class _Gauge extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
+                  Expanded(
+                    child: Text(label, style: theme.textTheme.bodyMedium),
+                  ),
                   if (simpleMode)
-                    Text(_smiley(v), style: theme.textTheme.titleMedium?.copyWith(color: _smileyColor(v)))
+                    Text(
+                      _smiley(v),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: _smileyColor(v),
+                      ),
+                    )
                   else ...[
-                    Text('$rounded', style: theme.textTheme.titleMedium?.copyWith(color: _color(context))),
+                    Text(
+                      '$rounded',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: _color(context),
+                      ),
+                    ),
                     const SizedBox(width: 2),
                     Icon(Icons.info_outline, size: 14, color: theme.hintColor),
                   ],
@@ -285,13 +351,19 @@ class _IndicatorDetailsSheet extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.indicatorName(indicator.name), style: theme.textTheme.titleLarge),
+              Text(
+                l10n.indicatorName(indicator.name),
+                style: theme.textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               Text(l10n.indicatorHint(indicator.name)),
               const SizedBox(height: 8),
               Text(detail, style: theme.textTheme.bodySmall),
               const SizedBox(height: 16),
-              Text(l10n.indicatorFormulaLabel, style: theme.textTheme.titleSmall),
+              Text(
+                l10n.indicatorFormulaLabel,
+                style: theme.textTheme.titleSmall,
+              ),
               const SizedBox(height: 4),
               Text(l10n.indicatorFormula(indicator.name)),
               const SizedBox(height: 16),
@@ -299,7 +371,10 @@ class _IndicatorDetailsSheet extends StatelessWidget {
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.actionClose)),
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.actionClose),
+                ),
               ),
             ],
           ),
@@ -322,7 +397,9 @@ class _DocLink extends StatelessWidget {
     return InkWell(
       onTap: () async {
         final uri = Uri.parse(url);
-        if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
       },
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -331,7 +408,10 @@ class _DocLink extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: TextStyle(color: scheme.primary, decoration: TextDecoration.underline),
+            style: TextStyle(
+              color: scheme.primary,
+              decoration: TextDecoration.underline,
+            ),
           ),
         ],
       ),

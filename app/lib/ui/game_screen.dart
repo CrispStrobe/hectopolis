@@ -14,7 +14,11 @@ import 'tile_inspector.dart';
 import 'tile_style.dart';
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key, required this.controller, required this.onLocaleToggle});
+  const GameScreen({
+    super.key,
+    required this.controller,
+    required this.onLocaleToggle,
+  });
 
   final GameController controller;
   final VoidCallback onLocaleToggle;
@@ -61,7 +65,9 @@ class _GameScreenState extends State<GameScreen> {
       };
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
-        ..showSnackBar(SnackBar(content: Text(text), duration: const Duration(seconds: 2)));
+        ..showSnackBar(
+          SnackBar(content: Text(text), duration: const Duration(seconds: 2)),
+        );
       c.lastError = null;
       _shownError = null;
     }
@@ -75,7 +81,9 @@ class _GameScreenState extends State<GameScreen> {
     final back = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(progress.allMet ? l10n.endTitleSuccess : l10n.endTitleTimeUp),
+        title: Text(
+          progress.allMet ? l10n.endTitleSuccess : l10n.endTitleTimeUp,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +91,11 @@ class _GameScreenState extends State<GameScreen> {
             Row(
               children: [
                 for (var i = 0; i < 3; i++)
-                  Icon(i < progress.stars ? Icons.star : Icons.star_border, color: Colors.amber.shade700, size: 32),
+                  Icon(
+                    i < progress.stars ? Icons.star : Icons.star_border,
+                    color: Colors.amber.shade700,
+                    size: 32,
+                  ),
               ],
             ),
             const SizedBox(height: 8),
@@ -91,8 +103,14 @@ class _GameScreenState extends State<GameScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.actionKeepPlaying)),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.actionBackToLevels)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.actionKeepPlaying),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.actionBackToLevels),
+          ),
         ],
       ),
     );
@@ -114,7 +132,7 @@ class _GameScreenState extends State<GameScreen> {
               Text(l10n.newGameSize(w, h)),
               Row(
                 children: [
-                  const Text('X'),
+                  const Text('X'), // i18n-ignore: mathematical axis label
                   Expanded(
                     child: Slider(
                       value: w.toDouble(),
@@ -129,7 +147,7 @@ class _GameScreenState extends State<GameScreen> {
               ),
               Row(
                 children: [
-                  const Text('Y'),
+                  const Text('Y'), // i18n-ignore: mathematical axis label
                   Expanded(
                     child: Slider(
                       value: h.toDouble(),
@@ -145,8 +163,14 @@ class _GameScreenState extends State<GameScreen> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
-            FilledButton(onPressed: () => Navigator.pop(context, [w, h]), child: Text(l10n.ok)),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, [w, h]),
+              child: Text(l10n.ok),
+            ),
           ],
         ),
       ),
@@ -158,7 +182,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _about() {
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AboutScreen()));
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const AboutScreen()));
   }
 
   @override
@@ -174,25 +200,49 @@ class _GameScreenState extends State<GameScreen> {
               icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.of(context).maybePop(),
             ),
-            title: Text(c.level == null ? l10n.levelTitle('sandbox') : l10n.levelTitle(c.level!.id)),
+            title: Text(
+              c.level == null
+                  ? l10n.levelTitle('sandbox')
+                  : l10n.levelTitle(c.level!.id),
+            ),
             actions: wide
                 ? [
                     _Clock(controller: c),
                     const SizedBox(width: 8),
                     _Transport(controller: c),
+                    _HistoryControls(controller: c),
                     _OverlayMenu(controller: c),
-                    IconButton(tooltip: l10n.actionZoomOut, icon: const Icon(Icons.zoom_out), onPressed: _map.zoomOut),
-                    IconButton(tooltip: l10n.actionZoomIn, icon: const Icon(Icons.zoom_in), onPressed: _map.zoomIn),
+                    IconButton(
+                      tooltip: l10n.actionZoomOut,
+                      icon: const Icon(Icons.zoom_out),
+                      onPressed: _map.zoomOut,
+                    ),
+                    IconButton(
+                      tooltip: l10n.actionZoomIn,
+                      icon: const Icon(Icons.zoom_in),
+                      onPressed: _map.zoomIn,
+                    ),
                     IconButton(
                       tooltip: l10n.actionZoomReset,
                       icon: const Icon(Icons.center_focus_strong),
                       onPressed: _map.reset,
                     ),
                     if (c.level == null)
-                      IconButton(tooltip: l10n.actionNewGame, icon: const Icon(Icons.restart_alt), onPressed: _newGame),
+                      IconButton(
+                        tooltip: l10n.actionNewGame,
+                        icon: const Icon(Icons.restart_alt),
+                        onPressed: _newGame,
+                      ),
                     IconButton(
-                        tooltip: l10n.actionLanguage, icon: const Icon(Icons.translate), onPressed: widget.onLocaleToggle),
-                    IconButton(tooltip: l10n.actionAbout, icon: const Icon(Icons.info_outline), onPressed: _about),
+                      tooltip: l10n.actionLanguage,
+                      icon: const Icon(Icons.translate),
+                      onPressed: widget.onLocaleToggle,
+                    ),
+                    IconButton(
+                      tooltip: l10n.actionAbout,
+                      icon: const Icon(Icons.info_outline),
+                      onPressed: _about,
+                    ),
                   ]
                 : [
                     _Clock(controller: c, compact: true),
@@ -214,43 +264,53 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _wide() => Row(
-        children: [
-          SizedBox(width: 260, child: Palette(controller: c)),
-          const VerticalDivider(width: 1),
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(child: Padding(padding: const EdgeInsets.all(8), child: MapView(controller: c, mapController: _map))),
-                _Legend(controller: c),
-              ],
+    children: [
+      SizedBox(width: 260, child: Palette(controller: c)),
+      const VerticalDivider(width: 1),
+      Expanded(
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: MapView(controller: c, mapController: _map),
+              ),
             ),
-          ),
-          const VerticalDivider(width: 1),
-          SizedBox(
-            width: 320,
-            child: Column(
-              children: [
-                GoalsPanel(controller: c),
-                if (c.level != null) const Divider(height: 1),
-                Expanded(flex: 3, child: IndicatorPanel(controller: c)),
-                const Divider(height: 1),
-                Expanded(flex: 2, child: TileInspector(controller: c)),
-              ],
-            ),
-          ),
-        ],
-      );
+            _Legend(controller: c),
+          ],
+        ),
+      ),
+      const VerticalDivider(width: 1),
+      SizedBox(
+        width: 320,
+        child: Column(
+          children: [
+            GoalsPanel(controller: c),
+            if (c.level != null) const Divider(height: 1),
+            Expanded(flex: 3, child: IndicatorPanel(controller: c)),
+            const Divider(height: 1),
+            Expanded(flex: 2, child: TileInspector(controller: c)),
+          ],
+        ),
+      ),
+    ],
+  );
 
   Widget _narrow() => Column(
-        children: [
-          GoalsPanel(controller: c, compact: true),
-          IndicatorPanel(controller: c, compact: true),
-          Expanded(child: Padding(padding: const EdgeInsets.all(4), child: MapView(controller: c, mapController: _map))),
-          _Legend(controller: c),
-          SizedBox(height: 140, child: TileInspector(controller: c)),
-          Palette(controller: c, horizontal: true),
-        ],
-      );
+    children: [
+      GoalsPanel(controller: c, compact: true),
+      IndicatorPanel(controller: c, compact: true),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: MapView(controller: c, mapController: _map),
+        ),
+      ),
+      _Legend(controller: c),
+      SizedBox(height: 140, child: TileInspector(controller: c)),
+      Palette(controller: c, horizontal: true),
+    ],
+  );
 }
 
 class _Clock extends StatelessWidget {
@@ -265,7 +325,10 @@ class _Clock extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toString();
-    final n0 = NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 0);
+    final n0 = NumberFormat.decimalPatternDigits(
+      locale: locale,
+      decimalDigits: 0,
+    );
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
@@ -279,9 +342,15 @@ class _Clock extends StatelessWidget {
               Text(l10n.yearMonthLabel(year, month)),
               const SizedBox(width: 12),
             ],
-            Tooltip(message: l10n.budgetLabel, child: Text(l10n.kEur(n0.format(s.budgetKEur)))),
+            Tooltip(
+              message: l10n.budgetLabel,
+              child: Text(l10n.kEur(n0.format(s.budgetKEur))),
+            ),
             const SizedBox(width: 12),
-            Tooltip(message: l10n.populationLabel, child: Text('${n0.format(ind.population)} 👥')),
+            Tooltip(
+              message: l10n.populationLabel,
+              child: Text('${n0.format(ind.population)} 👥'),
+            ),
           ],
         );
       },
@@ -308,15 +377,19 @@ class _Transport extends StatelessWidget {
             icon: Icon(controller.speed == 0 ? Icons.play_arrow : Icons.pause),
             onPressed: controller.togglePlay,
           ),
-          IconButton(tooltip: l10n.actionStep, icon: const Icon(Icons.skip_next), onPressed: controller.step),
+          IconButton(
+            tooltip: l10n.actionStep,
+            icon: const Icon(Icons.skip_next),
+            onPressed: controller.step,
+          ),
           if (!compact)
             for (final s in GameController.speeds)
               IconButton(
-              tooltip: l10n.actionSpeed(s),
-              isSelected: controller.speed == s,
-              icon: Text('$s×'),
-              onPressed: () => controller.setSpeed(s),
-            ),
+                tooltip: l10n.actionSpeed(s),
+                isSelected: controller.speed == s,
+                icon: Text('$s×'),
+                onPressed: () => controller.setSpeed(s),
+              ),
         ],
       ),
     );
@@ -334,11 +407,16 @@ class _OverlayMenu extends StatelessWidget {
       listenable: controller,
       builder: (context, _) => PopupMenuButton<MapOverlay>(
         tooltip: l10n.overlayLabel,
-        icon: Icon(controller.overlay == MapOverlay.none ? Icons.layers_outlined : Icons.layers),
+        icon: Icon(
+          controller.overlay == MapOverlay.none
+              ? Icons.layers_outlined
+              : Icons.layers,
+        ),
         initialValue: controller.overlay,
         onSelected: controller.setOverlay,
         itemBuilder: (context) => [
-          for (final o in MapOverlay.values) PopupMenuItem(value: o, child: Text(l10n.overlayName(o.name))),
+          for (final o in MapOverlay.values)
+            PopupMenuItem(value: o, child: Text(l10n.overlayName(o.name))),
         ],
       ),
     );
@@ -355,30 +433,74 @@ class _Legend extends StatelessWidget {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
-        if (controller.overlay == MapOverlay.none) return const SizedBox(height: 4);
+        if (controller.overlay == MapOverlay.none) {
+          return const SizedBox(height: 4);
+        }
         final bad = controller.overlayHighIsBad;
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           child: Row(
             children: [
-              Text('${l10n.overlayName(controller.overlay.name)} (${l10n.overlayUnit(controller.overlay.name)})'),
+              Text(
+                '${l10n.overlayName(controller.overlay.name)} (${l10n.overlayUnit(controller.overlay.name)})',
+              ),
               const SizedBox(width: 12),
-              Text(l10n.legendLow, style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                l10n.legendLow,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
               const SizedBox(width: 4),
               Container(
                 width: 120,
                 height: 12,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [for (var i = 0; i <= 4; i++) overlayColor(i / 4, highIsBad: bad)]),
+                  gradient: LinearGradient(
+                    colors: [
+                      for (var i = 0; i <= 4; i++)
+                        overlayColor(i / 4, highIsBad: bad),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
               const SizedBox(width: 4),
-              Text(l10n.legendHigh, style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                l10n.legendHigh,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _HistoryControls extends StatelessWidget {
+  const _HistoryControls({required this.controller});
+
+  final GameController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: l10n.actionUndo,
+            icon: const Icon(Icons.undo),
+            onPressed: controller.canUndo ? controller.undo : null,
+          ),
+          IconButton(
+            tooltip: l10n.actionRedo,
+            icon: const Icon(Icons.redo),
+            onPressed: controller.canRedo ? controller.redo : null,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -409,40 +531,79 @@ class _MoreMenu extends StatelessWidget {
         icon: const Icon(Icons.more_vert),
         onSelected: (action) => action(),
         itemBuilder: (context) => [
+          PopupMenuItem(
+            value: controller.undo,
+            enabled: controller.canUndo,
+            child: ListTile(
+              leading: const Icon(Icons.undo),
+              title: Text(l10n.actionUndo),
+            ),
+          ),
+          PopupMenuItem(
+            value: controller.redo,
+            enabled: controller.canRedo,
+            child: ListTile(
+              leading: const Icon(Icons.redo),
+              title: Text(l10n.actionRedo),
+            ),
+          ),
+          const PopupMenuDivider(),
           for (final s in GameController.speeds)
             PopupMenuItem(
               value: () => controller.setSpeed(s),
               child: ListTile(
-                leading: Icon(controller.speed == s ? Icons.radio_button_checked : Icons.radio_button_off),
+                leading: Icon(
+                  controller.speed == s
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                ),
                 title: Text(l10n.actionSpeed(s)),
               ),
             ),
           const PopupMenuDivider(),
           PopupMenuItem(
             value: map.zoomIn,
-            child: ListTile(leading: const Icon(Icons.zoom_in), title: Text(l10n.actionZoomIn)),
+            child: ListTile(
+              leading: const Icon(Icons.zoom_in),
+              title: Text(l10n.actionZoomIn),
+            ),
           ),
           PopupMenuItem(
             value: map.zoomOut,
-            child: ListTile(leading: const Icon(Icons.zoom_out), title: Text(l10n.actionZoomOut)),
+            child: ListTile(
+              leading: const Icon(Icons.zoom_out),
+              title: Text(l10n.actionZoomOut),
+            ),
           ),
           PopupMenuItem(
             value: map.reset,
-            child: ListTile(leading: const Icon(Icons.center_focus_strong), title: Text(l10n.actionZoomReset)),
+            child: ListTile(
+              leading: const Icon(Icons.center_focus_strong),
+              title: Text(l10n.actionZoomReset),
+            ),
           ),
           const PopupMenuDivider(),
           if (onNewGame != null)
             PopupMenuItem(
               value: onNewGame!,
-              child: ListTile(leading: const Icon(Icons.restart_alt), title: Text(l10n.actionNewGame)),
+              child: ListTile(
+                leading: const Icon(Icons.restart_alt),
+                title: Text(l10n.actionNewGame),
+              ),
             ),
           PopupMenuItem(
             value: onLocaleToggle,
-            child: ListTile(leading: const Icon(Icons.translate), title: Text(l10n.actionLanguage)),
+            child: ListTile(
+              leading: const Icon(Icons.translate),
+              title: Text(l10n.actionLanguage),
+            ),
           ),
           PopupMenuItem(
             value: onAbout,
-            child: ListTile(leading: const Icon(Icons.info_outline), title: Text(l10n.actionAbout)),
+            child: ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: Text(l10n.actionAbout),
+            ),
           ),
         ],
       ),

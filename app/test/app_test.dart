@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Simulation;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stadtbau/game/game_controller.dart';
@@ -8,21 +8,27 @@ import 'package:stadtbau/main.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 void main() {
-  testWidgets('level select opens the sandbox with palette, map and indicators', (tester) async {
-    // Skip the first-launch onboarding overlay (T-208).
-    SharedPreferences.setMockInitialValues({'stadtbau.onboarding.v1': true});
-    tester.view.physicalSize = const Size(1400, 900);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    await tester.pumpWidget(const HectopolisApp());
-    await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.grid_on), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.grid_on));
-    await tester.pumpAndSettle();
-    expect(find.byType(CustomPaint), findsWidgets);
-    expect(find.byIcon(Icons.forest), findsOneWidget);
-    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
-  });
+  testWidgets(
+    'level select opens the sandbox with palette, map and indicators',
+    (tester) async {
+      // Skip the first-launch onboarding overlay (T-208).
+      SharedPreferences.setMockInitialValues({'stadtbau.onboarding.v1': true});
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(const HectopolisApp());
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.grid_on), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.grid_on));
+      // The game map has intentional continuous ambient animation, so it never
+      // reaches pumpAndSettle's definition of idle.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(CustomPaint), findsWidgets);
+      expect(find.byIcon(Icons.forest), findsOneWidget);
+      expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+    },
+  );
 
   testWidgets('a level shows its goals', (tester) async {
     // Skip the first-launch onboarding overlay (T-208).
@@ -33,7 +39,8 @@ void main() {
     await tester.pumpWidget(const HectopolisApp());
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.star_border).first);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     expect(find.byIcon(Icons.radio_button_unchecked), findsWidgets);
   });
 
@@ -65,4 +72,74 @@ void main() {
     expect(c.sim.state.tick, 1);
     c.dispose();
   });
+
+  test('controller undo and redo restore complete build state', () {
+    final c = GameController(size: 8);
+    c.sim = Simulation(
+      state: WorldState.empty(width: 8, height: 8, budgetKEur: 1000),
+      tileBudget: TileBudget({TileType.road: 1, TileType.forest: null}),
+    );
+    final initialBudget = c.sim.state.budgetKEur;
+
+    expect(c.place(1, 1, TileType.road), isTrue);
+    final builtBudget = c.sim.state.budgetKEur;
+    expect(c.sim.tileBudget.remaining(TileType.road), 0);
+    expect(c.canUndo, isTrue);
+    expect(c.canRedo, isFalse);
+
+    c.undo();
+    expect(c.sim.state.tileAt(1, 1), TileType.terrain);
+    expect(c.sim.state.budgetKEur, initialBudget);
+    expect(c.sim.tileBudget.remaining(TileType.road), 1);
+    expect(c.canUndo, isFalse);
+    expect(c.canRedo, isTrue);
+
+    c.redo();
+    expect(c.sim.state.tileAt(1, 1), TileType.road);
+    expect(c.sim.state.budgetKEur, builtBudget);
+    expect(c.sim.tileBudget.remaining(TileType.road), 0);
+    expect(c.canUndo, isTrue);
+    expect(c.canRedo, isFalse);
+
+    c.undo();
+    expect(c.place(2, 2, TileType.forest), isTrue);
+    expect(c.canRedo, isFalse, reason: 'a new edit forks history');
+    c.step();
+    expect(c.canUndo, isFalse, reason: 'time advancement closes history');
+    c.dispose();
+  });
+
+  test(
+    'placement preview uses a copied simulation and real field changes',
+    () async {
+      final c = GameController(size: 8);
+      c.setBrush(TileType.commercial);
+      c.setHover(c.sim.state.index(4, 4));
+      final before = c.sim.state.hash();
+
+      final immediate = c.placementPreview;
+      expect(immediate, isNotNull);
+      expect(immediate!.affectedCells, {c.sim.state.index(4, 4)});
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      final preview = c.placementPreview;
+
+      expect(preview, isNotNull);
+      expect(preview!.isValid, isTrue);
+      expect(preview.tile, TileType.commercial);
+      expect(preview.affectedOverlay, MapOverlay.retail);
+      expect(preview.affectedCells, contains(c.sim.state.index(4, 4)));
+      expect(preview.affectedCells.length, greaterThan(1));
+      expect(
+        c.sim.state.hash(),
+        before,
+        reason: 'forecast must not mutate the live world',
+      );
+      expect(
+        identical(c.placementPreview, preview),
+        isTrue,
+        reason: 'forecast is cached for an unchanged cell',
+      );
+      c.dispose();
+    },
+  );
 }

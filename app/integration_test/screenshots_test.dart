@@ -61,7 +61,11 @@ Future<void> main() async {
     // reader, without which takeScreenshot() throws. Exactly once per test.
     await binding.convertFlutterSurfaceToImage();
 
-    expect(Level.byId(_levelId), isNotNull, reason: 'level "$_levelId" is gone from data/levels');
+    expect(
+      Level.byId(_levelId),
+      isNotNull,
+      reason: 'level "$_levelId" is gone from data/levels',
+    );
 
     for (final locale in _locales) {
       await _tour(tester, binding, locale);
@@ -76,7 +80,9 @@ Future<void> _tour(
   String locale,
 ) async {
   // Deterministic state: no autosave, no stars, onboarding already seen.
-  SharedPreferences.setMockInitialValues(<String, Object>{_onboardingSeenKey: true});
+  SharedPreferences.setMockInitialValues(<String, Object>{
+    _onboardingSeenKey: true,
+  });
 
   // A per-locale key forces a fresh HectopolisApp state (and therefore a fresh
   // GameController and Navigator); re-pumping the identical widget would only
@@ -89,7 +95,9 @@ Future<void> _tour(
   await _shot(tester, binding, locale, '01_levels');
 
   await _openLevel(tester);
-  final controller = tester.widget<GameScreen>(find.byType(GameScreen)).controller;
+  final controller = tester
+      .widget<GameScreen>(find.byType(GameScreen))
+      .controller;
   controller.setSpeed(0); // no tick timer may fire while a screenshot is taken
 
   _buildShowcase(controller);
@@ -120,9 +128,15 @@ Future<void> _tour(
 
 /// Tap the [_levelId] card on the level select screen and wait for the game.
 Future<void> _openLevel(WidgetTester tester) async {
-  final l10n = AppLocalizations.of(tester.element(find.byType(LevelSelectScreen)));
+  final l10n = AppLocalizations.of(
+    tester.element(find.byType(LevelSelectScreen)),
+  );
   final card = find.widgetWithText(Card, l10n.levelTitle(_levelId));
-  expect(card, findsOneWidget, reason: 'no level card titled "${l10n.levelTitle(_levelId)}"');
+  expect(
+    card,
+    findsOneWidget,
+    reason: 'no level card titled "${l10n.levelTitle(_levelId)}"',
+  );
   await tester.ensureVisible(card);
   await _settle(tester);
   await tester.tap(card);
@@ -137,7 +151,9 @@ void _buildShowcase(GameController controller) {
   for (final (x, y, tile) in _showcaseMoves()) {
     final placed = controller.place(x, y, tile);
     if (!placed) {
-      fail('screenshot tour: cannot place ${tile.id} at ($x,$y): ${controller.lastError}');
+      fail(
+        'screenshot tour: cannot place ${tile.id} at ($x,$y): ${controller.lastError}',
+      );
     }
   }
 }
@@ -196,10 +212,15 @@ Future<void> _ensureLocale(WidgetTester tester, String languageCode) async {
 /// is nothing to close this returns immediately.
 Future<void> _dismissOverlays(WidgetTester tester) async {
   for (var attempt = 0; attempt < 4; attempt++) {
-    final dialog = find.byWidgetPredicate((w) => w is Dialog || w is AlertDialog);
+    final dialog = find.byWidgetPredicate(
+      (w) => w is Dialog || w is AlertDialog,
+    );
     Finder? button;
     if (dialog.evaluate().isNotEmpty) {
-      final buttons = find.descendant(of: dialog.first, matching: find.byType(TextButton));
+      final buttons = find.descendant(
+        of: dialog.first,
+        matching: find.byType(TextButton),
+      );
       if (buttons.evaluate().isNotEmpty) button = buttons.first;
     } else {
       final skip = find.byWidgetPredicate(_isSkipButton);
@@ -235,8 +256,10 @@ bool _isSkipButton(Widget widget) {
 /// device surface shows the finished state (and any tap highlight has faded)
 /// before the pixels are read.
 Future<void> _settle(WidgetTester tester, {int holdFrames = 10}) async {
-  await tester.pumpAndSettle(const Duration(milliseconds: 50));
-  for (var i = 0; i < holdFrames; i++) {
+  // Map traffic and ambient details animate continuously, so pumpAndSettle
+  // would correctly never consider a game screen idle. A bounded second is
+  // enough for navigation, sheets and the 650 ms overlay interpolation.
+  for (var i = 0; i < holdFrames + 10; i++) {
     await tester.pump(const Duration(milliseconds: 50));
   }
 }
