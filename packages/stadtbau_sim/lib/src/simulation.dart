@@ -130,8 +130,9 @@ class Simulation {
     final current = state.tileAt(x, y);
     if (current == tile) return null;
     var cost = params.tile(tile).buildCostKEur.value;
-    if (params.tile(current).category.isBuilt)
+    if (params.tile(current).category.isBuilt) {
       cost += params.economy.demolitionCostKEur;
+    }
     return cost;
   }
 
@@ -146,17 +147,21 @@ class Simulation {
   }
 
   CommandResult _place(int x, int y, TileType tile) {
-    if (!state.inBounds(x, y))
+    if (!state.inBounds(x, y)) {
       return const CommandResult.failed(CommandError.outOfBounds);
-    if (!tileBudget.allowed(tile))
+    }
+    if (!tileBudget.allowed(tile)) {
       return const CommandResult.failed(CommandError.tileNotAllowed);
+    }
     final cost = placementCost(x, y, tile);
     if (cost == null) return const CommandResult.failed(CommandError.sameTile);
     final remaining = tileBudget.remaining(tile);
-    if (remaining != null && remaining <= 0)
+    if (remaining != null && remaining <= 0) {
       return const CommandResult.failed(CommandError.tileExhausted);
-    if (cost > state.budgetKEur)
+    }
+    if (cost > state.budgetKEur) {
       return const CommandResult.failed(CommandError.insufficientBudget);
+    }
     tileBudget._take(tile);
     final i = state.index(x, y);
     final previous = state.tiles[i];
@@ -170,17 +175,20 @@ class Simulation {
   }
 
   CommandResult _remove(int x, int y) {
-    if (!state.inBounds(x, y))
+    if (!state.inBounds(x, y)) {
       return const CommandResult.failed(CommandError.outOfBounds);
+    }
     final i = state.index(x, y);
     final current = state.tiles[i];
-    if (current == TileType.terrain)
+    if (current == TileType.terrain) {
       return const CommandResult.failed(CommandError.sameTile);
+    }
     final cost = params.tile(current).category.isBuilt
         ? params.economy.demolitionCostKEur
         : 0.0;
-    if (cost > state.budgetKEur)
+    if (cost > state.budgetKEur) {
       return const CommandResult.failed(CommandError.insufficientBudget);
+    }
     tileBudget._giveBack(current);
     state.tiles[i] = TileType.terrain;
     state.tileAge[i] = 0;
