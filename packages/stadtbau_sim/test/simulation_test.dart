@@ -35,7 +35,9 @@ void main() {
       sim.apply(const PlaceTile(4, 3, TileType.road));
       sim.apply(const AdvanceTick(3));
       final json = jsonEncode(sim.state.toJson());
-      final restored = WorldState.fromJson(jsonDecode(json) as Map<String, dynamic>);
+      final restored = WorldState.fromJson(
+        jsonDecode(json) as Map<String, dynamic>,
+      );
       expect(restored.hash(), sim.state.hash());
       expect(restored.tick, 3);
       expect(restored.tileAt(3, 3), TileType.housingHigh);
@@ -96,13 +98,19 @@ void main() {
       for (final c in noise) {
         energy += math.pow(10, c.value / 10);
       }
-      expect(10 * math.log(energy) / math.ln10, closeTo(sim.fields.noiseDb[sim.state.index(6, 8)], 0.01));
+      expect(
+        10 * math.log(energy) / math.ln10,
+        closeTo(sim.fields.noiseDb[sim.state.index(6, 8)], 0.01),
+      );
       final air = sim.explainAir(6, 8);
       var sum = 0.0;
       for (final c in air) {
         sum += c.value;
       }
-      expect(sum, closeTo(sim.fields.airConcentration[sim.state.index(6, 8)], 1e-9));
+      expect(
+        sum,
+        closeTo(sim.fields.airConcentration[sim.state.index(6, 8)], 1e-9),
+      );
     });
   });
 
@@ -136,11 +144,16 @@ void main() {
         sim.state.tiles[sim.state.index(8, y)] = TileType.road;
       }
       sim.recompute();
-      expect(sim.indicators.score(Indicator.biodiversity), lessThan(before - 10));
+      expect(
+        sim.indicators.score(Indicator.biodiversity),
+        lessThan(before - 10),
+      );
     });
 
     test('a mixed quarter fills with residents and earns money', () {
-      final sim = Simulation.sandbox();
+      final sim = Simulation(
+        state: WorldState.empty(width: 16, height: 16, budgetKEur: 100000),
+      );
       for (var x = 2; x < 14; x++) {
         sim.apply(PlaceTile(x, 8, TileType.road));
       }
@@ -169,17 +182,34 @@ void main() {
         state: WorldState.empty(width: 8, height: 8, budgetKEur: 350),
         tileBudget: TileBudget({TileType.road: 1, TileType.park: null}),
       );
-      expect(sim.apply(const PlaceTile(0, 0, TileType.industry)).error, CommandError.tileNotAllowed);
-      expect(sim.apply(const PlaceTile(0, 0, TileType.park)).error, CommandError.insufficientBudget);
+      expect(
+        sim.apply(const PlaceTile(0, 0, TileType.industry)).error,
+        CommandError.tileNotAllowed,
+      );
+      expect(
+        sim.apply(const PlaceTile(0, 0, TileType.park)).error,
+        CommandError.insufficientBudget,
+      );
       expect(sim.apply(const PlaceTile(0, 0, TileType.road)).ok, isTrue);
-      expect(sim.apply(const PlaceTile(1, 0, TileType.road)).error, CommandError.tileExhausted);
+      expect(
+        sim.apply(const PlaceTile(1, 0, TileType.road)).error,
+        CommandError.tileExhausted,
+      );
       expect(sim.apply(const RemoveTile(0, 0)).ok, isTrue);
       expect(sim.tileBudget.remaining(TileType.road), 1);
-      expect(sim.apply(const PlaceTile(9, 9, TileType.park)).error, CommandError.outOfBounds);
+      expect(
+        sim.apply(const PlaceTile(9, 9, TileType.park)).error,
+        CommandError.outOfBounds,
+      );
     });
 
     test('replaying the command log reproduces the state hash', () {
-      final initial = WorldState.empty(width: 12, height: 12, budgetKEur: 8000, seed: 7);
+      final initial = WorldState.empty(
+        width: 12,
+        height: 12,
+        budgetKEur: 8000,
+        seed: 7,
+      );
       final sim = Simulation(state: initial.copy());
       sim.apply(const PlaceTile(1, 1, TileType.road));
       sim.apply(const PlaceTile(2, 1, TileType.housingHigh));
@@ -190,7 +220,10 @@ void main() {
       sim.apply(const AdvanceTick(2));
       final replayed = Simulation.replay(initial, sim.log);
       expect(replayed.state.hash(), sim.state.hash());
-      expect(replayed.indicators.population, closeTo(sim.indicators.population, 1e-9));
+      expect(
+        replayed.indicators.population,
+        closeTo(sim.indicators.population, 1e-9),
+      );
     });
   });
 }

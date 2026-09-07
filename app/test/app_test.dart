@@ -8,21 +8,27 @@ import 'package:stadtbau/main.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 void main() {
-  testWidgets('level select opens the sandbox with palette, map and indicators', (tester) async {
-    // Skip the first-launch onboarding overlay (T-208).
-    SharedPreferences.setMockInitialValues({'stadtbau.onboarding.v1': true});
-    tester.view.physicalSize = const Size(1400, 900);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    await tester.pumpWidget(const HectopolisApp());
-    await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.grid_on), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.grid_on));
-    await tester.pumpAndSettle();
-    expect(find.byType(CustomPaint), findsWidgets);
-    expect(find.byIcon(Icons.forest), findsOneWidget);
-    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
-  });
+  testWidgets(
+    'level select opens the sandbox with palette, map and indicators',
+    (tester) async {
+      // Skip the first-launch onboarding overlay (T-208).
+      SharedPreferences.setMockInitialValues({'stadtbau.onboarding.v1': true});
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(const HectopolisApp());
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.grid_on), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.grid_on));
+      // The game map has intentional continuous ambient animation, so it never
+      // reaches pumpAndSettle's definition of idle.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(CustomPaint), findsWidgets);
+      expect(find.byIcon(Icons.forest), findsOneWidget);
+      expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+    },
+  );
 
   testWidgets('a level shows its goals', (tester) async {
     // Skip the first-launch onboarding overlay (T-208).
@@ -33,7 +39,8 @@ void main() {
     await tester.pumpWidget(const HectopolisApp());
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.star_border).first);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     expect(find.byIcon(Icons.radio_button_unchecked), findsWidgets);
   });
 
@@ -65,4 +72,38 @@ void main() {
     expect(c.sim.state.tick, 1);
     c.dispose();
   });
+
+  test(
+    'placement preview uses a copied simulation and real field changes',
+    () async {
+      final c = GameController(size: 8);
+      c.setBrush(TileType.commercial);
+      c.setHover(c.sim.state.index(4, 4));
+      final before = c.sim.state.hash();
+
+      final immediate = c.placementPreview;
+      expect(immediate, isNotNull);
+      expect(immediate!.affectedCells, {c.sim.state.index(4, 4)});
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      final preview = c.placementPreview;
+
+      expect(preview, isNotNull);
+      expect(preview!.isValid, isTrue);
+      expect(preview.tile, TileType.commercial);
+      expect(preview.affectedOverlay, MapOverlay.retail);
+      expect(preview.affectedCells, contains(c.sim.state.index(4, 4)));
+      expect(preview.affectedCells.length, greaterThan(1));
+      expect(
+        c.sim.state.hash(),
+        before,
+        reason: 'forecast must not mutate the live world',
+      );
+      expect(
+        identical(c.placementPreview, preview),
+        isTrue,
+        reason: 'forecast is cached for an unchanged cell',
+      );
+      c.dispose();
+    },
+  );
 }

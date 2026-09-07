@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 import '../game/game_controller.dart';
@@ -72,7 +75,13 @@ class MapViewController {
       return v;
     }
 
-    _apply(s, Offset(fit(t.dx, rect.left, rect.right), fit(t.dy, rect.top, rect.bottom)));
+    _apply(
+      s,
+      Offset(
+        fit(t.dx, rect.left, rect.right),
+        fit(t.dy, rect.top, rect.bottom),
+      ),
+    );
   }
 
   /// Write scale and translation, clamping the translation so that the map
@@ -108,14 +117,24 @@ class MapView extends StatefulWidget {
   State<MapView> createState() => _MapViewState();
 }
 
-class _MapViewState extends State<MapView> {
+class _MapViewState extends State<MapView> with TickerProviderStateMixin {
   final _viewportKey = GlobalKey();
   final _focus = FocusNode(debugLabel: 'map');
   MapViewController? _own;
+  late final AnimationController _motion;
+  late final AnimationController _overlayTransition;
+  late int _lastVisualRevision;
+  late MapOverlay _lastOverlay;
+  late List<double> _overlayFrom;
+  late List<double> _overlayTo;
+  late List<TileType> _previousTiles;
+  final Map<int, int> _constructionStartedMs = {};
+  bool _reduceMotion = false;
 
   GameController get c => widget.controller;
 
-  MapViewController get m => widget.mapController ?? (_own ??= MapViewController());
+  MapViewController get m =>
+      widget.mapController ?? (_own ??= MapViewController());
 
   /// Physical keyboards are the norm on desktop and web, so grab focus there;
   /// on touch platforms focus follows the first tap instead.
@@ -126,7 +145,104 @@ class _MapViewState extends State<MapView> {
       defaultTargetPlatform == TargetPlatform.windows;
 
   @override
+  void initState() {
+    super.initState();
+    _motion = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
+    )..repeat();
+    _overlayTransition = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+    )..value = 1;
+    _lastVisualRevision = c.visualRevision;
+    _lastOverlay = c.overlay;
+    _overlayTo = _captureOverlay();
+    _overlayFrom = List<double>.of(_overlayTo);
+    _previousTiles = List<TileType>.of(c.sim.state.tiles);
+    c.addListener(_onControllerChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant MapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller == widget.controller) return;
+    oldWidget.controller.removeListener(_onControllerChanged);
+    widget.controller.addListener(_onControllerChanged);
+    _lastVisualRevision = c.visualRevision;
+    _lastOverlay = c.overlay;
+    _overlayTo = _captureOverlay();
+    _overlayFrom = List<double>.of(_overlayTo);
+    _previousTiles = List<TileType>.of(c.sim.state.tiles);
+    _constructionStartedMs.clear();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (reduceMotion == _reduceMotion) return;
+    _reduceMotion = reduceMotion;
+    if (_reduceMotion) {
+      _motion.stop();
+      _motion.value = 0;
+      _overlayTransition.value = 1;
+    } else {
+      _motion.repeat();
+    }
+  }
+
+  List<double> _captureOverlay() => [
+    for (var i = 0; i < c.sim.state.cellCount; i++)
+      c.overlay == MapOverlay.none ? 0 : c.overlayValue(i),
+  ];
+
+  void _onControllerChanged() {
+    final revisionChanged = c.visualRevision != _lastVisualRevision;
+    final overlayChanged = c.overlay != _lastOverlay;
+    if (!revisionChanged && !overlayChanged) return;
+
+    if (revisionChanged) {
+      final tiles = c.sim.state.tiles;
+      if (tiles.length == _previousTiles.length) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        for (var i = 0; i < tiles.length; i++) {
+          if (tiles[i] != _previousTiles[i] &&
+              c.sim.params.tile(tiles[i]).category.isBuilt) {
+            _constructionStartedMs[i] = now;
+          }
+        }
+      } else {
+        _constructionStartedMs.clear();
+      }
+      _previousTiles = List<TileType>.of(tiles);
+    }
+
+    final progress = Curves.easeOutCubic.transform(_overlayTransition.value);
+    final current =
+        overlayChanged || _overlayFrom.length != c.sim.state.cellCount
+        ? List<double>.filled(c.sim.state.cellCount, 0)
+        : [
+            for (var i = 0; i < _overlayFrom.length; i++)
+              _overlayFrom[i] + (_overlayTo[i] - _overlayFrom[i]) * progress,
+          ];
+    _overlayFrom = current;
+    _overlayTo = _captureOverlay();
+    if (_reduceMotion) {
+      _overlayTransition.value = 1;
+    } else {
+      _overlayTransition.forward(from: 0);
+    }
+    _lastVisualRevision = c.visualRevision;
+    _lastOverlay = c.overlay;
+  }
+
+  @override
   void dispose() {
+    c.removeListener(_onControllerChanged);
+    _motion.dispose();
+    _overlayTransition.dispose();
     _focus.dispose();
     _own?.dispose();
     super.dispose();
@@ -136,7 +252,10 @@ class _MapViewState extends State<MapView> {
   int? _cellAtGlobal(Offset global, Size size) {
     final box = _viewportKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return null;
-    return _cellAtLocal(m.transformation.toScene(box.globalToLocal(global)), size);
+    return _cellAtLocal(
+      m.transformation.toScene(box.globalToLocal(global)),
+      size,
+    );
   }
 
   /// Position in map (scene) coordinates -> cell index.
@@ -152,7 +271,14 @@ class _MapViewState extends State<MapView> {
     final cursor = c.cursorCell;
     if (cursor == null) return;
     final cell = size.width / c.width;
-    m.revealScene(Rect.fromLTWH((cursor % c.width) * cell, (cursor ~/ c.width) * cell, cell, cell));
+    m.revealScene(
+      Rect.fromLTWH(
+        (cursor % c.width) * cell,
+        (cursor ~/ c.width) * cell,
+        cell,
+        cell,
+      ),
+    );
   }
 
   KeyEventResult _onKey(KeyEvent event, Size size) {
@@ -170,7 +296,8 @@ class _MapViewState extends State<MapView> {
       c.activateCursor();
       return KeyEventResult.handled;
     }
-    if (key == LogicalKeyboardKey.delete || key == LogicalKeyboardKey.backspace) {
+    if (key == LogicalKeyboardKey.delete ||
+        key == LogicalKeyboardKey.backspace) {
       c.clearCursor();
       return KeyEventResult.handled;
     }
@@ -235,7 +362,8 @@ class _MapViewState extends State<MapView> {
               autofocus: _autofocus,
               onKeyEvent: (node, event) => _onKey(event, size),
               child: DragTarget<TileType>(
-                onMove: (details) => c.setHover(_cellAtGlobal(details.offset, size)),
+                onMove: (details) =>
+                    c.setHover(_cellAtGlobal(details.offset, size)),
                 onLeave: (_) => c.setHover(null),
                 onAcceptWithDetails: (details) {
                   final cell = _cellAtGlobal(details.offset, size);
@@ -245,55 +373,122 @@ class _MapViewState extends State<MapView> {
                   }
                 },
                 builder: (context, candidates, rejected) {
-                  return InteractiveViewer(
-                    transformationController: m.transformation,
-                    minScale: MapViewController.minScale,
-                    maxScale: MapViewController.maxScale,
-                    boundaryMargin: EdgeInsets.zero,
-                    panEnabled: c.brush == null,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      // Inside the InteractiveViewer, so localPosition is
-                      // already in map coordinates at any zoom level.
-                      onTapUp: (d) {
-                        _focus.requestFocus();
-                        final cell = _cellAtLocal(d.localPosition, size);
-                        if (cell == null) return;
-                        final brush = c.brush;
-                        if (brush != null) {
-                          c.place(cell % c.width, cell ~/ c.width, brush);
-                        } else {
-                          c.select(cell);
-                        }
-                      },
-                      onPanStart: c.brush == null ? null : (d) {
-                        _focus.requestFocus();
-                        final cell = _cellAtLocal(d.localPosition, size);
-                        if (cell != null) {
-                          c.place(cell % c.width, cell ~/ c.width, c.brush!);
-                        }
-                      },
-                      onPanUpdate: c.brush == null ? null : (d) {
-                        final cell = _cellAtLocal(d.localPosition, size);
-                        if (cell != null) {
-                          c.place(cell % c.width, cell ~/ c.width, c.brush!);
-                        }
-                      },
-                      onLongPressStart: (d) {
-                        _focus.requestFocus();
-                        final cell = _cellAtLocal(d.localPosition, size);
-                        if (cell != null) c.clear(cell % c.width, cell ~/ c.width);
-                      },
-                      child: ListenableBuilder(
-                        listenable: Listenable.merge([c, m.transformation]),
-                        builder: (context, _) => Semantics(
-                          label: l10n.keyboardHint,
-                          child: CustomPaint(
-                            size: size,
-                            painter: _MapPainter(c, Theme.of(context), m.scale),
+                  return ListenableBuilder(
+                    listenable: c,
+                    builder: (context, _) => Stack(
+                      children: [
+                        MouseRegion(
+                          onHover: (event) =>
+                              c.setHover(_cellAtGlobal(event.position, size)),
+                          onExit: (_) => c.setHover(null),
+                          child: InteractiveViewer(
+                            transformationController: m.transformation,
+                            minScale: MapViewController.minScale,
+                            maxScale: MapViewController.maxScale,
+                            boundaryMargin: EdgeInsets.zero,
+                            panEnabled: c.brush == null,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              // Inside the InteractiveViewer, so localPosition is
+                              // already in map coordinates at any zoom level.
+                              onTapUp: (d) {
+                                _focus.requestFocus();
+                                final cell = _cellAtLocal(
+                                  d.localPosition,
+                                  size,
+                                );
+                                if (cell == null) return;
+                                final brush = c.brush;
+                                if (brush != null) {
+                                  c.place(
+                                    cell % c.width,
+                                    cell ~/ c.width,
+                                    brush,
+                                  );
+                                } else {
+                                  c.select(cell);
+                                }
+                              },
+                              onPanStart: c.brush == null
+                                  ? null
+                                  : (d) {
+                                      _focus.requestFocus();
+                                      final cell = _cellAtLocal(
+                                        d.localPosition,
+                                        size,
+                                      );
+                                      if (cell != null) {
+                                        c.setHover(cell);
+                                        c.place(
+                                          cell % c.width,
+                                          cell ~/ c.width,
+                                          c.brush!,
+                                        );
+                                      }
+                                    },
+                              onPanUpdate: c.brush == null
+                                  ? null
+                                  : (d) {
+                                      final cell = _cellAtLocal(
+                                        d.localPosition,
+                                        size,
+                                      );
+                                      if (cell != null) {
+                                        c.setHover(cell);
+                                        c.place(
+                                          cell % c.width,
+                                          cell ~/ c.width,
+                                          c.brush!,
+                                        );
+                                      }
+                                    },
+                              onLongPressStart: (d) {
+                                _focus.requestFocus();
+                                final cell = _cellAtLocal(
+                                  d.localPosition,
+                                  size,
+                                );
+                                if (cell != null) {
+                                  c.clear(cell % c.width, cell ~/ c.width);
+                                }
+                              },
+                              child: ListenableBuilder(
+                                listenable: Listenable.merge([
+                                  c,
+                                  m.transformation,
+                                  _motion,
+                                  _overlayTransition,
+                                ]),
+                                builder: (context, _) => Semantics(
+                                  label: l10n.keyboardHint,
+                                  child: CustomPaint(
+                                    size: size,
+                                    painter: _MapPainter(
+                                      c,
+                                      Theme.of(context),
+                                      m.scale,
+                                      motion: _motion.value,
+                                      overlayProgress: Curves.easeOutCubic
+                                          .transform(_overlayTransition.value),
+                                      overlayFrom: _overlayFrom,
+                                      overlayTo: _overlayTo,
+                                      constructionStartedMs:
+                                          _constructionStartedMs,
+                                      reduceMotion: _reduceMotion,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        if (c.placementPreview case final preview?)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: _PlacementPreviewCard(preview: preview),
+                          ),
+                      ],
                     ),
                   );
                 },
@@ -306,89 +501,927 @@ class _MapViewState extends State<MapView> {
   }
 }
 
+class _PlacementPreviewCard extends StatelessWidget {
+  const _PlacementPreviewCard({required this.preview});
+
+  final PlacementPreview preview;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final number = NumberFormat.decimalPatternDigits(
+      locale: Localizations.localeOf(context).toString(),
+      decimalDigits: 0,
+    );
+    final changes =
+        preview.indicatorDeltas.entries
+            .where((entry) => entry.value.isFinite && entry.value.abs() >= 0.05)
+            .toList()
+          ..sort((a, b) => b.value.abs().compareTo(a.value.abs()));
+    final error = switch (preview.error) {
+      CommandError.outOfBounds => l10n.errorOutOfBounds,
+      CommandError.sameTile => l10n.errorSameTile,
+      CommandError.insufficientBudget => l10n.errorInsufficientBudget,
+      CommandError.tileNotAllowed => l10n.errorTileNotAllowed,
+      CommandError.tileExhausted => l10n.errorTileExhausted,
+      null => null,
+    };
+    final scheme = theme.colorScheme;
+    return IgnorePointer(
+      child: Card(
+        elevation: 4,
+        color: scheme.surface.withValues(alpha: 0.94),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 230),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      TileStyle.of(preview.tile).icon,
+                      size: 18,
+                      color: TileStyle.of(preview.tile).iconColor,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        l10n.placementPreviewTitle(
+                          l10n.tileName(preview.tile.id),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (preview.costKEur case final cost?)
+                  Text(
+                    l10n.placementPreviewCost(l10n.kEur(number.format(cost))),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                if (error != null)
+                  Text(
+                    error,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.error,
+                    ),
+                  )
+                else if (changes.isEmpty)
+                  Text(
+                    l10n.placementPreviewNoScoreChange,
+                    style: theme.textTheme.bodySmall,
+                  )
+                else
+                  for (final change in changes.take(3))
+                    Text(
+                      '${l10n.indicatorName(change.key.name)} ${change.value >= 0 ? '+' : ''}${change.value.toStringAsFixed(1)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: change.value >= 0
+                            ? const Color(0xFF2E7D32)
+                            : scheme.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                if (preview.isValid)
+                  Text(
+                    l10n.placementPreviewAffected(
+                      preview.affectedCells.length,
+                      l10n.overlayName(preview.affectedOverlay.name),
+                    ),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A model-driven renderer. Static land-use remains legible while road
+/// topology, traffic, forest maturity, construction and overlays animate from
+/// values already present in the simulation.
 class _MapPainter extends CustomPainter {
-  _MapPainter(this.c, this.theme, this.scale);
+  _MapPainter(
+    this.c,
+    this.theme,
+    this.scale, {
+    required this.motion,
+    required this.overlayProgress,
+    required this.overlayFrom,
+    required this.overlayTo,
+    required this.constructionStartedMs,
+    required this.reduceMotion,
+  });
 
   final GameController c;
   final ThemeData theme;
-
-  /// Zoom factor; the canvas is in unscaled map coordinates, so line widths
-  /// and the "is the cell big enough for an icon" test have to account for it.
   final double scale;
+  final double motion;
+  final double overlayProgress;
+  final List<double> overlayFrom;
+  final List<double> overlayTo;
+  final Map<int, int> constructionStartedMs;
+  final bool reduceMotion;
 
   @override
   void paint(Canvas canvas, Size size) {
     final state = c.sim.state;
     final cell = size.width / c.width;
     final hair = 1 / scale;
-    final fill = Paint();
+    final now = DateTime.now().millisecondsSinceEpoch;
     final grid = Paint()
-      ..color = Colors.black.withValues(alpha: 0.12)
+      ..color = Colors.black.withValues(alpha: 0.10)
       ..style = PaintingStyle.stroke
       ..strokeWidth = hair;
-    final iconSize = cell * 0.55;
 
-    for (var y = 0; y < c.height; y++) {
-      for (var x = 0; x < c.width; x++) {
-        final i = state.index(x, y);
-        final rect = Rect.fromLTWH(x * cell, y * cell, cell, cell);
-        final style = TileStyle.of(state.tiles[i]);
-        fill.color = style.color;
-        canvas.drawRect(rect, fill);
-        if (c.overlay != MapOverlay.none) {
-          fill.color = overlayColor(c.overlayValue(i), highIsBad: c.overlayHighIsBad).withValues(alpha: 0.72);
-          canvas.drawRect(rect, fill);
-        }
-        canvas.drawRect(rect, grid);
-        if (cell * scale >= 18) {
-          _drawIcon(canvas, style, rect.center, iconSize, c.overlay == MapOverlay.none ? 1 : 0.55);
-        }
+    Rect cellRect(int index) => Rect.fromLTWH(
+      (index % c.width) * cell,
+      (index ~/ c.width) * cell,
+      cell,
+      cell,
+    );
+
+    for (var i = 0; i < state.cellCount; i++) {
+      final rect = cellRect(i);
+      final construction = reduceMotion
+          ? 1.0
+          : ((now - (constructionStartedMs[i] ?? now - 1000)) / 900).clamp(
+              0.0,
+              1.0,
+            );
+      _drawTile(
+        canvas,
+        i,
+        rect,
+        construction: Curves.easeOutBack.transform(construction),
+      );
+      if (c.overlay != MapOverlay.none &&
+          i < overlayFrom.length &&
+          i < overlayTo.length) {
+        final value =
+            overlayFrom[i] + (overlayTo[i] - overlayFrom[i]) * overlayProgress;
+        canvas.drawRect(
+          rect,
+          Paint()
+            ..color = overlayColor(
+              value,
+              highIsBad: c.overlayHighIsBad,
+            ).withValues(alpha: 0.70),
+        );
       }
+      canvas.drawRect(rect, grid);
     }
 
-    Rect cellRect(int cellIndex) =>
-        Rect.fromLTWH((cellIndex % c.width) * cell, (cellIndex ~/ c.width) * cell, cell, cell);
+    _drawTraffic(canvas, cell);
 
-    void outline(int cellIndex, Color color, double width) {
-      canvas.drawRect(
-        cellRect(cellIndex).deflate(width / 2),
-        Paint()
-          ..color = color
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = width,
-      );
+    final preview = c.placementPreview;
+    if (preview != null) {
+      final color = preview.isValid
+          ? theme.colorScheme.primary
+          : theme.colorScheme.error;
+      for (final affected in preview.affectedCells) {
+        canvas.drawRect(
+          cellRect(affected).deflate(hair),
+          Paint()..color = color.withValues(alpha: 0.12),
+        );
+      }
+      final rect = cellRect(preview.cell);
+      if (preview.isValid) {
+        canvas.saveLayer(
+          rect,
+          Paint()..color = Colors.white.withValues(alpha: 0.62),
+        );
+        _drawTile(
+          canvas,
+          preview.cell,
+          rect,
+          tileOverride: preview.tile,
+          construction: 1,
+        );
+        canvas.restore();
+      }
+      _outline(canvas, rect, color, 3 * hair);
     }
 
     final hover = c.hoverCell;
-    if (hover != null) outline(hover, theme.colorScheme.primary, 3 * hair);
+    if (hover != null && preview == null) {
+      _outline(canvas, cellRect(hover), theme.colorScheme.primary, 3 * hair);
+    }
     final selected = c.selectedCell;
-    if (selected != null) outline(selected, theme.colorScheme.onSurface, 2 * hair);
+    if (selected != null) {
+      _outline(
+        canvas,
+        cellRect(selected),
+        theme.colorScheme.onSurface,
+        2 * hair,
+      );
+    }
     final cursor = c.cursorCell;
     if (cursor != null) {
-      // Double outline, distinct from the single selection outline.
       final rect = cellRect(cursor);
-      final stroke = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2 * hair;
-      canvas.drawRect(rect.deflate(hair), stroke..color = theme.colorScheme.onSurface);
-      canvas.drawRect(rect.deflate(4 * hair), stroke..color = theme.colorScheme.surface);
+      _outline(
+        canvas,
+        rect.deflate(hair),
+        theme.colorScheme.onSurface,
+        2 * hair,
+      );
+      _outline(
+        canvas,
+        rect.deflate(4 * hair),
+        theme.colorScheme.surface,
+        2 * hair,
+      );
     }
   }
 
-  void _drawIcon(Canvas canvas, TileStyle style, Offset center, double size, double opacity) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: String.fromCharCode(style.icon.codePoint),
-        style: TextStyle(
-          fontSize: size,
-          fontFamily: style.icon.fontFamily,
-          package: style.icon.fontPackage,
-          color: style.iconColor.withValues(alpha: opacity),
+  void _drawTile(
+    Canvas canvas,
+    int index,
+    Rect rect, {
+    TileType? tileOverride,
+    required double construction,
+  }) {
+    final state = c.sim.state;
+    final tile = tileOverride ?? state.tiles[index];
+    canvas.drawRect(rect, Paint()..color = _groundColor(tile));
+    canvas.drawRect(
+      Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height * 0.08),
+      Paint()..color = Colors.white.withValues(alpha: 0.08),
+    );
+
+    switch (tile) {
+      case TileType.meadow:
+        _drawMeadow(canvas, index, rect);
+        break;
+      case TileType.cropland:
+        _drawCropland(canvas, index, rect);
+        break;
+      case TileType.forest:
+        _drawForest(
+          canvas,
+          index,
+          rect,
+          tileOverride != null ? 1 : _maturity(index),
+        );
+        break;
+      case TileType.water:
+        _drawWater(canvas, index, rect);
+        break;
+      case TileType.park:
+        _drawPark(canvas, index, rect);
+        break;
+      case TileType.road:
+        _drawRoad(canvas, index, rect);
+        break;
+      case TileType.housingLow ||
+          TileType.housingHigh ||
+          TileType.commercial ||
+          TileType.industry:
+        _withConstruction(
+          canvas,
+          rect,
+          construction,
+          () => _drawBuilding(canvas, index, rect, tile),
+        );
+        break;
+    }
+    if (c.sim.params.tile(tile).category.isBuilt && construction < 0.98) {
+      final frame = Paint()
+        ..color = const Color(0xFFFFB300).withValues(alpha: 0.85)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1 / scale, rect.width * 0.045);
+      canvas.drawRect(rect.deflate(rect.width * 0.16), frame);
+      canvas.drawLine(
+        rect.topLeft + Offset(rect.width * 0.16, rect.height * 0.16),
+        rect.bottomRight - Offset(rect.width * 0.16, rect.height * 0.16),
+        frame,
+      );
+    }
+  }
+
+  Color _groundColor(TileType tile) => switch (tile) {
+    TileType.road => const Color(0xFF9FC58F),
+    TileType.housingLow => const Color(0xFFC8D7AD),
+    TileType.housingHigh => const Color(0xFFD8C8B8),
+    TileType.commercial => const Color(0xFFD6C9E7),
+    TileType.industry => const Color(0xFFBCC5C8),
+    _ => TileStyle.of(tile).color,
+  };
+
+  void _withConstruction(
+    Canvas canvas,
+    Rect rect,
+    double progress,
+    VoidCallback draw,
+  ) {
+    canvas.save();
+    canvas.translate(rect.center.dx, rect.center.dy);
+    canvas.scale(progress, progress);
+    canvas.translate(-rect.center.dx, -rect.center.dy);
+    draw();
+    canvas.restore();
+  }
+
+  void _drawMeadow(Canvas canvas, int index, Rect rect) {
+    if (rect.width * scale < 14) return;
+    final grass = Paint()
+      ..color = const Color(0xFF4F8A51).withValues(alpha: 0.65)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(0.55 / scale, rect.width * 0.018)
+      ..strokeCap = StrokeCap.round;
+    for (var tuft = 0; tuft < 5; tuft++) {
+      final x =
+          rect.left + rect.width * (0.12 + _unit(index * 41 + tuft) * 0.76);
+      final y =
+          rect.top + rect.height * (0.28 + _unit(index * 59 + tuft) * 0.58);
+      final h = rect.height * (0.07 + _unit(index * 73 + tuft) * 0.05);
+      canvas.drawLine(Offset(x, y), Offset(x - h * 0.28, y - h), grass);
+      canvas.drawLine(Offset(x, y), Offset(x + h * 0.30, y - h * 0.82), grass);
+    }
+    if (_unit(index * 101) > 0.48) {
+      canvas.drawCircle(
+        Offset(rect.left + rect.width * 0.68, rect.top + rect.height * 0.40),
+        math.max(0.7 / scale, rect.width * 0.022),
+        Paint()..color = const Color(0xFFFFF59D),
+      );
+    }
+  }
+
+  void _drawCropland(Canvas canvas, int index, Rect rect) {
+    if (rect.width * scale < 10) return;
+    final rows = Paint()
+      ..color = const Color(0xFF8D6E3F).withValues(alpha: 0.46)
+      ..strokeWidth = math.max(0.55 / scale, rect.width * 0.022);
+    final horizontal = _unit(index * 113) > 0.5;
+    for (var row = 1; row < 6; row++) {
+      final p = row / 6;
+      if (horizontal) {
+        canvas.drawLine(
+          Offset(rect.left, rect.top + rect.height * p),
+          Offset(rect.right, rect.top + rect.height * p),
+          rows,
+        );
+      } else {
+        canvas.drawLine(
+          Offset(rect.left + rect.width * p, rect.top),
+          Offset(rect.left + rect.width * p, rect.bottom),
+          rows,
+        );
+      }
+    }
+  }
+
+  void _drawWater(Canvas canvas, int index, Rect rect) {
+    final state = c.sim.state;
+    final x = index % c.width;
+    final y = index ~/ c.width;
+    bool water(int nx, int ny) =>
+        state.inBounds(nx, ny) && state.tileAt(nx, ny) == TileType.water;
+    final shore = Paint()
+      ..color = const Color(0xFFE7D7A5).withValues(alpha: 0.72)
+      ..strokeWidth = math.max(0.8 / scale, rect.width * 0.045);
+    if (!water(x - 1, y)) canvas.drawLine(rect.topLeft, rect.bottomLeft, shore);
+    if (!water(x + 1, y)) {
+      canvas.drawLine(rect.topRight, rect.bottomRight, shore);
+    }
+    if (!water(x, y - 1)) canvas.drawLine(rect.topLeft, rect.topRight, shore);
+    if (!water(x, y + 1)) {
+      canvas.drawLine(rect.bottomLeft, rect.bottomRight, shore);
+    }
+    if (rect.width * scale < 18) return;
+    for (var wave = 0; wave < 2; wave++) {
+      final waveY = (motion * 0.35 + _unit(index * 37 + wave)) % 1;
+      canvas.drawArc(
+        Rect.fromCenter(
+          center: Offset(
+            rect.center.dx + (wave.isEven ? -0.12 : 0.14) * rect.width,
+            rect.top + waveY * rect.height,
+          ),
+          width: rect.width * 0.38,
+          height: rect.height * 0.12,
         ),
+        0,
+        math.pi,
+        false,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.42)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(0.7 / scale, rect.width * 0.018),
+      );
+    }
+  }
+
+  void _drawPark(Canvas canvas, int index, Rect rect) {
+    if (rect.width * scale < 11) return;
+    final path = Paint()
+      ..color = const Color(0xFFE8D7AD)
+      ..strokeWidth = rect.width * 0.13
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(rect.left + rect.width * 0.05, rect.bottom - rect.height * 0.12),
+      Offset(rect.right - rect.width * 0.05, rect.top + rect.height * 0.18),
+      path,
+    );
+    _drawTree(
+      canvas,
+      Offset(rect.left + rect.width * 0.28, rect.top + rect.height * 0.30),
+      rect.width * 0.12,
+      0.82,
+    );
+    _drawTree(
+      canvas,
+      Offset(rect.left + rect.width * 0.70, rect.top + rect.height * 0.66),
+      rect.width * 0.10,
+      0.72,
+    );
+    if (rect.width * scale >= 24) {
+      final bench = Paint()
+        ..color = const Color(0xFF795548)
+        ..strokeWidth = math.max(0.8 / scale, rect.width * 0.035)
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(
+        Offset(rect.left + rect.width * 0.46, rect.top + rect.height * 0.68),
+        Offset(rect.left + rect.width * 0.61, rect.top + rect.height * 0.61),
+        bench,
+      );
+    }
+  }
+
+  void _drawBuilding(Canvas canvas, int index, Rect rect, TileType tile) {
+    if (rect.width * scale < 11) return;
+    switch (tile) {
+      case TileType.housingLow:
+        _drawLowHousing(canvas, index, rect);
+      case TileType.housingHigh:
+        _drawHighHousing(canvas, index, rect);
+      case TileType.commercial:
+        _drawCommercial(canvas, index, rect);
+      case TileType.industry:
+        _drawIndustry(canvas, index, rect);
+      case _:
+        break;
+    }
+  }
+
+  void _drawLowHousing(Canvas canvas, int index, Rect rect) {
+    final occupied = _occupancy(index);
+    for (var house = 0; house < 2; house++) {
+      final left = rect.left + rect.width * (house == 0 ? 0.13 : 0.55);
+      final top = rect.top + rect.height * (house == 0 ? 0.22 : 0.52);
+      final body = Rect.fromLTWH(
+        left,
+        top,
+        rect.width * 0.29,
+        rect.height * 0.24,
+      );
+      _shadowedRect(canvas, body, const Color(0xFFFFF3E0));
+      final roof = Path()
+        ..moveTo(body.left - rect.width * 0.035, body.top)
+        ..lineTo(body.center.dx, body.top - rect.height * 0.13)
+        ..lineTo(body.right + rect.width * 0.035, body.top)
+        ..close();
+      canvas.drawPath(
+        roof,
+        Paint()
+          ..color = house == 0
+              ? const Color(0xFFB5523B)
+              : const Color(0xFF8D493A),
+      );
+      _window(
+        canvas,
+        body.center + Offset(0, body.height * 0.05),
+        rect.width * 0.055,
+        occupied,
+        index + house,
+      );
+    }
+  }
+
+  void _drawHighHousing(Canvas canvas, int index, Rect rect) {
+    final occupied = _occupancy(index);
+    final blocks = [
+      Rect.fromLTWH(
+        rect.left + rect.width * 0.12,
+        rect.top + rect.height * 0.14,
+        rect.width * 0.31,
+        rect.height * 0.66,
       ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    painter.paint(canvas, center - Offset(painter.width / 2, painter.height / 2));
+      Rect.fromLTWH(
+        rect.left + rect.width * 0.55,
+        rect.top + rect.height * 0.24,
+        rect.width * 0.31,
+        rect.height * 0.58,
+      ),
+    ];
+    for (var b = 0; b < blocks.length; b++) {
+      final block = blocks[b];
+      _shadowedRect(
+        canvas,
+        block,
+        b == 0 ? const Color(0xFFE4D6CB) : const Color(0xFFD5C4B8),
+      );
+      canvas.drawRect(
+        Rect.fromLTWH(block.left, block.top, block.width, block.height * 0.09),
+        Paint()..color = const Color(0xFF8D6E63),
+      );
+      for (var row = 0; row < 3; row++) {
+        for (var column = 0; column < 2; column++) {
+          _window(
+            canvas,
+            Offset(
+              block.left + block.width * (0.30 + 0.40 * column),
+              block.top + block.height * (0.25 + 0.22 * row),
+            ),
+            rect.width * 0.035,
+            occupied,
+            index * 17 + b * 7 + row * 2 + column,
+          );
+        }
+      }
+    }
+  }
+
+  void _drawCommercial(Canvas canvas, int index, Rect rect) {
+    final activity = c.sim.indicators.jobsCapacity <= 0
+        ? 0.0
+        : (c.sim.indicators.jobsFilled / c.sim.indicators.jobsCapacity).clamp(
+            0.0,
+            1.0,
+          );
+    final building = Rect.fromLTWH(
+      rect.left + rect.width * 0.12,
+      rect.top + rect.height * 0.18,
+      rect.width * 0.76,
+      rect.height * 0.62,
+    );
+    _shadowedRect(canvas, building, const Color(0xFFEDE7F6));
+    canvas.drawRect(
+      Rect.fromLTWH(
+        building.left,
+        building.top,
+        building.width,
+        building.height * 0.34,
+      ),
+      Paint()..color = const Color(0xFF73558F),
+    );
+    final awning = Rect.fromLTWH(
+      building.left + building.width * 0.08,
+      building.top + building.height * 0.42,
+      building.width * 0.84,
+      building.height * 0.12,
+    );
+    for (var stripe = 0; stripe < 6; stripe++) {
+      canvas.drawRect(
+        Rect.fromLTWH(
+          awning.left + awning.width * stripe / 6,
+          awning.top,
+          awning.width / 6,
+          awning.height,
+        ),
+        Paint()
+          ..color = stripe.isEven
+              ? const Color(0xFFFFF8E1)
+              : const Color(0xFF8E6AAA),
+      );
+    }
+    canvas.drawRect(
+      Rect.fromLTWH(
+        building.left + building.width * 0.18,
+        building.bottom - building.height * 0.32,
+        building.width * 0.64,
+        building.height * 0.25,
+      ),
+      Paint()
+        ..color = Color.lerp(
+          const Color(0xFF455A64),
+          const Color(0xFF90CAF9),
+          activity,
+        )!,
+    );
+  }
+
+  void _drawIndustry(Canvas canvas, int index, Rect rect) {
+    final hall = Rect.fromLTWH(
+      rect.left + rect.width * 0.10,
+      rect.top + rect.height * 0.38,
+      rect.width * 0.68,
+      rect.height * 0.43,
+    );
+    _shadowedRect(canvas, hall, const Color(0xFFCFD8DC));
+    final roof = Path()..moveTo(hall.left, hall.top);
+    for (var tooth = 0; tooth < 4; tooth++) {
+      final x = hall.left + hall.width * tooth / 4;
+      roof
+        ..lineTo(x + hall.width * 0.13, hall.top - rect.height * 0.13)
+        ..lineTo(x + hall.width * 0.25, hall.top);
+    }
+    roof
+      ..lineTo(hall.right, hall.bottom)
+      ..lineTo(hall.left, hall.bottom)
+      ..close();
+    canvas.drawPath(roof, Paint()..color = const Color(0xFF78909C));
+    final chimney = Rect.fromLTWH(
+      rect.left + rect.width * 0.73,
+      rect.top + rect.height * 0.18,
+      rect.width * 0.12,
+      rect.height * 0.46,
+    );
+    canvas.drawRect(chimney, Paint()..color = const Color(0xFF546E7A));
+    if (reduceMotion || rect.width * scale < 18) return;
+    final emission = c.sim.params.tile(TileType.industry).airEmission.value;
+    final reference = math.max(1.0, emission);
+    final intensity =
+        (c.sim.params.tile(c.sim.state.tiles[index]).airEmission.value /
+                reference)
+            .clamp(0.0, 1.0);
+    for (var puff = 0; puff < 1 + (intensity * 2).round(); puff++) {
+      final rise =
+          (motion * (0.35 + intensity * 0.35) + _unit(index * 83 + puff)) % 1;
+      final centre = Offset(
+        chimney.center.dx +
+            math.sin((rise + puff) * math.pi * 2) * rect.width * 0.05,
+        chimney.top - rise * rect.height * 0.32,
+      );
+      canvas.drawCircle(
+        centre,
+        rect.width * (0.045 + rise * 0.045),
+        Paint()
+          ..color = const Color(
+            0xFF546E7A,
+          ).withValues(alpha: (1 - rise) * 0.34 * intensity),
+      );
+    }
+  }
+
+  double _occupancy(int index) {
+    final capacity = c.sim.params
+        .tile(c.sim.state.tiles[index])
+        .residentsPerHa
+        .value;
+    return capacity <= 0
+        ? 0
+        : (c.sim.state.population[index] / capacity).clamp(0.0, 1.0);
+  }
+
+  void _shadowedRect(Canvas canvas, Rect rect, Color color) {
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        rect.shift(Offset(rect.width * 0.06, rect.height * 0.07)),
+        Radius.circular(rect.width * 0.08),
+      ),
+      Paint()..color = Colors.black.withValues(alpha: 0.16),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, Radius.circular(rect.width * 0.07)),
+      Paint()..color = color,
+    );
+  }
+
+  void _window(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    double occupancy,
+    int seed,
+  ) {
+    final occupied = _unit(seed * 127) <= occupancy;
+    final evening =
+        0.5 + 0.5 * math.sin(motion * math.pi * 2 + _unit(seed) * math.pi * 2);
+    canvas.drawRect(
+      Rect.fromCenter(center: center, width: radius * 1.4, height: radius),
+      Paint()
+        ..color = occupied
+            ? Color.lerp(
+                const Color(0xFF90A4AE),
+                const Color(0xFFFFD54F),
+                reduceMotion ? 0.65 : evening,
+              )!
+            : const Color(0xFF78909C),
+    );
+  }
+
+  void _drawRoad(Canvas canvas, int index, Rect rect) {
+    final state = c.sim.state;
+    final x = index % c.width;
+    final y = index ~/ c.width;
+    bool road(int nx, int ny) =>
+        state.inBounds(nx, ny) && state.tileAt(nx, ny) == TileType.road;
+    final asphalt = Paint()..color = const Color(0xFF596168);
+    final lane = Paint()
+      ..color = const Color(0xFFFFF3C4).withValues(alpha: 0.82)
+      ..strokeWidth = math.max(0.65 / scale, rect.width * 0.025);
+    final half = rect.width * 0.19;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: rect.center, width: half * 2, height: half * 2),
+        Radius.circular(half * 0.35),
+      ),
+      asphalt,
+    );
+    void arm(Rect arm, Offset a, Offset b) {
+      canvas.drawRect(arm, asphalt);
+      canvas.drawLine(a, b, lane);
+    }
+
+    if (road(x - 1, y)) {
+      arm(
+        Rect.fromLTRB(
+          rect.left,
+          rect.center.dy - half,
+          rect.center.dx,
+          rect.center.dy + half,
+        ),
+        Offset(rect.left, rect.center.dy),
+        rect.center,
+      );
+    }
+    if (road(x + 1, y)) {
+      arm(
+        Rect.fromLTRB(
+          rect.center.dx,
+          rect.center.dy - half,
+          rect.right,
+          rect.center.dy + half,
+        ),
+        rect.center,
+        Offset(rect.right, rect.center.dy),
+      );
+    }
+    if (road(x, y - 1)) {
+      arm(
+        Rect.fromLTRB(
+          rect.center.dx - half,
+          rect.top,
+          rect.center.dx + half,
+          rect.center.dy,
+        ),
+        Offset(rect.center.dx, rect.top),
+        rect.center,
+      );
+    }
+    if (road(x, y + 1)) {
+      arm(
+        Rect.fromLTRB(
+          rect.center.dx - half,
+          rect.center.dy,
+          rect.center.dx + half,
+          rect.bottom,
+        ),
+        rect.center,
+        Offset(rect.center.dx, rect.bottom),
+      );
+    }
+  }
+
+  void _drawTraffic(Canvas canvas, double cell) {
+    if (cell * scale < 13) return;
+    final state = c.sim.state;
+    final reference = math.max(
+      1.0,
+      c.sim.params.noise.trafficReferenceVehiclesPerDay,
+    );
+    for (var i = 0; i < state.cellCount; i++) {
+      if (state.tiles[i] != TileType.road) continue;
+      final x = i % c.width;
+      final y = i ~/ c.width;
+      void segment(int nx, int ny, int other) {
+        if (!state.inBounds(nx, ny) || state.tiles[other] != TileType.road) {
+          return;
+        }
+        final intensity =
+            ((c.sim.fields.traffic[i] + c.sim.fields.traffic[other]) /
+                    (2 * reference))
+                .clamp(0.0, 1.0);
+        if (intensity < 0.01) return;
+        final count = 1 + (intensity * 3).floor();
+        final from = Offset((x + 0.5) * cell, (y + 0.5) * cell);
+        final to = Offset((nx + 0.5) * cell, (ny + 0.5) * cell);
+        final perpendicular =
+            Offset(-(to.dy - from.dy), to.dx - from.dx) / cell * (cell * 0.075);
+        for (var car = 0; car < count; car++) {
+          final phase =
+              (motion * (0.45 + 0.55 * intensity) + _unit(i * 17 + car * 31)) %
+              1;
+          final position =
+              Offset.lerp(from, to, phase)! +
+              (car.isEven ? perpendicular : -perpendicular);
+          canvas.drawCircle(
+            position,
+            math.max(0.8 / scale, cell * 0.045),
+            Paint()
+              ..color = car.isEven
+                  ? const Color(0xFFFFD54F)
+                  : const Color(0xFFECEFF1),
+          );
+        }
+      }
+
+      if (x + 1 < c.width) segment(x + 1, y, i + 1);
+      if (y + 1 < c.height) segment(x, y + 1, i + c.width);
+    }
+  }
+
+  void _drawForest(Canvas canvas, int index, Rect rect, double maturity) {
+    final sway =
+        math.sin((motion + _unit(index)) * math.pi * 2) *
+        rect.width *
+        0.018 *
+        maturity;
+    final positions = <Offset>[
+      const Offset(0.28, 0.30),
+      const Offset(0.67, 0.27),
+      const Offset(0.48, 0.55),
+      const Offset(0.22, 0.72),
+      const Offset(0.75, 0.72),
+    ];
+    final visible = 2 + (maturity * 3).round();
+    for (var tree = 0; tree < visible; tree++) {
+      final p = positions[tree];
+      final centre = Offset(
+        rect.left + p.dx * rect.width + sway * (tree.isEven ? 1 : -1),
+        rect.top + p.dy * rect.height,
+      );
+      final radius =
+          rect.width *
+          (0.075 + 0.075 * maturity) *
+          (0.88 + _unit(index * 13 + tree) * 0.22);
+      canvas.drawCircle(
+        centre + Offset(radius * 0.12, radius * 0.20),
+        radius,
+        Paint()..color = Colors.black.withValues(alpha: 0.12),
+      );
+      canvas.drawCircle(
+        centre,
+        radius,
+        Paint()
+          ..color = Color.lerp(
+            const Color(0xFF81C784),
+            const Color(0xFF1B5E20),
+            maturity,
+          )!,
+      );
+      canvas.drawCircle(
+        centre - Offset(radius * 0.25, radius * 0.25),
+        radius * 0.48,
+        Paint()..color = Colors.white.withValues(alpha: 0.13),
+      );
+    }
+  }
+
+  void _drawTree(Canvas canvas, Offset centre, double radius, double vitality) {
+    canvas.drawCircle(
+      centre + Offset(radius * 0.14, radius * 0.20),
+      radius,
+      Paint()..color = Colors.black.withValues(alpha: 0.13),
+    );
+    canvas.drawCircle(
+      centre,
+      radius,
+      Paint()
+        ..color = Color.lerp(
+          const Color(0xFF66BB6A),
+          const Color(0xFF1B5E20),
+          vitality,
+        )!,
+    );
+    canvas.drawCircle(
+      centre - Offset(radius * 0.24, radius * 0.25),
+      radius * 0.43,
+      Paint()..color = Colors.white.withValues(alpha: 0.14),
+    );
+  }
+
+  double _maturity(int index) {
+    final params = c.sim.params.tile(TileType.forest);
+    final recovered =
+        (c.sim.state.tileAge[index] / math.max(1, params.recoveryMonths.value))
+            .clamp(0.0, 1.0);
+    return params.biotopeStart.value +
+        (1 - params.biotopeStart.value) * recovered;
+  }
+
+  double _unit(int value) {
+    var hash = value ^ c.sim.state.seed;
+    hash = (hash * 1103515245 + 12345) & 0x7fffffff;
+    return hash / 0x80000000;
+  }
+
+  void _outline(Canvas canvas, Rect rect, Color color, double width) {
+    canvas.drawRect(
+      rect.deflate(width / 2),
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width,
+    );
   }
 
   @override

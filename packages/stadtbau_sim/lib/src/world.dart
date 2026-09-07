@@ -7,7 +7,8 @@ import 'tile_type.dart';
 /// Deterministic xorshift32 generator. Uses only 32-bit arithmetic so it
 /// behaves identically on the VM and on the web (JS numbers).
 class Rng {
-  Rng(int seed) : _s = (seed & 0xFFFFFFFF) == 0 ? 0x9E3779B9 : seed & 0xFFFFFFFF;
+  Rng(int seed)
+    : _s = (seed & 0xFFFFFFFF) == 0 ? 0x9E3779B9 : seed & 0xFFFFFFFF;
 
   int _s;
 
@@ -96,46 +97,67 @@ class WorldState {
 
   /// Fill every existing residential tile to [occupancy] of its capacity.
   /// Used by levels so that pre-built quarters are inhabited from the start.
-  void populateExisting(SimParams params, {double occupancy = 0.9, int ageMonths = 240}) {
+  void populateExisting(
+    SimParams params, {
+    double occupancy = 0.9,
+    int ageMonths = 240,
+  }) {
     for (var i = 0; i < cellCount; i++) {
       final tp = params.tile(tiles[i]);
       tileAge[i] = ageMonths;
-      population[i] = tp.isResidential ? tp.residentsPerHa.value * occupancy : 0;
+      population[i] = tp.isResidential
+          ? tp.residentsPerHa.value * occupancy
+          : 0;
     }
   }
 
   WorldState copy() => WorldState._(
-        width: width,
-        height: height,
-        tiles: List<TileType>.of(tiles),
-        tileAge: Int32List.fromList(tileAge),
-        population: Float64List.fromList(population),
-        tick: tick,
-        budgetKEur: budgetKEur,
-        seed: seed,
-      );
+    width: width,
+    height: height,
+    tiles: List<TileType>.of(tiles),
+    tileAge: Int32List.fromList(tileAge),
+    population: Float64List.fromList(population),
+    tick: tick,
+    budgetKEur: budgetKEur,
+    seed: seed,
+  );
 
   Map<String, dynamic> toJson() => {
-        'version': 1,
-        'width': width,
-        'height': height,
-        'tick': tick,
-        'budgetKEur': budgetKEur,
-        'seed': seed,
-        'tiles': [for (final t in tiles) t.id],
-        'tileAge': tileAge.toList(),
-        'population': population.toList(),
-      };
+    'version': 1,
+    'width': width,
+    'height': height,
+    'tick': tick,
+    // JSON has no representation for infinity. Sandboxes use an unlimited
+    // budget, so store that semantic value explicitly while keeping old
+    // numeric save files backwards compatible.
+    'budgetKEur': budgetKEur.isFinite ? budgetKEur : 'unlimited',
+    'seed': seed,
+    'tiles': [for (final t in tiles) t.id],
+    'tileAge': tileAge.toList(),
+    'population': population.toList(),
+  };
 
   static WorldState fromJson(Map<String, dynamic> json) {
     final width = json['width'] as int;
     final height = json['height'] as int;
     final n = width * height;
-    final tiles = (json['tiles'] as List<dynamic>).map((e) => TileType.fromId(e as String)).toList();
+    final tiles = (json['tiles'] as List<dynamic>)
+        .map((e) => TileType.fromId(e as String))
+        .toList();
     if (tiles.length != n) throw const FormatException('tiles length mismatch');
-    final age = Int32List.fromList((json['tileAge'] as List<dynamic>).map((e) => (e as num).toInt()).toList());
-    final pop = Float64List.fromList((json['population'] as List<dynamic>).map((e) => (e as num).toDouble()).toList());
-    if (age.length != n || pop.length != n) throw const FormatException('array length mismatch');
+    final age = Int32List.fromList(
+      (json['tileAge'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
+    );
+    final pop = Float64List.fromList(
+      (json['population'] as List<dynamic>)
+          .map((e) => (e as num).toDouble())
+          .toList(),
+    );
+    if (age.length != n || pop.length != n) {
+      throw const FormatException('array length mismatch');
+    }
     return WorldState._(
       width: width,
       height: height,
@@ -143,7 +165,9 @@ class WorldState {
       tileAge: age,
       population: pop,
       tick: json['tick'] as int,
-      budgetKEur: (json['budgetKEur'] as num).toDouble(),
+      budgetKEur: json['budgetKEur'] == 'unlimited'
+          ? double.infinity
+          : (json['budgetKEur'] as num).toDouble(),
       seed: json['seed'] as int,
     );
   }

@@ -295,6 +295,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   supports 8–24. 60 fps on web.
   *Note 2026-09-05:* CustomPainter grid with Material icon glyphs, 8–24 sizes. Zoom/pan and sprite assets still open.
   *Note 2026-09-05 (4):* T-202 zoom/pan done: `InteractiveViewer` with a `MapViewController` (min scale = fit, max 4×, translation clamped to the viewport), pinch/wheel zoom, drag pan, app-bar zoom in/out/reset; hit testing goes through the transform. Sprite assets still open.
+  *Note 2026-09-07:* Added a complete model-driven procedural tile atlas: textured terrain and crops, connected water and roads, distinct parks and buildings, occupancy/activity cues, traffic and emissions animation, parameter-scaled forest maturity, construction transitions, smooth overlays, reduced-motion support and simulation-backed placement forecasts. Physical-device FPS measurements remain open.
 - [x] **T-203 Palette and drag & drop.** Draggable tile cards with remaining count (level
   limits), drop onto grid with placement preview and validation feedback, long-press to
   remove. Touch and mouse. Keyboard accessible (select tile, arrow keys, Enter).
