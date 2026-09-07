@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
+import '../game/experience_settings.dart';
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'about_screen.dart';
@@ -88,15 +89,11 @@ class _GameScreenState extends State<GameScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                for (var i = 0; i < 3; i++)
-                  Icon(
-                    i < progress.stars ? Icons.star : Icons.star_border,
-                    color: Colors.amber.shade700,
-                    size: 32,
-                  ),
-              ],
+            _CelebrationStars(
+              stars: progress.stars,
+              animate:
+                  c.experience.effectAnimations &&
+                  !(MediaQuery.maybeOf(context)?.disableAnimations ?? false),
             ),
             const SizedBox(height: 8),
             Text(l10n.endGoalsMet(progress.metCount, progress.goalsMet.length)),
@@ -187,12 +184,22 @@ class _GameScreenState extends State<GameScreen> {
     ).push(MaterialPageRoute<void>(builder: (_) => const AboutScreen()));
   }
 
+  void _settings() {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => _ExperienceSheet(controller: c),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 1000;
+        final roomyAppBar = constraints.maxWidth >= 1280;
         return Scaffold(
           appBar: AppBar(
             leading: IconButton(
@@ -205,7 +212,7 @@ class _GameScreenState extends State<GameScreen> {
                   ? l10n.levelTitle('sandbox')
                   : l10n.levelTitle(c.level!.id),
             ),
-            actions: wide
+            actions: roomyAppBar
                 ? [
                     _Clock(controller: c),
                     const SizedBox(width: 8),
@@ -234,6 +241,11 @@ class _GameScreenState extends State<GameScreen> {
                         onPressed: _newGame,
                       ),
                     IconButton(
+                      tooltip: l10n.actionExperienceSettings,
+                      icon: const Icon(Icons.tune),
+                      onPressed: _settings,
+                    ),
+                    IconButton(
                       tooltip: l10n.actionLanguage,
                       icon: const Icon(Icons.translate),
                       onPressed: widget.onLocaleToggle,
@@ -252,6 +264,7 @@ class _GameScreenState extends State<GameScreen> {
                       controller: c,
                       map: _map,
                       onNewGame: c.level == null ? _newGame : null,
+                      onSettings: _settings,
                       onLocaleToggle: widget.onLocaleToggle,
                       onAbout: _about,
                     ),
@@ -313,6 +326,38 @@ class _GameScreenState extends State<GameScreen> {
   );
 }
 
+class _CelebrationStars extends StatelessWidget {
+  const _CelebrationStars({required this.stars, required this.animate});
+
+  final int stars;
+  final bool animate;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(double scale) => Transform.scale(
+      scale: scale,
+      alignment: Alignment.centerLeft,
+      child: Row(
+        children: [
+          for (var i = 0; i < 3; i++)
+            Icon(
+              i < stars ? Icons.star : Icons.star_border,
+              color: Colors.amber.shade700,
+              size: 32,
+            ),
+        ],
+      ),
+    );
+    if (!animate) return row(1);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.35, end: 1),
+      duration: const Duration(milliseconds: 750),
+      curve: Curves.elasticOut,
+      builder: (context, value, _) => row(value),
+    );
+  }
+}
+
 class _Clock extends StatelessWidget {
   const _Clock({required this.controller, this.compact = false});
   final GameController controller;
@@ -336,6 +381,31 @@ class _Clock extends StatelessWidget {
         final ind = controller.sim.indicators;
         final year = s.tick ~/ 12 + 1;
         final month = s.tick % 12 + 1;
+        if (controller.simpleMode) {
+          final average =
+              Indicator.values.fold<double>(
+                0,
+                (sum, indicator) => sum + ind.score(indicator),
+              ) /
+              Indicator.values.length;
+          final face = average >= 75
+              ? '😄'
+              : average >= 55
+              ? '🙂'
+              : average >= 35
+              ? '😐'
+              : '🙁';
+          return Row(
+            children: [
+              if (!compact) Text(l10n.yearMonthLabel(year, month)),
+              if (!compact) const SizedBox(width: 10),
+              Tooltip(
+                message: l10n.townMood,
+                child: Text(face, style: const TextStyle(fontSize: 22)),
+              ),
+            ],
+          );
+        }
         return Row(
           children: [
             if (!compact) ...[
@@ -416,7 +486,26 @@ class _OverlayMenu extends StatelessWidget {
         onSelected: controller.setOverlay,
         itemBuilder: (context) => [
           for (final o in MapOverlay.values)
-            PopupMenuItem(value: o, child: Text(l10n.overlayName(o.name))),
+            PopupMenuItem(
+              value: o,
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  controller.overlay == o
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                ),
+                title: Text(l10n.overlayName(o.name)),
+                subtitle: o == MapOverlay.none
+                    ? null
+                    : Text(
+                        controller.overlayHighIsBadFor(o)
+                            ? l10n.overlayDirectionHarmful
+                            : l10n.overlayDirectionHelpful,
+                      ),
+              ),
+            ),
         ],
       ),
     );
@@ -441,32 +530,48 @@ class _Legend extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           child: Row(
             children: [
-              Text(
-                '${l10n.overlayName(controller.overlay.name)} (${l10n.overlayUnit(controller.overlay.name)})',
+              Flexible(
+                flex: 2,
+                child: Text(
+                  '${l10n.overlayName(controller.overlay.name)} (${l10n.overlayUnit(controller.overlay.name)})',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               const SizedBox(width: 12),
               Text(
-                l10n.legendLow,
+                controller.simpleMode
+                    ? (bad ? l10n.legendBetter : l10n.legendLess)
+                    : l10n.legendLow,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(width: 4),
-              Container(
-                width: 120,
-                height: 12,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      for (var i = 0; i <= 4; i++)
-                        overlayColor(i / 4, highIsBad: bad),
-                    ],
+              Expanded(
+                child: Container(
+                  height: 12,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        for (var i = 0; i <= 4; i++)
+                          overlayColor(i / 4, highIsBad: bad),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(3),
                   ),
-                  borderRadius: BorderRadius.circular(3),
                 ),
               ),
               const SizedBox(width: 4),
               Text(
-                l10n.legendHigh,
+                controller.simpleMode
+                    ? (bad ? l10n.legendWorse : l10n.legendMore)
+                    : l10n.legendHigh,
                 style: Theme.of(context).textTheme.bodySmall,
+              ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                tooltip: l10n.overlayClose,
+                icon: const Icon(Icons.close, size: 18),
+                onPressed: () => controller.setOverlay(MapOverlay.none),
               ),
             ],
           ),
@@ -511,6 +616,7 @@ class _MoreMenu extends StatelessWidget {
     required this.controller,
     required this.map,
     required this.onNewGame,
+    required this.onSettings,
     required this.onLocaleToggle,
     required this.onAbout,
   });
@@ -518,6 +624,7 @@ class _MoreMenu extends StatelessWidget {
   final GameController controller;
   final MapViewController map;
   final VoidCallback? onNewGame;
+  final VoidCallback onSettings;
   final VoidCallback onLocaleToggle;
   final VoidCallback onAbout;
 
@@ -583,6 +690,13 @@ class _MoreMenu extends StatelessWidget {
             ),
           ),
           const PopupMenuDivider(),
+          PopupMenuItem(
+            value: onSettings,
+            child: ListTile(
+              leading: const Icon(Icons.tune),
+              title: Text(l10n.actionExperienceSettings),
+            ),
+          ),
           if (onNewGame != null)
             PopupMenuItem(
               value: onNewGame!,
@@ -606,6 +720,149 @@ class _MoreMenu extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ExperienceSheet extends StatelessWidget {
+  const _ExperienceSheet({required this.controller});
+
+  final GameController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return SafeArea(
+      child: ListenableBuilder(
+        listenable: controller,
+        builder: (context, _) {
+          final value = controller.experience;
+          void update(ExperienceSettings next) =>
+              controller.setExperience(next);
+          return ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.experienceTitle,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  Text(l10n.experienceDescription),
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.child_care),
+                    title: Text(l10n.indicatorModeSimple),
+                    subtitle: Text(l10n.settingSimpleDescription),
+                    value: value.simpleMode,
+                    onChanged: (enabled) =>
+                        update(value.copyWith(simpleMode: enabled)),
+                  ),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.filter_none),
+                    title: Text(l10n.settingCleanVisuals),
+                    subtitle: Text(l10n.settingCleanVisualsDescription),
+                    value: value.cleanVisuals,
+                    onChanged: (enabled) =>
+                        update(value.copyWith(cleanVisuals: enabled)),
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.air),
+                    title: Text(l10n.settingAmbientAnimations),
+                    subtitle: Text(l10n.settingAmbientAnimationsDescription),
+                    value: value.ambientAnimations,
+                    onChanged: (enabled) =>
+                        update(value.copyWith(ambientAnimations: enabled)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 24),
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          secondary: const Icon(Icons.traffic),
+                          title: Text(l10n.settingTrafficAnimations),
+                          value: value.trafficAnimations,
+                          onChanged: value.ambientAnimations
+                              ? (enabled) => update(
+                                  value.copyWith(trafficAnimations: enabled),
+                                )
+                              : null,
+                        ),
+                        SwitchListTile(
+                          secondary: const Icon(Icons.water),
+                          title: Text(l10n.settingEnvironmentAnimations),
+                          value: value.environmentAnimations,
+                          onChanged: value.ambientAnimations
+                              ? (enabled) => update(
+                                  value.copyWith(
+                                    environmentAnimations: enabled,
+                                  ),
+                                )
+                              : null,
+                        ),
+                        SwitchListTile(
+                          secondary: const Icon(Icons.apartment),
+                          title: Text(l10n.settingCityActivityAnimations),
+                          value: value.cityActivityAnimations,
+                          onChanged: value.ambientAnimations
+                              ? (enabled) => update(
+                                  value.copyWith(
+                                    cityActivityAnimations: enabled,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.animation),
+                    title: Text(l10n.settingEffectAnimations),
+                    subtitle: Text(l10n.settingEffectAnimationsDescription),
+                    value: value.effectAnimations,
+                    onChanged: (enabled) =>
+                        update(value.copyWith(effectAnimations: enabled)),
+                  ),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.auto_graph),
+                    title: Text(l10n.settingPlacementForecasts),
+                    subtitle: Text(l10n.settingPlacementForecastsDescription),
+                    value: value.placementForecasts,
+                    onChanged: (enabled) =>
+                        update(value.copyWith(placementForecasts: enabled)),
+                  ),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.hub_outlined),
+                    title: Text(l10n.settingCausalHighlights),
+                    subtitle: Text(l10n.settingCausalHighlightsDescription),
+                    value: value.causalHighlights,
+                    onChanged: (enabled) =>
+                        update(value.copyWith(causalHighlights: enabled)),
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.volume_up_outlined),
+                    title: Text(l10n.settingSoundEffects),
+                    value: value.soundEffects,
+                    onChanged: (enabled) =>
+                        update(value.copyWith(soundEffects: enabled)),
+                  ),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.vibration),
+                    title: Text(l10n.settingHaptics),
+                    value: value.haptics,
+                    onChanged: (enabled) =>
+                        update(value.copyWith(haptics: enabled)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
