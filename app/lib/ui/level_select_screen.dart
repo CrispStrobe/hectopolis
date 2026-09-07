@@ -45,6 +45,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   }
 
   Future<void> _refresh() async {
+    await widget.controller.loadExperienceSettings();
     final stars = await widget.store.bestStars();
     final save = await widget.store.load();
     if (!mounted) return;
@@ -57,7 +58,10 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   Future<void> _open() async {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => GameScreen(controller: widget.controller, onLocaleToggle: widget.onLocaleToggle),
+        builder: (_) => GameScreen(
+          controller: widget.controller,
+          onLocaleToggle: widget.onLocaleToggle,
+        ),
       ),
     );
     await _refresh();
@@ -90,11 +94,17 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
             icon: const Icon(Icons.help_outline),
             onPressed: () => showOnboarding(context, widget.store),
           ),
-          IconButton(tooltip: l10n.actionLanguage, icon: const Icon(Icons.translate), onPressed: widget.onLocaleToggle),
+          IconButton(
+            tooltip: l10n.actionLanguage,
+            icon: const Icon(Icons.translate),
+            onPressed: widget.onLocaleToggle,
+          ),
           IconButton(
             tooltip: l10n.actionAbout,
             icon: const Icon(Icons.info_outline),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AboutScreen())),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const AboutScreen()),
+            ),
           ),
         ],
       ),
@@ -149,10 +159,14 @@ class _Stars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < 3; i++)
-            Icon(i < count ? Icons.star : Icons.star_border, size: 18, color: Colors.amber.shade700),
-        ],
-      );
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (var i = 0; i < 3; i++)
+        Icon(
+          i < count ? Icons.star : Icons.star_border,
+          size: 18,
+          color: Colors.amber.shade700,
+        ),
+    ],
+  );
 }

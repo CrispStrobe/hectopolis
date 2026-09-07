@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide Simulation;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stadtbau/game/game_controller.dart';
+import 'package:stadtbau/game/experience_settings.dart';
 import 'package:stadtbau/game/save_store.dart';
 import 'package:stadtbau/main.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
@@ -70,6 +71,71 @@ void main() {
     expect(c.sim.state.tileAt(1, 1), TileType.road);
     c.step();
     expect(c.sim.state.tick, 1);
+    c.dispose();
+  });
+
+  test(
+    'experience settings persist independently of the saved world',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      final store = SaveStore();
+      const settings = ExperienceSettings(
+        simpleMode: true,
+        cleanVisuals: true,
+        ambientAnimations: false,
+        trafficAnimations: false,
+        placementForecasts: false,
+        causalHighlights: false,
+        haptics: false,
+      );
+      await store.saveExperienceSettings(settings);
+
+      final c = GameController(size: 8, store: store);
+      await c.loadExperienceSettings();
+      expect(c.simpleMode, isTrue);
+      expect(c.experience.cleanVisuals, isTrue);
+      expect(c.experience.ambientAnimations, isFalse);
+      expect(c.experience.trafficAnimations, isFalse);
+      expect(c.experience.placementForecasts, isFalse);
+      c.dispose();
+    },
+  );
+
+  test('builds record actual impacts and a bounded visual timeline', () {
+    final c = GameController(size: 8);
+    c.setExperience(c.experience.copyWith(haptics: false));
+    final initialSamples = c.indicatorHistory.length;
+
+    expect(c.place(1, 1, TileType.road), isTrue);
+    expect(c.lastImpact, isNotNull);
+    expect(c.lastImpact!.tile, TileType.road);
+    expect(c.lastImpact!.affectedCells, contains(c.sim.state.index(1, 1)));
+    expect(c.indicatorHistory.length, initialSamples + 1);
+
+    c.step();
+    expect(c.lastImpact, isNull);
+    expect(c.indicatorHistory.last.tick, 1);
+    c.dispose();
+  });
+
+  test('air overlay consistently treats a high quality index as helpful', () {
+    final c = GameController(size: 8);
+    c.setOverlay(MapOverlay.air);
+    expect(c.overlayHighIsBad, isFalse);
+    expect(c.overlayValue(0), inInclusiveRange(0, 1));
+    c.dispose();
+  });
+
+  test('level guidance targets an available tile for the weakest goal', () {
+    final c = GameController(size: 8);
+    c.setExperience(c.experience.copyWith(haptics: false));
+    c.startLevel(Level.byId('village')!);
+    final guidance = c.goalGuidance;
+    expect(guidance, isNotNull);
+    final tile = guidance!.tile;
+    if (tile != null) {
+      expect(c.sim.tileBudget.allowed(tile), isTrue);
+    }
     c.dispose();
   });
 

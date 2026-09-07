@@ -33,10 +33,68 @@ class TileInspector extends StatelessWidget {
         final y = cell ~/ sim.state.width;
         final type = sim.state.tiles[cell];
         final style = TileStyle.of(type);
+        if (controller.simpleMode) {
+          String face(double value) {
+            if (value >= 0.75) return '😄';
+            if (value >= 0.5) return '🙂';
+            if (value >= 0.3) return '😐';
+            return '🙁';
+          }
+
+          final conditions = <(String, double)>[
+            (l10n.fieldNoise, ((65 - f.noiseDb[cell]) / 30).clamp(0, 1)),
+            (l10n.fieldAir, (1 - f.airIndex[cell] / 100).clamp(0, 1)),
+            (l10n.fieldGreen, f.greenAccess[cell]),
+            (l10n.fieldAttractiveness, f.attractiveness[cell]),
+          ];
+          return ListView(
+            padding: const EdgeInsets.all(8),
+            children: [
+              Row(
+                children: [
+                  Icon(style.icon, color: style.iconColor),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      l10n.tileName(type.id),
+                      style: theme.textTheme.titleSmall,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: l10n.actionClear,
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => controller.clear(x, y),
+                  ),
+                ],
+              ),
+              Text(
+                l10n.tileDescription(type.id),
+                style: theme.textTheme.bodySmall,
+              ),
+              const SizedBox(height: 6),
+              for (final (label, value) in conditions)
+                ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(label),
+                  trailing: Text(face(value)),
+                ),
+            ],
+          );
+        }
         final locale = Localizations.localeOf(context).toString();
-        final n0 = NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 0);
-        final n1 = NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 1);
-        final n2 = NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 2);
+        final n0 = NumberFormat.decimalPatternDigits(
+          locale: locale,
+          decimalDigits: 0,
+        );
+        final n1 = NumberFormat.decimalPatternDigits(
+          locale: locale,
+          decimalDigits: 1,
+        );
+        final n2 = NumberFormat.decimalPatternDigits(
+          locale: locale,
+          decimalDigits: 2,
+        );
 
         final rows = <(String, String)>[
           (l10n.fieldNoise, l10n.dbValue(n0.format(f.noiseDb[cell]))),
@@ -50,7 +108,10 @@ class TileInspector extends StatelessWidget {
           (l10n.fieldAttractiveness, n2.format(f.attractiveness[cell])),
           (l10n.fieldResidents, n0.format(sim.state.population[cell])),
           (l10n.fieldCommute, l10n.kmValue(n1.format(f.meanCommuteKm[cell]))),
-          (l10n.fieldCarShare, l10n.percentValue(n0.format(f.carShare[cell] * 100))),
+          (
+            l10n.fieldCarShare,
+            l10n.percentValue(n0.format(f.carShare[cell] * 100)),
+          ),
           (l10n.fieldConnected, f.connected[cell] == 1 ? l10n.yes : l10n.no),
           (l10n.fieldAge, l10n.months(sim.state.tileAge[cell])),
         ];
@@ -63,8 +124,10 @@ class TileInspector extends StatelessWidget {
                 Icon(style.icon, color: style.iconColor),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text('${l10n.inspectorTitle(x, y)} · ${l10n.tileName(type.id)}',
-                      style: theme.textTheme.titleSmall),
+                  child: Text(
+                    '${l10n.inspectorTitle(x, y)} · ${l10n.tileName(type.id)}',
+                    style: theme.textTheme.titleSmall,
+                  ),
                 ),
                 IconButton(
                   tooltip: l10n.actionClear,
@@ -73,14 +136,19 @@ class TileInspector extends StatelessWidget {
                 ),
               ],
             ),
-            Text(l10n.tileDescription(type.id), style: theme.textTheme.bodySmall),
+            Text(
+              l10n.tileDescription(type.id),
+              style: theme.textTheme.bodySmall,
+            ),
             const SizedBox(height: 6),
             for (final (label, value) in rows)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 1),
                 child: Row(
                   children: [
-                    Expanded(child: Text(label, style: theme.textTheme.bodySmall)),
+                    Expanded(
+                      child: Text(label, style: theme.textTheme.bodySmall),
+                    ),
                     Text(value, style: theme.textTheme.bodyMedium),
                   ],
                 ),
@@ -107,7 +175,12 @@ class TileInspector extends StatelessWidget {
 
 /// Which tile types cause a field value at the selected cell (task T-206).
 class _Breakdown extends StatelessWidget {
-  const _Breakdown({required this.title, required this.rows, required this.format, required this.cellSizeM});
+  const _Breakdown({
+    required this.title,
+    required this.rows,
+    required this.format,
+    required this.cellSizeM,
+  });
 
   final String title;
   final List<Contribution> rows;
@@ -119,20 +192,32 @@ class _Breakdown extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).toString();
-    final n0 = NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 0);
+    final n0 = NumberFormat.decimalPatternDigits(
+      locale: locale,
+      decimalDigits: 0,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title, style: theme.textTheme.labelLarge),
-        if (rows.isEmpty) Text(l10n.breakdownNone, style: theme.textTheme.bodySmall),
+        if (rows.isEmpty)
+          Text(l10n.breakdownNone, style: theme.textTheme.bodySmall),
         for (final c in rows.take(5))
           Row(
             children: [
-              Icon(TileStyle.of(c.type).icon, size: 14, color: TileStyle.of(c.type).iconColor),
+              Icon(
+                TileStyle.of(c.type).icon,
+                size: 14,
+                color: TileStyle.of(c.type).iconColor,
+              ),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  l10n.breakdownRow(l10n.tileName(c.type.id), c.count, n0.format(c.nearestTiles * cellSizeM)),
+                  l10n.breakdownRow(
+                    l10n.tileName(c.type.id),
+                    c.count,
+                    n0.format(c.nearestTiles * cellSizeM),
+                  ),
                   style: theme.textTheme.bodySmall,
                   overflow: TextOverflow.ellipsis,
                 ),

@@ -24,7 +24,12 @@ class Palette extends StatelessWidget {
         final types = controller.allowedTypes;
         final cards = [
           for (var i = 0; i < types.length; i++)
-            _TileCard(controller: controller, type: types[i], compact: horizontal, index: i),
+            _TileCard(
+              controller: controller,
+              type: types[i],
+              compact: horizontal,
+              index: i,
+            ),
         ];
         if (horizontal) {
           return SizedBox(
@@ -39,10 +44,16 @@ class Palette extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.all(8),
           children: [
-            Text(l10n.paletteTitle, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l10n.paletteTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(l10n.paletteHint, style: Theme.of(context).textTheme.bodySmall),
+              child: Text(
+                l10n.paletteHint,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
             ...cards,
           ],
@@ -53,7 +64,12 @@ class Palette extends StatelessWidget {
 }
 
 class _TileCard extends StatelessWidget {
-  const _TileCard({required this.controller, required this.type, required this.compact, required this.index});
+  const _TileCard({
+    required this.controller,
+    required this.type,
+    required this.compact,
+    required this.index,
+  });
 
   final GameController controller;
   final TileType type;
@@ -72,7 +88,9 @@ class _TileCard extends StatelessWidget {
     final params = controller.sim.params.tile(type);
     final remaining = controller.sim.tileBudget.remaining(type);
     final selected = controller.brush == type;
-    final money = NumberFormat.decimalPattern(Localizations.localeOf(context).toString());
+    final money = NumberFormat.decimalPattern(
+      Localizations.localeOf(context).toString(),
+    );
     final cost = l10n.kEur(money.format(params.buildCostKEur.value));
 
     final content = Container(
@@ -81,7 +99,9 @@ class _TileCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: style.color.withValues(alpha: 0.35),
         border: Border.all(
-          color: selected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+          color: selected
+              ? Theme.of(context).colorScheme.primary
+              : Colors.transparent,
           width: 2,
         ),
         borderRadius: BorderRadius.circular(8),
@@ -91,9 +111,14 @@ class _TileCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(style.icon, color: style.iconColor, size: 26),
-                Text(l10n.tileName(type.id),
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelSmall),
-                Text(cost, style: Theme.of(context).textTheme.labelSmall),
+                Text(
+                  l10n.tileName(type.id),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+                if (!controller.simpleMode)
+                  Text(cost, style: Theme.of(context).textTheme.labelSmall),
               ],
             )
           : Row(
@@ -101,7 +126,10 @@ class _TileCard extends StatelessWidget {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(color: style.color, borderRadius: BorderRadius.circular(6)),
+                  decoration: BoxDecoration(
+                    color: style.color,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
                   child: Icon(style.icon, color: style.iconColor),
                 ),
                 const SizedBox(width: 8),
@@ -109,16 +137,22 @@ class _TileCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(l10n.tileName(type.id), style: Theme.of(context).textTheme.bodyMedium),
                       Text(
-                        '${l10n.costLabel(cost)} · ${remaining == null ? l10n.unlimited : l10n.remainingLabel(remaining)}',
+                        l10n.tileName(type.id),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      Text(
+                        controller.simpleMode
+                            ? (remaining == null
+                                  ? l10n.unlimited
+                                  : l10n.remainingLabel(remaining))
+                            : '${l10n.costLabel(cost)} · ${remaining == null ? l10n.unlimited : l10n.remainingLabel(remaining)}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
                 ),
-                if (_shortcut != null)
-                  _ShortcutBadge(digit: _shortcut!),
+                if (_shortcut != null) _ShortcutBadge(digit: _shortcut!),
               ],
             ),
     );
@@ -142,7 +176,9 @@ class _TileCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: style.color,
                   borderRadius: BorderRadius.circular(6),
-                  boxShadow: const [BoxShadow(blurRadius: 6, color: Colors.black38)],
+                  boxShadow: const [
+                    BoxShadow(blurRadius: 6, color: Colors.black38),
+                  ],
                 ),
                 child: Icon(style.icon, color: style.iconColor),
               ),

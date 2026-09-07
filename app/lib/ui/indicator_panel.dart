@@ -123,14 +123,17 @@ class IndicatorPanel extends StatelessWidget {
             _Gauge(
               indicator: i,
               label: l10n.indicatorName(i.name),
-              hint: l10n.indicatorHint(i.name),
+              hint: controller.simpleMode
+                  ? l10n.indicatorSimpleHint(i.name)
+                  : l10n.indicatorHint(i.name),
               detail: detail(i),
               value: ind.score(i),
               compact: compact,
               simpleMode: controller.simpleMode,
+              history: controller.indicatorHistory,
               onTap: () {
                 final overlay = _overlayFor(i);
-                if (overlay != null) controller.overlay = overlay;
+                if (overlay != null) controller.setOverlay(overlay);
               },
             ),
         ];
@@ -184,6 +187,7 @@ class _Gauge extends StatelessWidget {
     required this.value,
     required this.compact,
     required this.simpleMode,
+    required this.history,
     required this.onTap,
   });
 
@@ -194,6 +198,7 @@ class _Gauge extends StatelessWidget {
   final double value;
   final bool compact;
   final bool simpleMode;
+  final List<IndicatorHistorySample> history;
   final VoidCallback onTap;
 
   void _open(BuildContext context) =>
@@ -228,11 +233,11 @@ class _Gauge extends StatelessWidget {
 
     if (compact) {
       return Tooltip(
-        message: '$hint\n$detail',
+        message: simpleMode ? hint : '$hint\n$detail',
         child: InkWell(
           onTap: () {
             onTap();
-            _open(context);
+            if (!simpleMode) _open(context);
           },
           onLongPress: () => _open(context),
           borderRadius: BorderRadius.circular(6),
@@ -322,6 +327,19 @@ class _Gauge extends StatelessWidget {
                   ),
                 ),
                 Text(detail, style: theme.textTheme.bodySmall),
+                if (history.length > 1)
+                  SizedBox(
+                    height: 22,
+                    width: double.infinity,
+                    child: CustomPaint(
+                      painter: _SparklinePainter(
+                        samples: history,
+                        indicator: indicator,
+                        color: _color(context),
+                        eventColor: theme.colorScheme.secondary,
+                      ),
+                    ),
+                  ),
               ],
             ],
           ),
@@ -329,6 +347,51 @@ class _Gauge extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SparklinePainter extends CustomPainter {
+  const _SparklinePainter({
+    required this.samples,
+    required this.indicator,
+    required this.color,
+    required this.eventColor,
+  });
+
+  final List<IndicatorHistorySample> samples;
+  final Indicator indicator;
+  final Color color;
+  final Color eventColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (samples.length < 2 || size.isEmpty) return;
+    final path = Path();
+    for (var i = 0; i < samples.length; i++) {
+      final x = size.width * i / (samples.length - 1);
+      final score = (samples[i].scores[indicator] ?? 0).clamp(0.0, 100.0);
+      final y = size.height * (1 - score / 100);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+        if (samples[i].tick == samples[i - 1].tick) {
+          canvas.drawCircle(Offset(x, y), 1.8, Paint()..color = eventColor);
+        }
+      }
+    }
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.7
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SparklinePainter oldDelegate) => true;
 }
 
 /// Contents of the indicator detail sheet.

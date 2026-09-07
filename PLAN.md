@@ -296,12 +296,14 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   *Note 2026-09-05:* CustomPainter grid with Material icon glyphs, 8–24 sizes. Zoom/pan and sprite assets still open.
   *Note 2026-09-05 (4):* T-202 zoom/pan done: `InteractiveViewer` with a `MapViewController` (min scale = fit, max 4×, translation clamped to the viewport), pinch/wheel zoom, drag pan, app-bar zoom in/out/reset; hit testing goes through the transform. Sprite assets still open.
   *Note 2026-09-07:* Added a complete model-driven procedural tile atlas: textured terrain and crops, connected water and roads, distinct parks and buildings, occupancy/activity cues, traffic and emissions animation, parameter-scaled forest maturity, construction transitions, smooth overlays, reduced-motion support and simulation-backed placement forecasts. Physical-device FPS measurements remain open.
+  *Note 2026-09-07 (2):* Added persisted presentation controls for a clean map, ambient/effect animation masters, independent traffic/environment/city-activity layers, forecasts, causal markers, sound and haptics. Large maps now reduce decorative detail automatically when zoomed out.
 - [x] **T-203 Palette and drag & drop.** Draggable tile cards with remaining count (level
   limits), drop onto grid with placement preview and validation feedback, long-press to
   remove. Touch and mouse. Keyboard accessible (select tile, arrow keys, Enter).
   *Note 2026-09-05:* Drag & drop, brush tap placement, long-press clear, placement preview outline. Keyboard access still open.
   *Note 2026-09-05 (4):* Keyboard access done: focusable map with a cursor cell (arrows, Enter/Space place, Delete/Backspace clear, 1–9/0 pick a tile, Esc drops the brush), shortcut digits on the palette cards, `Semantics` label on the map. Tests in `app/test/map_view_test.dart`.
   *Note 2026-09-07:* Build/remove actions now have bounded undo/redo history, toolbar and keyboard controls, plus a persistent, cancellable placement-mode chip on the map. Simulation ticks intentionally close editing history so undo never rewinds time implicitly.
+  *Note 2026-09-07 (2):* Simple mode is now an end-to-end kid-friendly presentation: plain-language goals, smiley indicators and cell conditions, friendly forecasts/results, goal-aware suggestions and no technical detail sheets or management values. Expert mode retains exact values and adds indicator sparklines with build-event markers.
 - [x] **T-204 Indicator panel.** Ten gauges with trend arrows, tap opens detail sheet
   with raw values, units and a "Quelle / Source" link into `docs/model`.
   *Note 2026-09-05:* Ten gauges with detail line and tooltip hint. Source links into docs/model still open.
@@ -309,6 +311,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 - [x] **T-205 Overlays.** Toggleable heat-map overlays for noise, air, heat, green access,
   retail access, habitat quality. Colour-blind-safe palettes; legend with units.
   *Note 2026-09-05:* Nine overlays with colour-blind-safe ramps and legend.
+  *Note 2026-09-07:* Overlay UX now identifies helpful versus harmful directions, uses simple-mode wording, preserves more of the base map, marks causal source cells optionally, closes directly from the legend, and corrects the air-quality layer's formerly inverted palette semantics.
 - [x] **T-206 Tile inspector.** Tap tile → per-field values, contributing emitters
   ("Lärm: 62 dB, davon Hauptstraße (2 Felder) 58 dB…").
   *Note 2026-09-05:* Inspector shows all per-cell fields. Breakdown by contributing emitters still open.

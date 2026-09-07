@@ -129,7 +129,12 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
   late List<double> _overlayTo;
   late List<TileType> _previousTiles;
   final Map<int, int> _constructionStartedMs = {};
-  bool _reduceMotion = false;
+  bool _platformReduceMotion = false;
+  late bool _lastAmbientAnimations;
+  late bool _lastEffectAnimations;
+  late bool _lastTrafficAnimations;
+  late bool _lastEnvironmentAnimations;
+  late bool _lastCityActivityAnimations;
 
   GameController get c => widget.controller;
 
@@ -160,6 +165,11 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     _overlayTo = _captureOverlay();
     _overlayFrom = List<double>.of(_overlayTo);
     _previousTiles = List<TileType>.of(c.sim.state.tiles);
+    _lastAmbientAnimations = c.experience.ambientAnimations;
+    _lastEffectAnimations = c.experience.effectAnimations;
+    _lastTrafficAnimations = c.experience.trafficAnimations;
+    _lastEnvironmentAnimations = c.experience.environmentAnimations;
+    _lastCityActivityAnimations = c.experience.cityActivityAnimations;
     c.addListener(_onControllerChanged);
   }
 
@@ -174,7 +184,13 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     _overlayTo = _captureOverlay();
     _overlayFrom = List<double>.of(_overlayTo);
     _previousTiles = List<TileType>.of(c.sim.state.tiles);
+    _lastAmbientAnimations = c.experience.ambientAnimations;
+    _lastEffectAnimations = c.experience.effectAnimations;
+    _lastTrafficAnimations = c.experience.trafficAnimations;
+    _lastEnvironmentAnimations = c.experience.environmentAnimations;
+    _lastCityActivityAnimations = c.experience.cityActivityAnimations;
     _constructionStartedMs.clear();
+    _syncMotion();
   }
 
   @override
@@ -182,9 +198,21 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     super.didChangeDependencies();
     final reduceMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    if (reduceMotion == _reduceMotion) return;
-    _reduceMotion = reduceMotion;
-    if (_reduceMotion) {
+    if (reduceMotion == _platformReduceMotion) return;
+    _platformReduceMotion = reduceMotion;
+    _syncMotion();
+  }
+
+  void _syncMotion() {
+    final ambientLayerEnabled =
+        c.experience.ambientAnimations &&
+        (c.experience.trafficAnimations ||
+            c.experience.environmentAnimations ||
+            c.experience.cityActivityAnimations);
+    final shouldAnimate =
+        !_platformReduceMotion &&
+        (ambientLayerEnabled || c.experience.effectAnimations);
+    if (!shouldAnimate) {
       _motion.stop();
       _motion.value = 0;
       _overlayTransition.value = 1;
@@ -201,7 +229,21 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
   void _onControllerChanged() {
     final revisionChanged = c.visualRevision != _lastVisualRevision;
     final overlayChanged = c.overlay != _lastOverlay;
-    if (!revisionChanged && !overlayChanged) return;
+    final animationChanged =
+        c.experience.ambientAnimations != _lastAmbientAnimations ||
+        c.experience.effectAnimations != _lastEffectAnimations ||
+        c.experience.trafficAnimations != _lastTrafficAnimations ||
+        c.experience.environmentAnimations != _lastEnvironmentAnimations ||
+        c.experience.cityActivityAnimations != _lastCityActivityAnimations;
+    if (animationChanged) {
+      _lastAmbientAnimations = c.experience.ambientAnimations;
+      _lastEffectAnimations = c.experience.effectAnimations;
+      _lastTrafficAnimations = c.experience.trafficAnimations;
+      _lastEnvironmentAnimations = c.experience.environmentAnimations;
+      _lastCityActivityAnimations = c.experience.cityActivityAnimations;
+      _syncMotion();
+    }
+    if (!revisionChanged && !overlayChanged && !animationChanged) return;
 
     if (revisionChanged) {
       final tiles = c.sim.state.tiles;
@@ -229,7 +271,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
           ];
     _overlayFrom = current;
     _overlayTo = _captureOverlay();
-    if (_reduceMotion) {
+    if (_platformReduceMotion || !c.experience.effectAnimations) {
       _overlayTransition.value = 1;
     } else {
       _overlayTransition.forward(from: 0);
@@ -484,7 +526,13 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                                       overlayTo: _overlayTo,
                                       constructionStartedMs:
                                           _constructionStartedMs,
-                                      reduceMotion: _reduceMotion,
+                                      animateAmbient:
+                                          !_platformReduceMotion &&
+                                          c.experience.ambientAnimations,
+                                      animateEffects:
+                                          !_platformReduceMotion &&
+                                          c.experience.effectAnimations,
+                                      cleanVisuals: c.experience.cleanVisuals,
                                     ),
                                   ),
                                 ),
@@ -496,7 +544,10 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                           Positioned(
                             top: 8,
                             right: 8,
-                            child: _PlacementPreviewCard(preview: preview),
+                            child: _PlacementPreviewCard(
+                              preview: preview,
+                              simpleMode: c.simpleMode,
+                            ),
                           ),
                         if (c.brush case final brush?)
                           Positioned(
@@ -505,6 +556,16 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                             child: _PlacementModeChip(
                               tile: brush,
                               onCancel: c.clearBrush,
+                            ),
+                          ),
+                        if (c.lastImpact case final impact?)
+                          Positioned(
+                            right: 8,
+                            bottom: 8,
+                            child: _BuildImpactCard(
+                              impact: impact,
+                              simpleMode: c.simpleMode,
+                              onClose: c.dismissImpact,
                             ),
                           ),
                       ],
@@ -542,9 +603,13 @@ class _PlacementModeChip extends StatelessWidget {
 }
 
 class _PlacementPreviewCard extends StatelessWidget {
-  const _PlacementPreviewCard({required this.preview});
+  const _PlacementPreviewCard({
+    required this.preview,
+    required this.simpleMode,
+  });
 
   final PlacementPreview preview;
+  final bool simpleMode;
 
   @override
   Widget build(BuildContext context) {
@@ -598,7 +663,7 @@ class _PlacementPreviewCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (preview.costKEur case final cost?)
+                if (!simpleMode && preview.costKEur case final cost?)
                   Text(
                     l10n.placementPreviewCost(l10n.kEur(number.format(cost))),
                     style: theme.textTheme.bodySmall,
@@ -609,6 +674,11 @@ class _PlacementPreviewCard extends StatelessWidget {
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: scheme.error,
                     ),
+                  )
+                else if (simpleMode)
+                  Text(
+                    _friendlyImpact(l10n, changes),
+                    style: theme.textTheme.bodySmall,
                   )
                 else if (changes.isEmpty)
                   Text(
@@ -626,7 +696,7 @@ class _PlacementPreviewCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                if (preview.isValid)
+                if (preview.isValid && !simpleMode)
                   Text(
                     l10n.placementPreviewAffected(
                       preview.affectedCells.length,
@@ -638,6 +708,111 @@ class _PlacementPreviewCard extends StatelessWidget {
                   ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _friendlyImpact(
+  AppLocalizations l10n,
+  List<MapEntry<Indicator, double>> changes,
+) {
+  if (changes.isEmpty) return l10n.impactSimpleSteady;
+  final total = changes.fold<double>(0, (sum, entry) => sum + entry.value);
+  final positive = changes.any((entry) => entry.value > 0.15);
+  final negative = changes.any((entry) => entry.value < -0.15);
+  if (positive && negative) return l10n.impactSimpleMixed;
+  if (total > 0.15) return l10n.impactSimpleBetter;
+  if (total < -0.15) return l10n.impactSimpleWorse;
+  return l10n.impactSimpleSteady;
+}
+
+class _BuildImpactCard extends StatelessWidget {
+  const _BuildImpactCard({
+    required this.impact,
+    required this.simpleMode,
+    required this.onClose,
+  });
+
+  final BuildImpact impact;
+  final bool simpleMode;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final changes =
+        impact.indicatorDeltas.entries
+            .where((entry) => entry.value.isFinite && entry.value.abs() >= 0.05)
+            .toList()
+          ..sort((a, b) => b.value.abs().compareTo(a.value.abs()));
+    return Card(
+      elevation: 5,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 240),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 6, 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    impact.removed ? Icons.delete_outline : Icons.check_circle,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      impact.removed
+                          ? l10n.impactRemoved(l10n.tileName(impact.tile.id))
+                          : l10n.impactBuilt(l10n.tileName(impact.tile.id)),
+                      style: theme.textTheme.titleSmall,
+                    ),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    tooltip: l10n.actionClose,
+                    icon: const Icon(Icons.close, size: 17),
+                    onPressed: onClose,
+                  ),
+                ],
+              ),
+              if (simpleMode)
+                Text(
+                  _friendlyImpact(l10n, changes),
+                  style: theme.textTheme.bodyMedium,
+                )
+              else if (changes.isEmpty)
+                Text(
+                  l10n.placementPreviewNoScoreChange,
+                  style: theme.textTheme.bodySmall,
+                )
+              else
+                for (final change in changes.take(3))
+                  Text(
+                    '${l10n.indicatorName(change.key.name)} ${change.value >= 0 ? '+' : ''}${change.value.toStringAsFixed(1)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: change.value >= 0
+                          ? const Color(0xFF2E7D32)
+                          : theme.colorScheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              if (!simpleMode)
+                Text(
+                  l10n.placementPreviewAffected(
+                    impact.affectedCells.length,
+                    l10n.overlayName(impact.affectedOverlay.name),
+                  ),
+                  style: theme.textTheme.labelSmall,
+                ),
+            ],
           ),
         ),
       ),
@@ -658,7 +833,9 @@ class _MapPainter extends CustomPainter {
     required this.overlayFrom,
     required this.overlayTo,
     required this.constructionStartedMs,
-    required this.reduceMotion,
+    required this.animateAmbient,
+    required this.animateEffects,
+    required this.cleanVisuals,
   });
 
   final GameController c;
@@ -669,7 +846,13 @@ class _MapPainter extends CustomPainter {
   final List<double> overlayFrom;
   final List<double> overlayTo;
   final Map<int, int> constructionStartedMs;
-  final bool reduceMotion;
+  final bool animateAmbient;
+  final bool animateEffects;
+  final bool cleanVisuals;
+
+  /// Large maps automatically shed decorative detail while zoomed out.
+  bool get _lowDetail =>
+      cleanVisuals || (c.sim.state.cellCount > 1024 && scale < 1.35);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -691,7 +874,7 @@ class _MapPainter extends CustomPainter {
 
     for (var i = 0; i < state.cellCount; i++) {
       final rect = cellRect(i);
-      final construction = reduceMotion
+      final construction = !animateEffects
           ? 1.0
           : ((now - (constructionStartedMs[i] ?? now - 1000)) / 900).clamp(
               0.0,
@@ -714,13 +897,49 @@ class _MapPainter extends CustomPainter {
             ..color = overlayColor(
               value,
               highIsBad: c.overlayHighIsBad,
-            ).withValues(alpha: 0.70),
+            ).withValues(alpha: 0.56),
         );
+        if (c.experience.causalHighlights &&
+            _isCausalSource(c.overlay, state.tiles[i])) {
+          canvas.drawCircle(
+            rect.topRight + Offset(-rect.width * 0.14, rect.height * 0.14),
+            math.max(1.5 / scale, rect.width * 0.055),
+            Paint()
+              ..color = theme.colorScheme.onSurface.withValues(alpha: 0.82)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = math.max(0.8 / scale, rect.width * 0.025),
+          );
+        }
       }
       canvas.drawRect(rect, grid);
     }
 
-    _drawTraffic(canvas, cell);
+    if (animateAmbient && c.experience.trafficAnimations && !_lowDetail) {
+      _drawTraffic(canvas, cell);
+    }
+
+    final impact = c.lastImpact;
+    if (impact != null && c.experience.causalHighlights) {
+      final age = now - impact.createdAtMs;
+      if (age < 2600 || !animateEffects) {
+        final fade = animateEffects ? (1 - age / 2600).clamp(0.0, 1.0) : 0.45;
+        final color = theme.colorScheme.primary;
+        for (final affected in impact.affectedCells) {
+          canvas.drawRect(
+            cellRect(affected).deflate(hair),
+            Paint()
+              ..color = color.withValues(alpha: 0.05 + fade * 0.16)
+              ..style = PaintingStyle.fill,
+          );
+        }
+        _outline(
+          canvas,
+          cellRect(impact.cell).deflate(2 * hair),
+          color.withValues(alpha: 0.45 + fade * 0.55),
+          3 * hair,
+        );
+      }
+    }
 
     final preview = c.placementPreview;
     if (preview != null) {
@@ -792,14 +1011,16 @@ class _MapPainter extends CustomPainter {
     final state = c.sim.state;
     final tile = tileOverride ?? state.tiles[index];
     canvas.drawRect(rect, Paint()..color = _groundColor(tile));
-    canvas.drawRect(
-      Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height * 0.08),
-      Paint()..color = Colors.white.withValues(alpha: 0.08),
-    );
+    if (!_lowDetail) {
+      canvas.drawRect(
+        Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height * 0.08),
+        Paint()..color = Colors.white.withValues(alpha: 0.08),
+      );
+    }
 
     switch (tile) {
       case TileType.meadow:
-        _drawMeadow(canvas, index, rect);
+        if (!_lowDetail) _drawMeadow(canvas, index, rect);
         break;
       case TileType.cropland:
         _drawCropland(canvas, index, rect);
@@ -833,7 +1054,9 @@ class _MapPainter extends CustomPainter {
         );
         break;
     }
-    if (c.sim.params.tile(tile).category.isBuilt && construction < 0.98) {
+    if (animateEffects &&
+        c.sim.params.tile(tile).category.isBuilt &&
+        construction < 0.98) {
       final frame = Paint()
         ..color = const Color(0xFFFFB300).withValues(alpha: 0.85)
         ..style = PaintingStyle.stroke
@@ -936,7 +1159,11 @@ class _MapPainter extends CustomPainter {
     if (!water(x, y + 1)) {
       canvas.drawLine(rect.bottomLeft, rect.bottomRight, shore);
     }
-    if (rect.width * scale < 18) return;
+    if (_lowDetail ||
+        !c.experience.environmentAnimations ||
+        rect.width * scale < 18) {
+      return;
+    }
     for (var wave = 0; wave < 2; wave++) {
       final waveY = (motion * 0.35 + _unit(index * 37 + wave)) % 1;
       canvas.drawArc(
@@ -982,7 +1209,7 @@ class _MapPainter extends CustomPainter {
       rect.width * 0.10,
       0.72,
     );
-    if (rect.width * scale >= 24) {
+    if (!_lowDetail && rect.width * scale >= 24) {
       final bench = Paint()
         ..color = const Color(0xFF795548)
         ..strokeWidth = math.max(0.8 / scale, rect.width * 0.035)
@@ -1175,7 +1402,12 @@ class _MapPainter extends CustomPainter {
       rect.height * 0.46,
     );
     canvas.drawRect(chimney, Paint()..color = const Color(0xFF546E7A));
-    if (reduceMotion || rect.width * scale < 18) return;
+    if (!animateAmbient ||
+        !c.experience.environmentAnimations ||
+        _lowDetail ||
+        rect.width * scale < 18) {
+      return;
+    }
     final emission = c.sim.params.tile(TileType.industry).airEmission.value;
     final reference = math.max(1.0, emission);
     final intensity =
@@ -1242,7 +1474,11 @@ class _MapPainter extends CustomPainter {
             ? Color.lerp(
                 const Color(0xFF90A4AE),
                 const Color(0xFFFFD54F),
-                reduceMotion ? 0.65 : evening,
+                animateAmbient &&
+                        c.experience.cityActivityAnimations &&
+                        !_lowDetail
+                    ? evening
+                    : 0.65,
               )!
             : const Color(0xFF78909C),
     );
@@ -1447,6 +1683,29 @@ class _MapPainter extends CustomPainter {
     return params.biotopeStart.value +
         (1 - params.biotopeStart.value) * recovered;
   }
+
+  bool _isCausalSource(MapOverlay overlay, TileType tile) => switch (overlay) {
+    MapOverlay.noise =>
+      tile == TileType.road ||
+          tile == TileType.industry ||
+          tile == TileType.commercial,
+    MapOverlay.air => c.sim.params.tile(tile).airEmission.value > 0,
+    MapOverlay.heat => c.sim.params.tile(tile).sealing.value >= 0.5,
+    MapOverlay.green =>
+      tile == TileType.park ||
+          tile == TileType.forest ||
+          tile == TileType.water,
+    MapOverlay.retail => tile == TileType.commercial,
+    MapOverlay.jobs => tile == TileType.commercial || tile == TileType.industry,
+    MapOverlay.habitat =>
+      tile == TileType.forest ||
+          tile == TileType.meadow ||
+          tile == TileType.water,
+    MapOverlay.traffic => tile == TileType.road,
+    MapOverlay.attractiveness =>
+      tile == TileType.housingLow || tile == TileType.housingHigh,
+    MapOverlay.none => false,
+  };
 
   double _unit(int value) {
     var hash = value ^ c.sim.state.seed;
