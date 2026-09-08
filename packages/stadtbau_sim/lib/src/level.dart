@@ -149,12 +149,14 @@ class Level {
     final width = rows.first.length;
     final map = <TileType>[];
     for (final row in rows) {
-      if (row.length != width)
+      if (row.length != width) {
         throw FormatException('level ${json['id']}: ragged map row');
+      }
       for (final ch in row.split('')) {
         final t = levelMapLegend[ch];
-        if (t == null)
+        if (t == null) {
           throw FormatException('level ${json['id']}: unknown map char "$ch"');
+        }
         map.add(t);
       }
     }
