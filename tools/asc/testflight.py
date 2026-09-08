@@ -64,17 +64,34 @@ def upsert_localization(
     return client.expect("POST", f"/v1/{resource_type}", body)["data"]
 
 
-def newest_build(app_id: str, build_number: str | None, wait_minutes: int) -> dict:
+def build_platform(build_id: str) -> str | None:
+    status, doc = client.call("GET", f"/v1/builds/{build_id}/preReleaseVersion")
+    if status != 200 or not doc.get("data"):
+        return None
+    return doc["data"].get("attributes", {}).get("platform")
+
+
+def newest_build(
+    app_id: str, build_number: str | None, wait_minutes: int, platform: str
+) -> dict:
     deadline = time.time() + wait_minutes * 60
     while True:
         params = {"filter[app]": app_id, "sort": "-uploadedDate", "limit": "50"}
         if build_number:
             params["filter[version]"] = build_number
         builds = client.paged(query("/v1/builds", **params))
-        if builds:
-            build = builds[0]
+        build = next(
+            (item for item in builds if build_platform(item["id"]) == platform),
+            None,
+        )
+        if build:
             state = build["attributes"].get("processingState")
-            print("build", build["id"], attributes(build, "version", "uploadedDate", "processingState"))
+            print(
+                "build",
+                build["id"],
+                platform,
+                attributes(build, "version", "uploadedDate", "processingState"),
+            )
             if state in ("VALID", "FAILED", "INVALID"):
                 if state != "VALID":
                     raise SystemExit(f"newest build processing state is {state}")
@@ -137,12 +154,14 @@ def audit(app_id: str) -> None:
             print(label, "HTTP", status, doc.get("data"))
 
 
-def prepare_external(app_id: str, build_number: str | None, wait_minutes: int) -> None:
+def prepare_external(
+    app_id: str, build_number: str | None, wait_minutes: int, platform: str
+) -> None:
     app = client.expect("GET", f"/v1/apps/{app_id}")["data"]
     primary = app["attributes"]["primaryLocale"]
     if primary not in META["locales"]:
         raise SystemExit(f"metadata is missing primary locale {primary}")
-    build = newest_build(app_id, build_number, wait_minutes)
+    build = newest_build(app_id, build_number, wait_minutes, platform)
     build_id = build["id"]
     if build["attributes"].get("usesNonExemptEncryption") is not False:
         patch("builds", build_id, {"usesNonExemptEncryption": False})
@@ -214,21 +233,23 @@ def prepare_external(app_id: str, build_number: str | None, wait_minutes: int) -
     print("Public Beta group", group["id"], "build", build_id)
 
 
-def prepare_store(app_id: str, build_number: str | None, wait_minutes: int) -> None:
+def prepare_store(
+    app_id: str, build_number: str | None, wait_minutes: int, platform: str
+) -> None:
     """Complete API-editable fields needed before full App Store review."""
     versions = client.paged(f"/v1/apps/{app_id}/appStoreVersions?limit=50")
     candidates = [
         version
         for version in versions
-        if version["attributes"].get("platform") == "IOS"
+        if version["attributes"].get("platform") == platform
         and version["attributes"].get("appStoreState") == "PREPARE_FOR_SUBMISSION"
     ]
     if len(candidates) != 1:
         raise SystemExit(
-            f"expected one editable iOS App Store version, found {len(candidates)}"
+            f"expected one editable {platform} App Store version, found {len(candidates)}"
         )
     version = candidates[0]
-    build = newest_build(app_id, build_number, wait_minutes)
+    build = newest_build(app_id, build_number, wait_minutes, platform)
 
     infos = client.paged(f"/v1/apps/{app_id}/appInfos?limit=50")
     if len(infos) != 1:
@@ -353,7 +374,7 @@ def prepare_store(app_id: str, build_number: str | None, wait_minutes: int) -> N
     print(
         "attached build",
         build["attributes"].get("version"),
-        "to iOS version",
+        f"to {platform} version",
         version["attributes"].get("versionString"),
     )
 
@@ -364,6 +385,7 @@ def main() -> None:
         "action", choices=("audit", "ready-store", "submit-external")
     )
     parser.add_argument("--build-number")
+    parser.add_argument("--platform", choices=("IOS", "MAC_OS"), default="IOS")
     parser.add_argument("--wait-minutes", type=int, default=30)
     args = parser.parse_args()
     app_id = os.environ.get("ASC_APP_ID") or client.app_id(META["bundleId"])
@@ -372,9 +394,9 @@ def main() -> None:
     if args.action == "audit":
         audit(app_id)
     elif args.action == "ready-store":
-        prepare_store(app_id, args.build_number, args.wait_minutes)
+        prepare_store(app_id, args.build_number, args.wait_minutes, args.platform)
     else:
-        prepare_external(app_id, args.build_number, args.wait_minutes)
+        prepare_external(app_id, args.build_number, args.wait_minutes, args.platform)
 
 
 if __name__ == "__main__":
