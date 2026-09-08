@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+enum LearningMode { starter, guided, explorer }
+
 /// Player-controlled presentation settings. They deliberately do not affect
 /// simulation results, saves, or level scoring.
 class ExperienceSettings {
   const ExperienceSettings({
     this.simpleMode = false,
+    this.learningMode = LearningMode.guided,
     this.cleanVisuals = false,
     this.ambientAnimations = true,
     this.trafficAnimations = true,
@@ -18,6 +21,7 @@ class ExperienceSettings {
   });
 
   final bool simpleMode;
+  final LearningMode learningMode;
   final bool cleanVisuals;
   final bool ambientAnimations;
   final bool trafficAnimations;
@@ -31,6 +35,7 @@ class ExperienceSettings {
 
   ExperienceSettings copyWith({
     bool? simpleMode,
+    LearningMode? learningMode,
     bool? cleanVisuals,
     bool? ambientAnimations,
     bool? trafficAnimations,
@@ -43,6 +48,7 @@ class ExperienceSettings {
     bool? haptics,
   }) => ExperienceSettings(
     simpleMode: simpleMode ?? this.simpleMode,
+    learningMode: learningMode ?? this.learningMode,
     cleanVisuals: cleanVisuals ?? this.cleanVisuals,
     ambientAnimations: ambientAnimations ?? this.ambientAnimations,
     trafficAnimations: trafficAnimations ?? this.trafficAnimations,
@@ -59,6 +65,11 @@ class ExperienceSettings {
   factory ExperienceSettings.fromJson(Map<String, dynamic> json) =>
       ExperienceSettings(
         simpleMode: json['simpleMode'] as bool? ?? false,
+        learningMode: json['learningMode'] == null
+            ? ((json['simpleMode'] as bool? ?? false)
+                  ? LearningMode.starter
+                  : LearningMode.guided)
+            : LearningMode.values.byName(json['learningMode'] as String),
         cleanVisuals: json['cleanVisuals'] as bool? ?? false,
         ambientAnimations: json['ambientAnimations'] as bool? ?? true,
         trafficAnimations: json['trafficAnimations'] as bool? ?? true,
@@ -73,6 +84,7 @@ class ExperienceSettings {
 
   Map<String, dynamic> toJson() => {
     'simpleMode': simpleMode,
+    'learningMode': learningMode.name,
     'cleanVisuals': cleanVisuals,
     'ambientAnimations': ambientAnimations,
     'trafficAnimations': trafficAnimations,

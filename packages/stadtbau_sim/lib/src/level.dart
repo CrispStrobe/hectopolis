@@ -55,10 +55,52 @@ class LevelGoal {
   }
 
   Map<String, dynamic> toJson() => {
-        if (indicator != null) 'indicator': indicator!.name,
-        if (metric != null) 'metric': metric,
-        'min': min,
-      };
+    if (indicator != null) 'indicator': indicator!.name,
+    if (metric != null) 'metric': metric,
+    'min': min,
+  };
+}
+
+/// How much scaffolding a mission expects from the player.
+enum MissionTier { starter, guided, explorer }
+
+/// Optional learning interactions enabled for one mission. Keeping these in
+/// level data prevents every scenario from accumulating every teaching tool.
+enum MissionFeature { prediction, causalView, experiment, debrief, challenges }
+
+/// Educational design attached to a level. Text is localized by stable ids in
+/// the app; the simulation package only owns structure and progression data.
+class MissionLearning {
+  const MissionLearning({
+    required this.tier,
+    required this.concepts,
+    required this.features,
+    this.predictionId,
+    this.challengeIds = const [],
+  });
+
+  final MissionTier tier;
+  final List<String> concepts;
+  final Set<MissionFeature> features;
+  final String? predictionId;
+  final List<String> challengeIds;
+
+  bool has(MissionFeature feature) => features.contains(feature);
+
+  static MissionLearning fromJson(Map<String, dynamic> json) => MissionLearning(
+    tier: MissionTier.values.byName(
+      json['tier'] as String? ?? MissionTier.guided.name,
+    ),
+    concepts: (json['concepts'] as List<dynamic>? ?? const []).cast<String>(),
+    features: {
+      for (final id
+          in (json['features'] as List<dynamic>? ?? const []).cast<String>())
+        MissionFeature.values.byName(id),
+    },
+    predictionId: json['predictionId'] as String?,
+    challengeIds: (json['challenges'] as List<dynamic>? ?? const [])
+        .cast<String>(),
+  );
 }
 
 /// A playable scenario: map, budget, allowed tiles, goals, time limit.
@@ -74,6 +116,7 @@ class Level {
     this.turnLimitMonths,
     this.populate = true,
     this.paramOverrides,
+    this.learning,
   });
 
   final String id;
@@ -97,16 +140,21 @@ class Level {
   /// JSON patch merged over `data/params/tiles.json` for this level.
   final Map<String, dynamic>? paramOverrides;
 
+  /// Optional, mission-specific learning tools and concepts.
+  final MissionLearning? learning;
+
   static Level fromJson(Map<String, dynamic> json) {
     final rows = (json['map'] as List<dynamic>).cast<String>();
     final height = rows.length;
     final width = rows.first.length;
     final map = <TileType>[];
     for (final row in rows) {
-      if (row.length != width) throw FormatException('level ${json['id']}: ragged map row');
+      if (row.length != width)
+        throw FormatException('level ${json['id']}: ragged map row');
       for (final ch in row.split('')) {
         final t = levelMapLegend[ch];
-        if (t == null) throw FormatException('level ${json['id']}: unknown map char "$ch"');
+        if (t == null)
+          throw FormatException('level ${json['id']}: unknown map char "$ch"');
         map.add(t);
       }
     }
@@ -117,11 +165,20 @@ class Level {
       height: height,
       budgetKEur: (json['budgetKEur'] as num).toDouble(),
       map: map,
-      tiles: {for (final e in tilesJson.entries) TileType.fromId(e.key): (e.value as num?)?.toInt()},
-      goals: [for (final g in (json['goals'] as List<dynamic>)) LevelGoal.fromJson(g as Map<String, dynamic>)],
+      tiles: {
+        for (final e in tilesJson.entries)
+          TileType.fromId(e.key): (e.value as num?)?.toInt(),
+      },
+      goals: [
+        for (final g in (json['goals'] as List<dynamic>))
+          LevelGoal.fromJson(g as Map<String, dynamic>),
+      ],
       turnLimitMonths: (json['turnLimitMonths'] as num?)?.toInt(),
       populate: json['populate'] as bool? ?? true,
       paramOverrides: json['paramOverrides'] as Map<String, dynamic>?,
+      learning: json['learning'] == null
+          ? null
+          : MissionLearning.fromJson(json['learning'] as Map<String, dynamic>),
     );
   }
 
@@ -137,7 +194,12 @@ class Level {
   /// A fresh simulation for this level.
   Simulation start({int seed = 1}) {
     final p = params();
-    final w = WorldState.empty(width: width, height: height, budgetKEur: budgetKEur, seed: seed);
+    final w = WorldState.empty(
+      width: width,
+      height: height,
+      budgetKEur: budgetKEur,
+      seed: seed,
+    );
     for (var i = 0; i < map.length; i++) {
       w.tiles[i] = map[i];
     }
@@ -146,7 +208,8 @@ class Level {
   }
 
   /// A simulation for this level restored from a saved state.
-  Simulation resume(WorldState state) => Simulation(state: state, params: params(), tileBudget: budgetFor(state));
+  Simulation resume(WorldState state) =>
+      Simulation(state: state, params: params(), tileBudget: budgetFor(state));
 
   /// Remaining tile counts given a state (placed tiles are subtracted).
   TileBudget budgetFor(WorldState state) {
@@ -175,8 +238,10 @@ class Level {
   static List<Level>? _builtIn;
 
   /// Levels shipped with the game (`data/levels/*.json`).
-  static List<Level> builtIn() =>
-      _builtIn ??= [for (final j in defaultLevelsJson) fromJson(jsonDecode(j) as Map<String, dynamic>)];
+  static List<Level> builtIn() => _builtIn ??= [
+    for (final j in defaultLevelsJson)
+      fromJson(jsonDecode(j) as Map<String, dynamic>),
+  ];
 
   static Level? byId(String id) {
     for (final l in builtIn()) {

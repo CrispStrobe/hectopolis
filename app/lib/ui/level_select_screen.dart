@@ -139,7 +139,8 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                     title: Text(l10n.levelTitle(l.id)),
                     subtitle: Text(
                       '${l10n.levelDescription(l.id)}\n'
-                      '${l10n.goalsSummary(l.goals.length, l.turnLimitMonths ?? 0)}',
+                      '${l10n.goalsSummary(l.goals.length, l.turnLimitMonths ?? 0)}'
+                      '${l.learning == null ? '' : ' · ${l10n.learningModeName(l.learning!.tier.name)}'}',
                     ),
                     isThreeLine: true,
                     onTap: () => _level(l),

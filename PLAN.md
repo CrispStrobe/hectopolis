@@ -340,6 +340,19 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 - [x] **T-304 Scoring and end screen.** Level goals evaluation, star rating, replay
   summary of indicator curves.
   *Note 2026-09-05 (3):* Goals panel with live progress, end dialog with 0–3 stars, best stars stored per level; level select screen with continue.
+- [~] **T-305 Progressive learning missions.** Data-driven mission tiers, concepts and
+  optional features; Starter/Guided/Explorer profiles; predict–act–observe–explain–debrief
+  loop with all copy in DE/EN. Missions opt into complexity individually.
+  *Note 2026-09-08:* Added the reusable schema and localized learning notebook for all five
+  scenarios; the noise mission is the complete first teaching slice. Playtesting and staged
+  mission beats remain open.
+- [x] **T-306 Counterfactual experiments.** Pin the current deterministic simulation,
+  freely test builds and time, compare live indicator and overlay deltas, then keep or
+  discard the branch without affecting the pinned city.
+  *Note 2026-09-08:* Reversible in-game what-if experiments are available only in missions
+  that opt in; exact deltas are reserved for Explorer mode.
+- [ ] **T-307 Challenge medals.** Evaluate the optional per-mission constraints declared in
+  level data, persist medals and show alternative successful strategies in the debrief.
 
 ### Phase 4 — Platforms and release
 

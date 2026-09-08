@@ -3,6 +3,13 @@
   "order": 4,
   "budgetKEur": 4000,
   "turnLimitMonths": 72,
+  "learning": {
+    "tier": "guided",
+    "concepts": ["budget_loop", "delay", "tradeoffs"],
+    "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
+    "predictionId": "budget_recovery",
+    "challenges": ["budget_reserve", "budget_clean_air"]
+  },
   "tiles": {
     "housing_high": 6,
     "housing_low": 6,
