@@ -13,6 +13,11 @@ on:
         description: 'Optional exact CFBundleVersion; blank selects the newest build'
         type: string
         required: false
+      platform:
+        description: 'Apple platform whose build/version should be prepared'
+        type: choice
+        options: [IOS, MAC_OS]
+        default: IOS
 
 permissions:
   contents: read
@@ -35,9 +40,11 @@ jobs:
           ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
           ACTION: ${{ inputs.action }}
           BUILD_NUMBER: ${{ inputs.build_number }}
+          PLATFORM: ${{ inputs.platform }}
         run: |
           set -euo pipefail
           args=("$ACTION")
+          args+=(--platform "$PLATFORM")
           if [ -n "$BUILD_NUMBER" ]; then
             args+=(--build-number "$BUILD_NUMBER")
           fi
