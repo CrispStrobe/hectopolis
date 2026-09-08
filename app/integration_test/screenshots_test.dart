@@ -69,6 +69,15 @@ Future<void> main() async {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('store screenshot tour', (tester) async {
+    // Hosted Mac runners expose a smaller virtual display and AppKit shrinks
+    // the requested 1280×800 window to fit it. The store capture renders the
+    // widget surface itself, so give that surface the exact accepted Mac App
+    // Store dimensions independent of the runner's display.
+    if (_directScreenshotOutput.isNotEmpty) {
+      await tester.binding.setSurfaceSize(const Size(1280, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+    }
+
     // No-op off Android; on Android it swaps the Flutter surface for an image
     // reader, without which takeScreenshot() throws. Exactly once per test.
     await binding.convertFlutterSurfaceToImage();
