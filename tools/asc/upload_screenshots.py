@@ -11,7 +11,7 @@ the store language and the order:
     iPad_Pro_13-inch_M5/de_05_...   -> APP_IPAD_PRO_3GEN_129,  de-DE, #5
 
 Screenshots hang off a *version localization*, so the full path to a set is
-app -> editable appStoreVersion (platform IOS) -> appStoreVersionLocalization
+app -> editable appStoreVersion (platform IOS or MAC_OS) -> appStoreVersionLocalization
 (one per store language) -> appScreenshotSet (one per display type), and each
 image is a three-call dance: reserve, PUT the bytes to Apple's presigned URL,
 commit with an MD5. See docs/release/screenshots.md §5.
@@ -65,6 +65,7 @@ EDITABLE_STATES = [
 DISPLAY_TYPES: list[tuple[str, str]] = [
     (r"iphone", "APP_IPHONE_67"),
     (r"ipad", "APP_IPAD_PRO_3GEN_129"),
+    (r"macos", "APP_DESKTOP"),
 ]
 
 LOCALES: dict[str, str] = {"en": "en-US", "de": "de-DE"}
@@ -138,7 +139,7 @@ def collect(roots: list[pathlib.Path], warn=print) -> dict[tuple[str, str], list
         for path in sorted(root.rglob("*.png")):
             display_type = display_type_for(path.parent.name)
             if display_type is None:
-                warn(f"skipping {path}: {path.parent.name} is neither an iPhone nor an iPad")
+                warn(f"skipping {path}: {path.parent.name} is not a supported Apple device family")
                 continue
             locale = locale_for(path.name)
             if locale is None:
@@ -432,13 +433,16 @@ def print_plan(groups: dict[tuple[str, str], list[Shot]]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    global PLATFORM
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("paths", nargs="+", type=pathlib.Path, help="directories holding <device>/<locale>_<nn>_<name>.png")
     parser.add_argument("--app-id", default=os.environ.get("ASC_APP_ID", ""), help="numeric app id (default: $ASC_APP_ID)")
     parser.add_argument("--version", default="", help="version string to create if no editable version exists (default: app/pubspec.yaml)")
+    parser.add_argument("--platform", choices=("IOS", "MAC_OS"), default="IOS", help="App Store platform containing the editable version")
     parser.add_argument("--replace", action="store_true", help="delete the screenshots already in each set first")
     parser.add_argument("--dry-run", action="store_true", help="print the plan and touch nothing")
     args = parser.parse_args(argv)
+    PLATFORM = args.platform
 
     groups = collect(args.paths)
     if not groups:
