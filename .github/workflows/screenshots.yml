@@ -215,6 +215,68 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  macos:
+    name: macOS screenshots
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies and localisations
+        run: |
+          set -euo pipefail
+          flutter config --no-enable-swift-package-manager
+          flutter pub get
+          cd app
+          flutter gen-l10n
+
+      - name: Drive the store tour
+        working-directory: app
+        run: |
+          set -euo pipefail
+          SCREENSHOT_DEVICE=macOS flutter drive \
+            --driver=test_driver/integration_test.dart \
+            --target=integration_test/screenshots_test.dart \
+            -d macos &
+          drive_pid=$!
+          (sleep 1500; kill -TERM "$drive_pid" 2>/dev/null || true; sleep 10; kill -KILL "$drive_pid" 2>/dev/null || true) &
+          watchdog_pid=$!
+          status=0
+          wait "$drive_pid" || status=$?
+          kill "$watchdog_pid" 2>/dev/null || true
+          wait "$watchdog_pid" 2>/dev/null || true
+          exit "$status"
+
+      - name: Verify Mac App Store dimensions
+        working-directory: app
+        run: |
+          set -euo pipefail
+          count=0
+          while IFS= read -r png; do
+            width=$(sips -g pixelWidth "$png" | awk '/pixelWidth/ {print $2}')
+            height=$(sips -g pixelHeight "$png" | awk '/pixelHeight/ {print $2}')
+            case "${width}x${height}" in
+              1280x800|1440x900|2560x1600|2880x1800) ;;
+              *) echo "::error::$png is ${width}x${height}, not a Mac App Store screenshot size"; exit 1 ;;
+            esac
+            echo "$png ${width}x${height}"
+            count=$((count + 1))
+          done < <(find screenshots/macos -name '*.png' | sort)
+          [ "$count" -eq 12 ] || { echo "::error::expected 12 macOS screenshots, found $count"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-macos
+          path: app/screenshots
+          if-no-files-found: error
+          retention-days: 30
+
   android:
     name: Android emulator screenshots
     runs-on: ubuntu-latest
@@ -316,10 +378,10 @@ jobs:
   publish:
     name: Publish to the screenshots branch
     runs-on: ubuntu-latest
-    needs: [ios, android]
+    needs: [ios, macos, android]
     # `always()` so one dead platform still publishes the other's images; the
     # second half stops a run where *both* failed from wiping the branch.
-    if: always() && (needs.ios.result == 'success' || needs.android.result == 'success')
+    if: always() && (needs.ios.result == 'success' || needs.macos.result == 'success' || needs.android.result == 'success')
     permissions:
       contents: write
     timeout-minutes: 15
@@ -343,6 +405,7 @@ jobs:
           SERVER_URL: ${{ github.server_url }}
           REPOSITORY: ${{ github.repository }}
           IOS_RESULT: ${{ needs.ios.result }}
+          MACOS_RESULT: ${{ needs.macos.result }}
           ANDROID_RESULT: ${{ needs.android.result }}
         run: |
           set -euo pipefail
@@ -389,6 +452,7 @@ jobs:
               f"| Source commit | `{env['SOURCE_SHA']}` (`{env['SOURCE_REF']}`) |",
               f"| Source run | [{env['RUN_ID']}]({run_url}) (attempt {env['RUN_ATTEMPT']}) |",
               f"| iOS job | `{env['IOS_RESULT']}` |",
+              f"| macOS job | `{env['MACOS_RESULT']}` |",
               f"| Android job | `{env['ANDROID_RESULT']}` |",
               f"| Captured | {datetime.datetime.now(datetime.timezone.utc):%Y-%m-%d %H:%M UTC} |",
               f"| Images | {sum(len(v) for v in copied.values())} in {len(copied)} device directories |",
@@ -446,14 +510,14 @@ jobs:
           echo "pushed $(git rev-list --count HEAD) commit to refs/heads/screenshots"
           echo "browse: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/tree/screenshots" >> "$GITHUB_STEP_SUMMARY"
 
-  # Push the iOS captures into the app's editable App Store version. Skipped
+  # Push the Apple-platform captures into their editable App Store versions. Skipped
   # (not failed) when the repo has no ASC_APP_ID, so a fork without secrets
   # still gets a green run.
   appstore:
-    name: Upload iOS screenshots to App Store Connect
+    name: Upload Apple screenshots to App Store Connect
     runs-on: ubuntu-latest
-    needs: ios
-    if: ${{ needs.ios.result == 'success' }}
+    needs: [ios, macos]
+    if: ${{ always() && (needs.ios.result == 'success' || needs.macos.result == 'success') }}
     timeout-minutes: 30
     # `if: ${{ secrets.X != '' }}` is rejected by GitHub ("Unrecognized named-
     # value: 'secrets'"); the emptiness test has to be copied into an env var
@@ -499,11 +563,18 @@ jobs:
         run: python3 -m pip install --quiet --disable-pip-version-check cryptography
 
       - name: Download the iOS screenshots
-        if: env.HAS_APP_ID == 'true'
+        if: env.HAS_APP_ID == 'true' && needs.ios.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: screenshots-ios
           path: screenshots-ios
+
+      - name: Download the macOS screenshots
+        if: env.HAS_APP_ID == 'true' && needs.macos.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: screenshots-macos
+          path: screenshots-macos
 
       # App Store Connect rejects PNGs with an alpha channel; the Simulator
       # captures RGBA. Flatten onto white in place.
@@ -514,7 +585,8 @@ jobs:
           python3 - <<'PY'
           import glob
           from PIL import Image
-          for f in sorted(glob.glob('screenshots-ios/**/*.png', recursive=True)):
+          for root in ('screenshots-ios', 'screenshots-macos'):
+            for f in sorted(glob.glob(f'{root}/**/*.png', recursive=True)):
               im = Image.open(f)
               if im.mode != 'RGB':
                   bg = Image.new('RGB', im.size, (255, 255, 255))
@@ -527,7 +599,7 @@ jobs:
       # locale, set and position) and the version it found, so a wrong mapping
       # shows up in the log above the write that acted on it.
       - name: Plan the upload
-        if: env.HAS_APP_ID == 'true'
+        if: env.HAS_APP_ID == 'true' && needs.ios.result == 'success'
         env:
           ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
@@ -535,11 +607,20 @@ jobs:
           ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
         run: python3 tools/asc/upload_screenshots.py --dry-run --replace screenshots-ios
 
+      - name: Plan the macOS upload
+        if: env.HAS_APP_ID == 'true' && needs.macos.result == 'success'
+        env:
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+        run: python3 tools/asc/upload_screenshots.py --platform MAC_OS --dry-run --replace screenshots-macos
+
       # `--replace` empties each set first: re-running the workflow then
       # replaces the store's screenshots instead of appending to them and
       # tripping Apple's ten-per-set limit.
       - name: Upload to App Store Connect
-        if: env.HAS_APP_ID == 'true'
+        if: env.HAS_APP_ID == 'true' && needs.ios.result == 'success'
         env:
           ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
@@ -547,13 +628,22 @@ jobs:
           ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
         run: python3 tools/asc/upload_screenshots.py --replace screenshots-ios
 
+      - name: Upload macOS to App Store Connect
+        if: env.HAS_APP_ID == 'true' && needs.macos.result == 'success'
+        env:
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+        run: python3 tools/asc/upload_screenshots.py --platform MAC_OS --replace screenshots-macos
+
       - name: Summary
         if: env.HAS_APP_ID == 'true'
         run: |
           {
             echo "### App Store Connect"
             echo
-            echo "The iOS screenshots were uploaded to the editable App Store version"
-            echo "(en-US and de-DE, APP_IPHONE_67 and APP_IPAD_PRO_3GEN_129)."
+            echo "Available iOS and macOS screenshots were uploaded to their editable App Store versions"
+            echo "(en-US and de-DE; iPhone, iPad and APP_DESKTOP)."
             echo "**Nothing was submitted for review** — that stays a human decision."
           } >> "$GITHUB_STEP_SUMMARY"

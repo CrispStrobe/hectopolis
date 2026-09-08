@@ -78,19 +78,36 @@ def review_details(version_id: str) -> None:
     client.expect("POST", "/v1/appStoreReviewDetails", body)
 
 
-def main() -> None:
-    app_id = os.environ.get("ASC_APP_ID") or client.app_id(META["bundleId"])
-    if not app_id:
-        raise SystemExit("Hectopolis app record not found")
+def editable_version(app_id: str, platform: str) -> dict:
     versions = client.paged(f"/v1/apps/{app_id}/appStoreVersions?limit=50")
     version = next(
-        (v for v in versions if v["attributes"].get("platform") == "IOS" and v["attributes"].get("appStoreState") == "PREPARE_FOR_SUBMISSION"),
+        (
+            item
+            for item in versions
+            if item["attributes"].get("platform") == platform
+            and item["attributes"].get("appStoreState") == "PREPARE_FOR_SUBMISSION"
+        ),
         None,
     )
-    if version is None:
-        version = upload_screenshots.editable_version(app_id)
-    if version is None:
-        version = upload_screenshots.create_version(app_id, META["version"])
+    if version:
+        return version
+    body = {
+        "data": {
+            "type": "appStoreVersions",
+            "attributes": {
+                "platform": platform,
+                "versionString": META["version"],
+            },
+            "relationships": {
+                "app": {"data": {"type": "apps", "id": app_id}}
+            },
+        }
+    }
+    return client.expect("POST", "/v1/appStoreVersions", body)["data"]
+
+
+def apply_version_listing(app_id: str, platform: str) -> str:
+    version = editable_version(app_id, platform)
     version_id = version["id"]
     patch(
         "appStoreVersions",
@@ -101,7 +118,6 @@ def main() -> None:
             "usesIdfa": False,
         },
     )
-
     for locale, copy in META["locales"].items():
         loc = upload_screenshots.localization(version_id, locale, create=True)
         patch(
@@ -115,6 +131,24 @@ def main() -> None:
                 "marketingUrl": META["marketingUrl"],
             },
         )
+    review_details(version_id)
+    print("version listing applied", platform, version_id)
+    return version_id
+
+
+def main() -> None:
+    app_id = os.environ.get("ASC_APP_ID") or client.app_id(META["bundleId"])
+    if not app_id:
+        raise SystemExit("Hectopolis app record not found")
+    patch(
+        "apps",
+        app_id,
+        attrs={"contentRightsDeclaration": META["contentRightsDeclaration"]},
+    )
+    version_ids = {
+        platform: apply_version_listing(app_id, platform)
+        for platform in ("IOS", "MAC_OS")
+    }
 
     info = editable_info(app_id)
     info_id = info["id"]
@@ -134,8 +168,10 @@ def main() -> None:
             {"subtitle": copy["subtitle"], "privacyPolicyUrl": META["privacyPolicyUrl"]},
             ("appInfo", "appInfos", info_id),
         )
-    review_details(version_id)
-    print("listing applied", {"app": app_id, "version": version_id, "appInfo": info_id})
+    print(
+        "listing applied",
+        {"app": app_id, "versions": version_ids, "appInfo": info_id},
+    )
     print("remaining browser-only gate: App Privacy must say Data Not Collected")
 
 
