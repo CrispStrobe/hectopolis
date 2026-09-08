@@ -55,8 +55,6 @@ EDITABLE_STATES = [
     "DEVELOPER_REJECTED",
     "REJECTED",
     "METADATA_REJECTED",
-    "WAITING_FOR_REVIEW",
-    "READY_FOR_REVIEW",
 ]
 
 # Apple's enum names still carry the old marketing sizes: APP_IPHONE_67 is the
@@ -469,6 +467,16 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\n== app {args.app_id}")
     version = editable_version(args.app_id)
     if version is None:
+        platform_versions = client.paged(
+            _query(
+                f"/v1/apps/{args.app_id}/appStoreVersions",
+                **{"filter[platform]": PLATFORM, "limit": "50"},
+            )
+        )
+        if platform_versions:
+            state = platform_versions[0]["attributes"].get("appStoreState")
+            print(f"no editable {PLATFORM} version (current state: {state}); skipping upload")
+            return 0
         if args.dry_run:
             print(f"would create appStoreVersion {wanted_version} ({PLATFORM})")
             return 0
