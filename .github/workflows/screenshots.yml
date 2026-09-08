@@ -240,10 +240,16 @@ jobs:
         working-directory: app
         run: |
           set -euo pipefail
+          # A sandboxed Mac app cannot write into the checked-out workspace.
+          # Capture in its own writable container, then copy the finished PNGs
+          # back after the app exits so later Actions steps can publish them.
+          sandbox_output="$HOME/Library/Containers/$BUNDLE_ID/Data/tmp/hectopolis-screenshots"
+          rm -rf "$sandbox_output"
+          mkdir -p "$sandbox_output"
           SCREENSHOT_DEVICE=macOS flutter drive \
             --driver=test_driver/integration_test.dart \
             --target=integration_test/screenshots_test.dart \
-            --dart-define=SCREENSHOT_OUTPUT="$PWD/screenshots/macos" \
+            --dart-define=SCREENSHOT_OUTPUT="$sandbox_output" \
             -d macos &
           drive_pid=$!
           (sleep 1500; kill -TERM "$drive_pid" 2>/dev/null || true; sleep 10; kill -KILL "$drive_pid" 2>/dev/null || true) &
@@ -252,6 +258,10 @@ jobs:
           wait "$drive_pid" || status=$?
           kill "$watchdog_pid" 2>/dev/null || true
           wait "$watchdog_pid" 2>/dev/null || true
+          if [ "$status" -eq 0 ]; then
+            mkdir -p screenshots/macos
+            cp "$sandbox_output"/*.png screenshots/macos/
+          fi
           exit "$status"
 
       - name: Verify Mac App Store dimensions
