@@ -66,6 +66,11 @@ class MissionDebrief extends StatelessWidget {
                 : '${l10n.indicatorName(change.key.name)}: '
                       '${change.value >= 0 ? '+' : ''}${format.format(change.value)}',
           ),
+        if (controller.earnedChallenges.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          for (final challenge in controller.earnedChallenges)
+            Text('🏅 ${l10n.challengeName(challenge)}'),
+        ],
       ],
     );
   }
@@ -236,8 +241,15 @@ class _LearningCenter extends StatelessWidget {
                 for (final challenge in learning.challengeIds)
                   ListTile(
                     dense: true,
-                    leading: const Icon(Icons.emoji_events_outlined),
+                    leading: Icon(
+                      controller.earnedChallenges.contains(challenge)
+                          ? Icons.emoji_events
+                          : Icons.emoji_events_outlined,
+                    ),
                     title: Text(l10n.challengeName(challenge)),
+                    trailing: controller.earnedChallenges.contains(challenge)
+                        ? const Icon(Icons.check_circle)
+                        : null,
                   ),
               ],
             ],

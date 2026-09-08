@@ -8,7 +8,10 @@
     "concepts": ["noise_distance", "noise_shielding", "exposure"],
     "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
     "predictionId": "noise_homes",
-    "challenges": ["noise_no_roads", "noise_two_designs"]
+    "challenges": [
+      { "id": "noise_no_roads", "maxNewTiles": { "road": 0 } },
+      { "id": "noise_fast", "maxMonths": 48 }
+    ]
   },
   "tiles": {
     "housing_high": 8,

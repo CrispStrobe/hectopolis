@@ -8,7 +8,10 @@
     "concepts": ["budget_loop", "delay", "tradeoffs"],
     "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
     "predictionId": "budget_recovery",
-    "challenges": ["budget_reserve", "budget_clean_air"]
+    "challenges": [
+      { "id": "budget_reserve", "minMetrics": { "budgetKEur": 2000 } },
+      { "id": "budget_clean_air", "minIndicators": { "air": 70 } }
+    ]
   },
   "tiles": {
     "housing_high": 6,

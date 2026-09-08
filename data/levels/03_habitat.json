@@ -8,7 +8,10 @@
     "concepts": ["connectivity", "fragmentation", "maturity"],
     "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
     "predictionId": "habitat_corridor",
-    "challenges": ["habitat_no_water", "habitat_fast"]
+    "challenges": [
+      { "id": "habitat_no_water", "maxNewTiles": { "water": 0 } },
+      { "id": "habitat_fast", "maxMonths": 120 }
+    ]
   },
   "tiles": { "forest": 12, "meadow": null, "water": 2, "park": 2, "cropland": null },
   "goals": [

@@ -153,8 +153,10 @@
   "debriefPrediction": "Your prediction: {prediction}",
   "@debriefPrediction": {"placeholders": {"prediction": {"type": "String"}}},
   "challengesTitle": "Optional challenges",
-  "challengeName": "{id, select, village_quiet{Keep the village especially quiet} village_nature{Preserve a nature refuge} noise_no_roads{Solve it without a new road} noise_two_designs{Compare two successful designs} habitat_no_water{Connect habitat without adding water} habitat_fast{Reach the goal before half the time is gone} budget_reserve{Finish with a strong reserve} budget_clean_air{Recover without sacrificing clean air} quarter_no_new_roads{Use the existing access road only} quarter_balanced{Reach every goal together} other{Find another solution}}",
+  "challengeName": "{id, select, village_quiet{Keep the village especially quiet} village_nature{Preserve a nature refuge} noise_no_roads{Solve it without a new road} noise_fast{Reach every goal within four years} habitat_no_water{Connect habitat without adding water} habitat_fast{Reach the goal before half the time is gone} budget_reserve{Finish with a strong reserve} budget_clean_air{Recover without sacrificing clean air} quarter_no_new_roads{Use the existing access road only} quarter_balanced{Exceed every environmental target} other{Find another solution}}",
   "@challengeName": {"placeholders": {"id": {"type": "String"}}},
+  "medalsEarned": "{count} challenge medals earned",
+  "@medalsEarned": {"placeholders": {"count": {"type": "int"}}},
 
   "experienceTitle": "Make it your game",
   "experienceDescription": "Choose a calm, simple map or add detail and movement. These settings never change the simulation or score.",

@@ -351,8 +351,11 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   discard the branch without affecting the pinned city.
   *Note 2026-09-08:* Reversible in-game what-if experiments are available only in missions
   that opt in; exact deltas are reserved for Explorer mode.
-- [ ] **T-307 Challenge medals.** Evaluate the optional per-mission constraints declared in
+- [x] **T-307 Challenge medals.** Evaluate the optional per-mission constraints declared in
   level data, persist medals and show alternative successful strategies in the debrief.
+  *Note 2026-09-08:* Data-driven time, tile, indicator and budget constraints are evaluated
+  on successful completion; earned medals persist locally and appear in debriefs and the
+  scenario list. They stay out of Starter and Guided mission notebooks.
 
 ### Phase 4 — Platforms and release
 

@@ -113,6 +113,7 @@ class GameController extends ChangeNotifier {
   Simulation? _experimentBaseline;
   bool showExperimentDelta = false;
   int guidanceStage = 0;
+  Set<String> earnedChallenges = const {};
 
   bool get experimentActive => _experimentBaseline != null;
 
@@ -280,6 +281,7 @@ class GameController extends ChangeNotifier {
     _experimentBaseline = null;
     showExperimentDelta = false;
     guidanceStage = 0;
+    earnedChallenges = const {};
   }
 
   void acknowledgeMissionBriefing() {
@@ -378,6 +380,15 @@ class GameController extends ChangeNotifier {
       _stopTimer();
       speed = 0;
       _store?.recordStars(lvl.id, p.stars);
+      earnedChallenges = {
+        for (final challenge
+            in lvl.learning?.challenges ?? const <MissionChallenge>[])
+          if (challenge.met(lvl, sim, p)) challenge.id,
+      };
+      final store = _store;
+      if (store != null) {
+        unawaited(store.recordMedals(lvl.id, earnedChallenges));
+      }
       _playMilestoneFeedback();
     }
   }

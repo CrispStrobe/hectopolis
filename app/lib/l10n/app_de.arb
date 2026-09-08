@@ -116,7 +116,8 @@
   "debriefPrompt": "Was hat sich am stärksten verändert – und passt es zu deiner Vermutung?",
   "debriefPrediction": "Deine Vermutung: {prediction}",
   "challengesTitle": "Freiwillige Herausforderungen",
-  "challengeName": "{id, select, village_quiet{Halte das Dorf besonders ruhig} village_nature{Bewahre einen Rückzugsort für die Natur} noise_no_roads{Löse es ohne neue Straße} noise_two_designs{Vergleiche zwei erfolgreiche Entwürfe} habitat_no_water{Verbinde Lebensräume ohne neues Gewässer} habitat_fast{Erreiche das Ziel vor Ablauf der halben Zeit} budget_reserve{Schließe mit einer starken Rücklage ab} budget_clean_air{Erhole den Haushalt ohne schlechte Luft} quarter_no_new_roads{Nutze nur die vorhandene Zufahrtsstraße} quarter_balanced{Erreiche alle Ziele gemeinsam} other{Finde eine andere Lösung}}",
+  "challengeName": "{id, select, village_quiet{Halte das Dorf besonders ruhig} village_nature{Bewahre einen Rückzugsort für die Natur} noise_no_roads{Löse es ohne neue Straße} noise_fast{Erreiche alle Ziele in vier Jahren} habitat_no_water{Verbinde Lebensräume ohne neues Gewässer} habitat_fast{Erreiche das Ziel vor Ablauf der halben Zeit} budget_reserve{Schließe mit einer starken Rücklage ab} budget_clean_air{Erhole den Haushalt ohne schlechte Luft} quarter_no_new_roads{Nutze nur die vorhandene Zufahrtsstraße} quarter_balanced{Übertriff alle Umweltziele} other{Finde eine andere Lösung}}",
+  "medalsEarned": "{count} Herausforderungsmedaillen verdient",
 
   "experienceTitle": "Mach es zu deinem Spiel",
   "experienceDescription": "Wähle eine ruhige, einfache Karte oder füge Details und Bewegung hinzu. Diese Einstellungen ändern weder Simulation noch Wertung.",

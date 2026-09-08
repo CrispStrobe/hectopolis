@@ -138,6 +138,17 @@ void main() {
     c.dispose();
   });
 
+  test('challenge medals persist and merge per level', () async {
+    SharedPreferences.setMockInitialValues({});
+    final store = SaveStore();
+    await store.recordMedals('noise', {'noise_no_roads'});
+    await store.recordMedals('noise', {'noise_fast'});
+    await store.recordMedals('habitat', {'habitat_fast'});
+    final medals = await store.earnedMedals();
+    expect(medals['noise'], {'noise_no_roads', 'noise_fast'});
+    expect(medals['habitat'], {'habitat_fast'});
+  });
+
   test('builds record actual impacts and a bounded visual timeline', () {
     final c = GameController(size: 8);
     c.setExperience(c.experience.copyWith(haptics: false));

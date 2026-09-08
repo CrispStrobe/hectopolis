@@ -28,6 +28,7 @@ class LevelSelectScreen extends StatefulWidget {
 
 class _LevelSelectScreenState extends State<LevelSelectScreen> {
   Map<String, int> _stars = {};
+  Map<String, Set<String>> _medals = {};
   bool _hasSave = false;
 
   @override
@@ -47,10 +48,12 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   Future<void> _refresh() async {
     await widget.controller.loadExperienceSettings();
     final stars = await widget.store.bestStars();
+    final medals = await widget.store.earnedMedals();
     final save = await widget.store.load();
     if (!mounted) return;
     setState(() {
       _stars = stars;
+      _medals = medals;
       _hasSave = save != null;
     });
   }
@@ -137,6 +140,15 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                   child: ListTile(
                     leading: _Stars(count: _stars[l.id] ?? 0),
                     title: Text(l10n.levelTitle(l.id)),
+                    trailing: (_medals[l.id]?.isNotEmpty ?? false)
+                        ? Tooltip(
+                            message: l10n.medalsEarned(_medals[l.id]!.length),
+                            child: Badge(
+                              label: Text('${_medals[l.id]!.length}'),
+                              child: const Icon(Icons.emoji_events),
+                            ),
+                          )
+                        : null,
                     subtitle: Text(
                       '${l10n.levelDescription(l.id)}\n'
                       '${l10n.goalsSummary(l.goals.length, l.turnLimitMonths ?? 0)}'

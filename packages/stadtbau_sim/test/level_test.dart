@@ -34,6 +34,8 @@ void main() {
     final noise = Level.byId('noise')!.learning!;
     expect(noise.predictionId, 'noise_homes');
     expect(noise.has(MissionFeature.experiment), isTrue);
+    expect(noise.challenges.first.maxNewTiles[TileType.road], 0);
+    expect(noise.challenges.last.maxMonths, 48);
 
     final quarter = Level.byId('quarter')!.learning!;
     expect(quarter.tier, MissionTier.explorer);

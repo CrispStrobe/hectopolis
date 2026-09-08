@@ -7,7 +7,10 @@
     "tier": "explorer",
     "concepts": ["feedback", "mixed_city", "resilience"],
     "features": ["causalView", "experiment", "debrief", "challenges"],
-    "challenges": ["quarter_no_new_roads", "quarter_balanced"]
+    "challenges": [
+      { "id": "quarter_no_new_roads", "maxNewTiles": { "road": 0 } },
+      { "id": "quarter_balanced", "minIndicators": { "air": 80, "noise": 75, "recreation": 70, "biodiversity": 45, "commuting": 55 } }
+    ]
   },
   "tiles": {
     "housing_high": null,
