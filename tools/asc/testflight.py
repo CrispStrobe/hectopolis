@@ -266,30 +266,84 @@ def prepare_store(app_id: str, build_number: str | None, wait_minutes: int) -> N
     # Apple returns a schedule from the app relationship while direct calls
     # using that schedule ID currently 404. Include the manual prices in the
     # relationship response instead.
-    schedule_doc = client.expect(
-        "GET",
-        query(
-            f"/v1/apps/{app_id}/appPriceSchedule",
-            include="manualPrices",
-            **{"limit[manualPrices]": "50"},
-        ),
+    schedule_path = query(
+        f"/v1/apps/{app_id}/appPriceSchedule",
+        include="manualPrices",
+        **{"limit[manualPrices]": "50"},
     )
-    prices = [
-        item
-        for item in schedule_doc.get("included", [])
-        if item.get("type") == "appPrices"
-    ]
-    if not prices:
-        raise SystemExit("price schedule has no manual base price; review it in ASC")
-    price_points = []
-    for price in prices:
-        point = client.expect(
-            "GET", f"/v1/appPrices/{price['id']}/appPricePoint"
-        )["data"]
-        price_points.append(point["attributes"].get("customerPrice"))
-    if not any(str(value) in ("0", "0.0", "0.00") for value in price_points):
-        raise SystemExit(f"existing price schedule is not free: {price_points}")
-    print("price schedule verified free", price_points)
+    status, schedule_doc = client.call("GET", schedule_path)
+    if status == 404:
+        points = client.paged(
+            query(
+                f"/v1/apps/{app_id}/appPricePoints",
+                **{"filter[territory]": "USA", "limit": "200"},
+            )
+        )
+        free_point = next(
+            (
+                point
+                for point in points
+                if str(point["attributes"].get("customerPrice"))
+                in ("0", "0.0", "0.00")
+            ),
+            None,
+        )
+        if not free_point:
+            raise SystemExit("could not find Apple's free USA app price point")
+        local_price_id = "${price1}"
+        client.expect(
+            "POST",
+            "/v1/appPriceSchedules",
+            {
+                "data": {
+                    "type": "appPriceSchedules",
+                    "relationships": {
+                        "app": {"data": {"type": "apps", "id": app_id}},
+                        "baseTerritory": {
+                            "data": {"type": "territories", "id": "USA"}
+                        },
+                        "manualPrices": {
+                            "data": [{"type": "appPrices", "id": local_price_id}]
+                        },
+                    },
+                },
+                "included": [
+                    {
+                        "type": "appPrices",
+                        "id": local_price_id,
+                        "attributes": {"startDate": None},
+                        "relationships": {
+                            "appPricePoint": {
+                                "data": {
+                                    "type": "appPricePoints",
+                                    "id": free_point["id"],
+                                }
+                            }
+                        },
+                    }
+                ],
+            },
+        )
+        print("created free App Store price schedule with USA base territory")
+    elif status == 200:
+        prices = [
+            item
+            for item in schedule_doc.get("included", [])
+            if item.get("type") == "appPrices"
+        ]
+        if not prices:
+            raise SystemExit("price schedule has no manual base price; review it in ASC")
+        price_points = []
+        for price in prices:
+            point = client.expect(
+                "GET", f"/v1/appPrices/{price['id']}/appPricePoint"
+            )["data"]
+            price_points.append(point["attributes"].get("customerPrice"))
+        if not any(str(value) in ("0", "0.0", "0.00") for value in price_points):
+            raise SystemExit(f"existing price schedule is not free: {price_points}")
+        print("price schedule verified free", price_points)
+    else:
+        raise SystemExit(f"read price schedule -> HTTP {status}: {schedule_doc}")
 
     client.expect(
         "PATCH",
