@@ -7,7 +7,7 @@ on:
       action:
         description: 'Audit ASC state or submit the newest build for external TestFlight review'
         type: choice
-        options: [audit, submit-external]
+        options: [audit, listing, submit-external]
         default: audit
       build_number:
         description: 'Optional exact CFBundleVersion; blank selects the newest build'
@@ -41,4 +41,8 @@ jobs:
           if [ -n "$BUILD_NUMBER" ]; then
             args+=(--build-number "$BUILD_NUMBER")
           fi
-          python3 tools/asc/testflight.py "${args[@]}"
+          if [ "$ACTION" = listing ]; then
+            python3 tools/asc/listing.py
+          else
+            python3 tools/asc/testflight.py "${args[@]}"
+          fi
