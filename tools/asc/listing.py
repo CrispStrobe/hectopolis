@@ -78,7 +78,7 @@ def review_details(version_id: str) -> None:
     client.expect("POST", "/v1/appStoreReviewDetails", body)
 
 
-def editable_version(app_id: str, platform: str) -> dict:
+def editable_version(app_id: str, platform: str) -> dict | None:
     versions = client.paged(f"/v1/apps/{app_id}/appStoreVersions?limit=50")
     version = next(
         (
@@ -91,6 +91,9 @@ def editable_version(app_id: str, platform: str) -> dict:
     )
     if version:
         return version
+    if any(item["attributes"].get("platform") == platform for item in versions):
+        print(f"skipping {platform}: its existing version is not editable")
+        return None
     body = {
         "data": {
             "type": "appStoreVersions",
@@ -106,8 +109,10 @@ def editable_version(app_id: str, platform: str) -> dict:
     return client.expect("POST", "/v1/appStoreVersions", body)["data"]
 
 
-def apply_version_listing(app_id: str, platform: str) -> str:
+def apply_version_listing(app_id: str, platform: str) -> str | None:
     version = editable_version(app_id, platform)
+    if version is None:
+        return None
     version_id = version["id"]
     patch(
         "appStoreVersions",
@@ -140,11 +145,16 @@ def main() -> None:
     app_id = os.environ.get("ASC_APP_ID") or client.app_id(META["bundleId"])
     if not app_id:
         raise SystemExit("Hectopolis app record not found")
-    patch(
-        "apps",
-        app_id,
-        attrs={"contentRightsDeclaration": META["contentRightsDeclaration"]},
-    )
+    app = client.expect("GET", f"/v1/apps/{app_id}")["data"]
+    if (
+        app["attributes"].get("contentRightsDeclaration")
+        != META["contentRightsDeclaration"]
+    ):
+        patch(
+            "apps",
+            app_id,
+            attrs={"contentRightsDeclaration": META["contentRightsDeclaration"]},
+        )
     version_ids = {
         platform: apply_version_listing(app_id, platform)
         for platform in ("IOS", "MAC_OS")
@@ -152,22 +162,25 @@ def main() -> None:
 
     info = editable_info(app_id)
     info_id = info["id"]
-    patch(
-        "appInfos",
-        info_id,
-        relationships={
-            "primaryCategory": {"data": {"type": "appCategories", "id": META["category"]}},
-            "primarySubcategoryOne": {"data": {"type": "appCategories", "id": META["subcategory"]}},
-        },
-    )
-    for locale, copy in META["locales"].items():
-        upsert(
-            f"/v1/appInfos/{info_id}/appInfoLocalizations?limit=100",
-            "appInfoLocalizations",
-            locale,
-            {"subtitle": copy["subtitle"], "privacyPolicyUrl": META["privacyPolicyUrl"]},
-            ("appInfo", "appInfos", info_id),
+    if info["attributes"].get("appStoreState") == "PREPARE_FOR_SUBMISSION":
+        patch(
+            "appInfos",
+            info_id,
+            relationships={
+                "primaryCategory": {"data": {"type": "appCategories", "id": META["category"]}},
+                "primarySubcategoryOne": {"data": {"type": "appCategories", "id": META["subcategory"]}},
+            },
         )
+        for locale, copy in META["locales"].items():
+            upsert(
+                f"/v1/appInfos/{info_id}/appInfoLocalizations?limit=100",
+                "appInfoLocalizations",
+                locale,
+                {"subtitle": copy["subtitle"], "privacyPolicyUrl": META["privacyPolicyUrl"]},
+                ("appInfo", "appInfos", info_id),
+            )
+    else:
+        print("skipping shared app info: it is already in review")
     print(
         "listing applied",
         {"app": app_id, "versions": version_ids, "appInfo": info_id},
