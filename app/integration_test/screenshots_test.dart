@@ -18,7 +18,11 @@
 /// `docs/release/screenshots.md` for the whole pipeline.
 library;
 
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,6 +56,14 @@ const int _monthsBeforeGoals = 36;
 /// here on purpose (it is private); [_dismissOverlays] is the safety net if it
 /// ever changes.
 const String _onboardingSeenKey = 'stadtbau.onboarding.v1';
+
+/// macOS has no `integration_test` screenshot channel implementation. Its CI
+/// job supplies this compile-time path, so the same real widget surface can be
+/// encoded directly without host screen-recording permissions.
+const String _directScreenshotOutput = String.fromEnvironment(
+  'SCREENSHOT_OUTPUT',
+);
+const Key _captureKey = ValueKey<String>('store-screenshot-surface');
 
 Future<void> main() async {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -87,7 +99,12 @@ Future<void> _tour(
   // A per-locale key forces a fresh HectopolisApp state (and therefore a fresh
   // GameController and Navigator); re-pumping the identical widget would only
   // update the existing element and leave the previous run's route on top.
-  await tester.pumpWidget(HectopolisApp(key: ValueKey<String>('run-$locale')));
+  await tester.pumpWidget(
+    RepaintBoundary(
+      key: _captureKey,
+      child: HectopolisApp(key: ValueKey<String>('run-$locale')),
+    ),
+  );
   await _settle(tester);
   await _dismissOverlays(tester);
   await _ensureLocale(tester, locale);
@@ -273,5 +290,21 @@ Future<void> _shot(
   String stop,
 ) async {
   await _settle(tester);
+  if (_directScreenshotOutput.isNotEmpty) {
+    final boundary = tester.renderObject<RenderRepaintBoundary>(
+      find.byKey(_captureKey),
+    );
+    final context = tester.element(find.byKey(_captureKey));
+    final ratio = View.of(context).devicePixelRatio.clamp(1.0, 2.0).toDouble();
+    final image = await boundary.toImage(pixelRatio: ratio);
+    final data = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    if (data == null) fail('could not encode $locale $stop as PNG');
+    final directory = Directory(_directScreenshotOutput);
+    await directory.create(recursive: true);
+    final file = File('${directory.path}/${locale}_$stop.png');
+    await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
+    return;
+  }
   await binding.takeScreenshot('${locale}_$stop');
 }

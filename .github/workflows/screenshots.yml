@@ -243,6 +243,7 @@ jobs:
           SCREENSHOT_DEVICE=macOS flutter drive \
             --driver=test_driver/integration_test.dart \
             --target=integration_test/screenshots_test.dart \
+            --dart-define=SCREENSHOT_OUTPUT="$PWD/screenshots/macos" \
             -d macos &
           drive_pid=$!
           (sleep 1500; kill -TERM "$drive_pid" 2>/dev/null || true; sleep 10; kill -KILL "$drive_pid" 2>/dev/null || true) &
