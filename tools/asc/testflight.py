@@ -113,6 +113,28 @@ def audit(app_id: str) -> None:
         print(label)
         for item in client.paged(path):
             print(" ", item["id"], item.get("attributes", {}))
+    infos = client.paged(f"/v1/apps/{app_id}/appInfos?limit=50")
+    for info in infos:
+        print("app info", info["id"], info.get("attributes", {}))
+        for suffix, label in [
+            ("ageRatingDeclaration", "age rating"),
+            ("appInfoLocalizations?limit=50", "info localizations"),
+        ]:
+            status, doc = client.call("GET", f"/v1/appInfos/{info['id']}/{suffix}")
+            print(label, "HTTP", status, doc.get("data"))
+    status, doc = client.call("GET", f"/v1/apps/{app_id}/appPriceSchedule")
+    print("price schedule", "HTTP", status, doc.get("data"))
+    for version in client.paged(f"/v1/apps/{app_id}/appStoreVersions?limit=50"):
+        if version["attributes"].get("platform") != "IOS":
+            continue
+        version_id = version["id"]
+        for suffix, label in [
+            ("build", "attached build"),
+            ("appStoreVersionLocalizations?limit=50", "version localizations"),
+            ("appStoreReviewDetail", "review detail"),
+        ]:
+            status, doc = client.call("GET", f"/v1/appStoreVersions/{version_id}/{suffix}")
+            print(label, "HTTP", status, doc.get("data"))
 
 
 def prepare_external(app_id: str, build_number: str | None, wait_minutes: int) -> None:
