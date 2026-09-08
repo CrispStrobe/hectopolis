@@ -26,6 +26,7 @@
   "overlayDirectionHarmful": "Hohe Werte sind schädlich",
   "overlayDirectionHelpful": "Hohe Werte sind hilfreich",
   "overlayClose": "Overlay schließen",
+  "overlayThresholdMarker": "Kontur = Richtwert",
   "paletteTitle": "Felder",
   "paletteHint": "Feld auf die Karte ziehen oder auswählen und Zellen antippen. Lange drücken leert eine Zelle.",
   "placementPreviewTitle": "{tile} platzieren",

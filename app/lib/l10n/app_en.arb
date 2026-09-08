@@ -36,6 +36,7 @@
   "overlayDirectionHarmful": "High values are harmful",
   "overlayDirectionHelpful": "High values are helpful",
   "overlayClose": "Close overlay",
+  "overlayThresholdMarker": "outline = reference threshold",
   "paletteTitle": "Tiles",
   "paletteHint": "Drag a tile onto the map, or select it and tap cells. Long-press a cell to clear it.",
   "placementPreviewTitle": "Place {tile}",

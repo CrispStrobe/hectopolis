@@ -312,6 +312,9 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   retail access, habitat quality. Colour-blind-safe palettes; legend with units.
   *Note 2026-09-05:* Nine overlays with colour-blind-safe ramps and legend.
   *Note 2026-09-07:* Overlay UX now identifies helpful versus harmful directions, uses simple-mode wording, preserves more of the base map, marks causal source cells optionally, closes directly from the legend, and corrects the air-quality layer's formerly inverted palette semantics.
+  *Note 2026-09-08:* Starter overlays use three readable bands; applicable fields draw
+  reference-threshold contours. Selecting a cell traces its nearest plausible sources, and
+  what-if experiments switch the heatmap to a before/after improvement delta.
 - [x] **T-206 Tile inspector.** Tap tile → per-field values, contributing emitters
   ("Lärm: 62 dB, davon Hauptstraße (2 Felder) 58 dB…").
   *Note 2026-09-05:* Inspector shows all per-cell fields. Breakdown by contributing emitters still open.

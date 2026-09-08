@@ -912,7 +912,46 @@ class _MapPainter extends CustomPainter {
           );
         }
       }
+      if (c.overlay != MapOverlay.none && c.overlayMeetsThreshold(i)) {
+        final x = i % c.width;
+        final y = i ~/ c.width;
+        bool below(int nx, int ny) =>
+            !state.inBounds(nx, ny) ||
+            !c.overlayMeetsThreshold(state.index(nx, ny));
+        if (below(x - 1, y) ||
+            below(x + 1, y) ||
+            below(x, y - 1) ||
+            below(x, y + 1)) {
+          canvas.drawRect(
+            rect.deflate(hair * 0.8),
+            Paint()
+              ..color = theme.colorScheme.onSurface.withValues(alpha: 0.72)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = math.max(1.2 / scale, rect.width * 0.035),
+          );
+        }
+      }
       canvas.drawRect(rect, grid);
+    }
+
+    if (c.experience.causalHighlights &&
+        c.overlay != MapOverlay.none &&
+        c.selectedCell != null) {
+      final target = cellRect(c.selectedCell!).center;
+      final sourcePaint = Paint()
+        ..color = theme.colorScheme.primary.withValues(alpha: 0.55)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1 / scale, cell * 0.025);
+      for (final source in c.selectedCausalSourceCells) {
+        final origin = cellRect(source).center;
+        canvas.drawLine(origin, target, sourcePaint);
+        canvas.drawCircle(
+          origin,
+          math.max(1.5 / scale, cell * 0.06),
+          sourcePaint..style = PaintingStyle.fill,
+        );
+        sourcePaint.style = PaintingStyle.stroke;
+      }
     }
 
     if (animateAmbient && c.experience.trafficAnimations && !_lowDetail) {
