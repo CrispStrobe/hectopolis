@@ -24,6 +24,22 @@ void main() {
     expect(SimParams.defaults().noise.baselineThroughTraffic, 2000);
   });
 
+  test('missions opt into age-appropriate learning tools', () {
+    final village = Level.byId('village')!.learning!;
+    expect(village.tier, MissionTier.starter);
+    expect(village.concepts, contains('access'));
+    expect(village.has(MissionFeature.prediction), isTrue);
+    expect(village.has(MissionFeature.causalView), isFalse);
+
+    final noise = Level.byId('noise')!.learning!;
+    expect(noise.predictionId, 'noise_homes');
+    expect(noise.has(MissionFeature.experiment), isTrue);
+
+    final quarter = Level.byId('quarter')!.learning!;
+    expect(quarter.tier, MissionTier.explorer);
+    expect(quarter.has(MissionFeature.challenges), isTrue);
+  });
+
   test('tile budget is reconstructed from a saved state', () {
     final village = Level.byId('village')!;
     final sim = village.start();
@@ -35,9 +51,21 @@ void main() {
   });
 
   test('stars follow the share of goals met', () {
-    expect(const LevelProgress(goalsMet: [true, true, true], monthsLeft: 3).stars, 3);
-    expect(const LevelProgress(goalsMet: [true, true, false], monthsLeft: 0).stars, 2);
-    expect(const LevelProgress(goalsMet: [true, false, false], monthsLeft: 0).stars, 1);
-    expect(const LevelProgress(goalsMet: [false, false, false], monthsLeft: 0).stars, 0);
+    expect(
+      const LevelProgress(goalsMet: [true, true, true], monthsLeft: 3).stars,
+      3,
+    );
+    expect(
+      const LevelProgress(goalsMet: [true, true, false], monthsLeft: 0).stars,
+      2,
+    );
+    expect(
+      const LevelProgress(goalsMet: [true, false, false], monthsLeft: 0).stars,
+      1,
+    );
+    expect(
+      const LevelProgress(goalsMet: [false, false, false], monthsLeft: 0).stars,
+      0,
+    );
   });
 }

@@ -150,19 +150,25 @@ class _GuidanceCard extends StatelessWidget {
         ? l10n.goalMetricName(guidance.metric ?? '')
         : l10n.indicatorName(guidance.indicator!.name);
     final tile = guidance.tile;
+    final stage = controller.guidanceStage;
+    final subtitle = switch (stage) {
+      0 => l10n.guidanceQuestion(target),
+      1 => l10n.guidanceSeeOverlay,
+      2 => l10n.guidanceThinkCause,
+      _ =>
+        tile == null
+            ? l10n.guidanceExplore
+            : l10n.guidanceTryTile(l10n.tileName(tile.id)),
+    };
     return Card(
       color: Theme.of(context).colorScheme.primaryContainer,
       child: ListTile(
         dense: true,
         leading: const Icon(Icons.lightbulb_outline),
         title: Text(l10n.guidanceNeedsAttention(target)),
-        subtitle: Text(
-          tile == null
-              ? l10n.guidanceExplore
-              : l10n.guidanceTryTile(l10n.tileName(tile.id)),
-        ),
-        trailing: tile == null ? null : const Icon(Icons.chevron_right),
-        onTap: tile == null ? null : () => controller.setBrush(tile),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => controller.advanceGuidance(guidance),
       ),
     );
   }

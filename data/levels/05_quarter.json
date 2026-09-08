@@ -3,6 +3,12 @@
   "order": 5,
   "budgetKEur": 25000,
   "turnLimitMonths": 180,
+  "learning": {
+    "tier": "explorer",
+    "concepts": ["feedback", "mixed_city", "resilience"],
+    "features": ["causalView", "experiment", "debrief", "challenges"],
+    "challenges": ["quarter_no_new_roads", "quarter_balanced"]
+  },
   "tiles": {
     "housing_high": null,
     "housing_low": null,

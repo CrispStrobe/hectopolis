@@ -9,6 +9,7 @@ import '../l10n/generated/app_localizations.dart';
 import 'about_screen.dart';
 import 'goals_panel.dart';
 import 'indicator_panel.dart';
+import 'learning_center.dart';
 import 'map_view.dart';
 import 'palette.dart';
 import 'tile_inspector.dart';
@@ -39,6 +40,11 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     c.addListener(_onChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && c.missionBriefingPending) {
+        showMissionBriefing(context, c);
+      }
+    });
   }
 
   @override
@@ -99,6 +105,7 @@ class _GameScreenState extends State<GameScreen> {
             ),
             const SizedBox(height: 8),
             Text(l10n.endGoalsMet(progress.metCount, progress.goalsMet.length)),
+            MissionDebrief(controller: c),
           ],
         ),
         actions: [
@@ -195,6 +202,8 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  void _learning() => showLearningCenter(context, c);
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -243,6 +252,11 @@ class _GameScreenState extends State<GameScreen> {
                         onPressed: _newGame,
                       ),
                     IconButton(
+                      tooltip: l10n.actionMissionNotebook,
+                      icon: const Icon(Icons.school_outlined),
+                      onPressed: c.level?.learning == null ? null : _learning,
+                    ),
+                    IconButton(
                       tooltip: l10n.actionExperienceSettings,
                       icon: const Icon(Icons.tune),
                       onPressed: _settings,
@@ -262,6 +276,12 @@ class _GameScreenState extends State<GameScreen> {
                     _Clock(controller: c, compact: true),
                     _Transport(controller: c, compact: true),
                     _OverlayMenu(controller: c),
+                    if (c.level?.learning != null)
+                      IconButton(
+                        tooltip: l10n.actionMissionNotebook,
+                        icon: const Icon(Icons.school_outlined),
+                        onPressed: _learning,
+                      ),
                     _MoreMenu(
                       controller: c,
                       map: _map,
@@ -542,7 +562,9 @@ class _Legend extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                controller.simpleMode
+                controller.showExperimentDelta
+                    ? l10n.legendComparedWorse
+                    : controller.simpleMode
                     ? (bad ? l10n.legendBetter : l10n.legendLess)
                     : l10n.legendLow,
                 style: Theme.of(context).textTheme.bodySmall,
@@ -564,7 +586,9 @@ class _Legend extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                controller.simpleMode
+                controller.showExperimentDelta
+                    ? l10n.legendComparedBetter
+                    : controller.simpleMode
                     ? (bad ? l10n.legendWorse : l10n.legendMore)
                     : l10n.legendHigh,
                 style: Theme.of(context).textTheme.bodySmall,
@@ -755,14 +779,31 @@ class _ExperienceSheet extends StatelessWidget {
                   ),
                   Text(l10n.experienceDescription),
                   const SizedBox(height: 8),
-                  SwitchListTile(
-                    secondary: const Icon(Icons.child_care),
-                    title: Text(l10n.indicatorModeSimple),
-                    subtitle: Text(l10n.settingSimpleDescription),
-                    value: value.simpleMode,
-                    onChanged: (enabled) =>
-                        update(value.copyWith(simpleMode: enabled)),
+                  Text(
+                    l10n.learningModeLabel,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
+                  const SizedBox(height: 8),
+                  SegmentedButton<LearningMode>(
+                    showSelectedIcon: false,
+                    segments: [
+                      for (final mode in LearningMode.values)
+                        ButtonSegment(
+                          value: mode,
+                          icon: Icon(switch (mode) {
+                            LearningMode.starter => Icons.child_care,
+                            LearningMode.guided => Icons.lightbulb_outline,
+                            LearningMode.explorer => Icons.science_outlined,
+                          }),
+                          label: Text(l10n.learningModeName(mode.name)),
+                        ),
+                    ],
+                    selected: {value.learningMode},
+                    onSelectionChanged: (modes) =>
+                        controller.setLearningMode(modes.single),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(l10n.learningModeDescription(value.learningMode.name)),
                   SwitchListTile(
                     secondary: const Icon(Icons.filter_none),
                     title: Text(l10n.settingCleanVisuals),

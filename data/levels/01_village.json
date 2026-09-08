@@ -3,6 +3,13 @@
   "order": 1,
   "budgetKEur": 6000,
   "turnLimitMonths": 120,
+  "learning": {
+    "tier": "starter",
+    "concepts": ["access", "tradeoffs"],
+    "features": ["prediction", "debrief"],
+    "predictionId": "village_access",
+    "challenges": ["village_quiet", "village_nature"]
+  },
   "tiles": { "housing_low": 16, "commercial": 2, "park": 2, "road": 6, "forest": 8, "meadow": null },
   "goals": [
     { "indicator": "housing", "min": 60 },

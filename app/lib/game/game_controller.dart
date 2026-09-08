@@ -108,11 +108,42 @@ class GameController extends ChangeNotifier {
   /// The level being played, or null for the sandbox.
   Level? level;
   LevelProgress? progress;
+  bool missionBriefingPending = false;
+  String? missionPrediction;
+  Simulation? _experimentBaseline;
+  bool showExperimentDelta = false;
+  int guidanceStage = 0;
+
+  bool get experimentActive => _experimentBaseline != null;
+
+  Map<Indicator, double> get experimentDeltas {
+    final baseline = _experimentBaseline;
+    if (baseline == null) return const {};
+    return {
+      for (final indicator in Indicator.values)
+        indicator:
+            sim.indicators.score(indicator) -
+            baseline.indicators.score(indicator),
+    };
+  }
 
   ExperienceSettings experience = const ExperienceSettings();
   bool _experienceLoaded = false;
 
   bool get simpleMode => experience.simpleMode;
+
+  LearningMode get learningMode => experience.learningMode;
+
+  void setLearningMode(LearningMode mode) {
+    setExperience(
+      experience.copyWith(
+        learningMode: mode,
+        simpleMode: mode == LearningMode.starter,
+        placementForecasts: mode != LearningMode.starter,
+        causalHighlights: mode != LearningMode.starter,
+      ),
+    );
+  }
 
   Future<void> loadExperienceSettings() async {
     if (_experienceLoaded) return;
@@ -135,7 +166,7 @@ class GameController extends ChangeNotifier {
   }
 
   void toggleSimpleMode() {
-    setExperience(experience.copyWith(simpleMode: !simpleMode));
+    setLearningMode(simpleMode ? LearningMode.guided : LearningMode.starter);
   }
 
   /// Set once when the level ends (time up or all goals met); the UI shows
@@ -200,6 +231,7 @@ class GameController extends ChangeNotifier {
     _evaluate();
     _endShown = endPending; // do not re-announce an already finished level
     endPending = false;
+    missionBriefingPending = false;
     notifyListeners();
     return true;
   }
@@ -218,6 +250,7 @@ class GameController extends ChangeNotifier {
     _reset();
     level = lvl;
     sim = lvl.start();
+    missionBriefingPending = lvl.learning != null;
     _recordTimeline();
     _evaluate();
     _scheduleSave();
@@ -242,6 +275,93 @@ class GameController extends ChangeNotifier {
     indicatorHistory.clear();
     _undo.clear();
     _redo.clear();
+    missionBriefingPending = false;
+    missionPrediction = null;
+    _experimentBaseline = null;
+    showExperimentDelta = false;
+    guidanceStage = 0;
+  }
+
+  void acknowledgeMissionBriefing() {
+    missionBriefingPending = false;
+    notifyListeners();
+  }
+
+  void answerMissionPrediction(String answerId) {
+    missionPrediction = answerId;
+    notifyListeners();
+  }
+
+  void startExperiment() {
+    if (_experimentBaseline != null) return;
+    _stopTimer();
+    speed = 0;
+    _experimentBaseline = sim.copy();
+    showExperimentDelta = true;
+    visualRevision++;
+    _undo.clear();
+    _redo.clear();
+    notifyListeners();
+  }
+
+  void keepExperiment() {
+    if (_experimentBaseline == null) return;
+    _experimentBaseline = null;
+    showExperimentDelta = false;
+    visualRevision++;
+    _scheduleSave();
+    notifyListeners();
+  }
+
+  void discardExperiment() {
+    final baseline = _experimentBaseline;
+    if (baseline == null) return;
+    _stopTimer();
+    speed = 0;
+    sim = baseline;
+    _experimentBaseline = null;
+    showExperimentDelta = false;
+    _undo.clear();
+    _redo.clear();
+    lastImpact = null;
+    visualRevision++;
+    _cachedPreview = null;
+    _recordTimeline();
+    _evaluate();
+    _scheduleSave();
+    notifyListeners();
+  }
+
+  void advanceGuidance(GoalGuidance guidance) {
+    if (guidanceStage < 3) {
+      guidanceStage++;
+      if (guidanceStage == 1) {
+        overlay = _guidanceOverlay(guidance);
+      }
+    } else if (guidance.tile != null) {
+      setBrush(guidance.tile);
+      return;
+    }
+    notifyListeners();
+  }
+
+  static MapOverlay _guidanceOverlay(GoalGuidance guidance) {
+    return switch (guidance.indicator) {
+      Indicator.biodiversity => MapOverlay.habitat,
+      Indicator.air => MapOverlay.air,
+      Indicator.noise => MapOverlay.noise,
+      Indicator.housing => MapOverlay.attractiveness,
+      Indicator.economy || Indicator.budget => MapOverlay.jobs,
+      Indicator.shopping => MapOverlay.retail,
+      Indicator.recreation => MapOverlay.green,
+      Indicator.commuting => MapOverlay.traffic,
+      Indicator.climate => MapOverlay.heat,
+      null => switch (guidance.metric) {
+        'population' => MapOverlay.attractiveness,
+        'jobs' || 'budgetKEur' => MapOverlay.jobs,
+        _ => MapOverlay.none,
+      },
+    };
   }
 
   void _evaluate() {
@@ -498,6 +618,7 @@ class GameController extends ChangeNotifier {
     lastError = result.error;
     selectedCell = sim.state.index(x, y);
     if (result.ok) {
+      guidanceStage = 0;
       _remember(before);
       _recordBuildImpact(
         before: before,
@@ -525,6 +646,7 @@ class GameController extends ChangeNotifier {
     final result = sim.apply(RemoveTile(x, y));
     lastError = result.error;
     if (result.ok) {
+      guidanceStage = 0;
       _remember(before);
       _recordBuildImpact(
         before: before,
@@ -739,7 +861,18 @@ class GameController extends ChangeNotifier {
 
   /// Value of the active overlay at [cell], normalised to 0–1 for colouring.
   double overlayValue(int cell) {
-    final f = sim.fields;
+    final baseline = _experimentBaseline;
+    if (showExperimentDelta && baseline != null) {
+      final current = _normalOverlayValue(sim, cell);
+      final previous = _normalOverlayValue(baseline, cell);
+      final direction = overlayHighIsBadFor(overlay) ? -1.0 : 1.0;
+      return (0.5 + (current - previous) * direction * 2).clamp(0, 1);
+    }
+    return _normalOverlayValue(sim, cell);
+  }
+
+  double _normalOverlayValue(Simulation source, int cell) {
+    final f = source.fields;
     switch (overlay) {
       case MapOverlay.none:
         return 0;
@@ -748,7 +881,7 @@ class GameController extends ChangeNotifier {
       case MapOverlay.air:
         return (1 - f.airIndex[cell] / 100).clamp(0, 1);
       case MapOverlay.heat:
-        return (f.heatDeltaC[cell] / sim.params.heat.uhiMaxC).clamp(0, 1);
+        return (f.heatDeltaC[cell] / source.params.heat.uhiMaxC).clamp(0, 1);
       case MapOverlay.green:
         return f.greenAccess[cell];
       case MapOverlay.retail:
@@ -765,7 +898,8 @@ class GameController extends ChangeNotifier {
   }
 
   /// Whether high overlay values are "bad" (drawn warm) or "good" (drawn cool).
-  bool get overlayHighIsBad => overlayHighIsBadFor(overlay);
+  bool get overlayHighIsBad =>
+      !showExperimentDelta && overlayHighIsBadFor(overlay);
 
   bool overlayHighIsBadFor(MapOverlay value) => switch (value) {
     MapOverlay.noise || MapOverlay.heat || MapOverlay.traffic => true,

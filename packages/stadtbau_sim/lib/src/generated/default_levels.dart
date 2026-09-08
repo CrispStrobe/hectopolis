@@ -10,6 +10,13 @@ const List<String> defaultLevelsJson = [
   "order": 1,
   "budgetKEur": 6000,
   "turnLimitMonths": 120,
+  "learning": {
+    "tier": "starter",
+    "concepts": ["access", "tradeoffs"],
+    "features": ["prediction", "debrief"],
+    "predictionId": "village_access",
+    "challenges": ["village_quiet", "village_nature"]
+  },
   "tiles": { "housing_low": 16, "commercial": 2, "park": 2, "road": 6, "forest": 8, "meadow": null },
   "goals": [
     { "indicator": "housing", "min": 60 },
@@ -39,6 +46,13 @@ const List<String> defaultLevelsJson = [
   "order": 2,
   "budgetKEur": 9000,
   "turnLimitMonths": 96,
+  "learning": {
+    "tier": "starter",
+    "concepts": ["noise_distance", "noise_shielding", "exposure"],
+    "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
+    "predictionId": "noise_homes",
+    "challenges": ["noise_no_roads", "noise_two_designs"]
+  },
   "tiles": {
     "housing_high": 8,
     "housing_low": 8,
@@ -92,13 +106,21 @@ const List<String> defaultLevelsJson = [
     "................",
     "................"
   ]
-}''',
+}
+''',
   r'''
 {
   "id": "habitat",
   "order": 3,
   "budgetKEur": 4000,
   "turnLimitMonths": 240,
+  "learning": {
+    "tier": "guided",
+    "concepts": ["connectivity", "fragmentation", "maturity"],
+    "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
+    "predictionId": "habitat_corridor",
+    "challenges": ["habitat_no_water", "habitat_fast"]
+  },
   "tiles": { "forest": 12, "meadow": null, "water": 2, "park": 2, "cropland": null },
   "goals": [
     { "indicator": "biodiversity", "min": 70 },
@@ -131,6 +153,13 @@ const List<String> defaultLevelsJson = [
   "order": 4,
   "budgetKEur": 4000,
   "turnLimitMonths": 72,
+  "learning": {
+    "tier": "guided",
+    "concepts": ["budget_loop", "delay", "tradeoffs"],
+    "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
+    "predictionId": "budget_recovery",
+    "challenges": ["budget_reserve", "budget_clean_air"]
+  },
   "tiles": {
     "housing_high": 6,
     "housing_low": 6,
@@ -176,13 +205,20 @@ const List<String> defaultLevelsJson = [
     ".rrrrrrrrrrrrrr.",
     "................"
   ]
-}''',
+}
+''',
   r'''
 {
   "id": "quarter",
   "order": 5,
   "budgetKEur": 25000,
   "turnLimitMonths": 180,
+  "learning": {
+    "tier": "explorer",
+    "concepts": ["feedback", "mixed_city", "resilience"],
+    "features": ["causalView", "experiment", "debrief", "challenges"],
+    "challenges": ["quarter_no_new_roads", "quarter_balanced"]
+  },
   "tiles": {
     "housing_high": null,
     "housing_low": null,
@@ -238,5 +274,6 @@ const List<String> defaultLevelsJson = [
     "r...............",
     "r..............."
   ]
-}''',
+}
+''',
 ];

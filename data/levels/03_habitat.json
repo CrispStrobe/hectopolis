@@ -3,6 +3,13 @@
   "order": 3,
   "budgetKEur": 4000,
   "turnLimitMonths": 240,
+  "learning": {
+    "tier": "guided",
+    "concepts": ["connectivity", "fragmentation", "maturity"],
+    "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
+    "predictionId": "habitat_corridor",
+    "challenges": ["habitat_no_water", "habitat_fast"]
+  },
   "tiles": { "forest": 12, "meadow": null, "water": 2, "park": 2, "cropland": null },
   "goals": [
     { "indicator": "biodiversity", "min": 70 },

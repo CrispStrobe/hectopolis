@@ -81,6 +81,7 @@ void main() {
       final store = SaveStore();
       const settings = ExperienceSettings(
         simpleMode: true,
+        learningMode: LearningMode.starter,
         cleanVisuals: true,
         ambientAnimations: false,
         trafficAnimations: false,
@@ -93,6 +94,7 @@ void main() {
       final c = GameController(size: 8, store: store);
       await c.loadExperienceSettings();
       expect(c.simpleMode, isTrue);
+      expect(c.learningMode, LearningMode.starter);
       expect(c.experience.cleanVisuals, isTrue);
       expect(c.experience.ambientAnimations, isFalse);
       expect(c.experience.trafficAnimations, isFalse);
@@ -100,6 +102,41 @@ void main() {
       c.dispose();
     },
   );
+
+  test('learning profiles progressively reveal complexity', () {
+    final c = GameController(size: 8);
+    c.setLearningMode(LearningMode.starter);
+    expect(c.simpleMode, isTrue);
+    expect(c.experience.placementForecasts, isFalse);
+    expect(c.experience.causalHighlights, isFalse);
+
+    c.setLearningMode(LearningMode.explorer);
+    expect(c.simpleMode, isFalse);
+    expect(c.experience.placementForecasts, isTrue);
+    expect(c.experience.causalHighlights, isTrue);
+    c.dispose();
+  });
+
+  test('what-if experiment can be compared, kept or discarded', () {
+    final c = GameController(size: 8);
+    final before = c.sim.state.hash();
+    c.startExperiment();
+    expect(c.experimentActive, isTrue);
+    expect(c.place(1, 1, TileType.road), isTrue);
+    expect(c.sim.state.hash(), isNot(before));
+
+    c.discardExperiment();
+    expect(c.experimentActive, isFalse);
+    expect(c.sim.state.hash(), before);
+
+    c.startExperiment();
+    expect(c.place(2, 2, TileType.forest), isTrue);
+    final kept = c.sim.state.hash();
+    c.keepExperiment();
+    expect(c.experimentActive, isFalse);
+    expect(c.sim.state.hash(), kept);
+    c.dispose();
+  });
 
   test('builds record actual impacts and a bounded visual timeline', () {
     final c = GameController(size: 8);
