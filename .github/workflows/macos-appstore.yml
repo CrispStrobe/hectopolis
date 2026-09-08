@@ -1,0 +1,186 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: macos-appstore
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Build, sign and validate only; do not upload'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: macos-appstore
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: '3.44.1'
+  BUNDLE_ID: com.crispstrobe.hectopolis
+  DRY_RUN: ${{ github.event_name == 'push' && 'false' || inputs.dry_run }}
+
+jobs:
+  build-upload:
+    name: Build, sign and upload Mac App Store package
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preflight secrets
+        env:
+          HAS_KEY: ${{ secrets.ASC_API_KEY_P8_BASE64 != '' }}
+          HAS_KEY_ID: ${{ secrets.ASC_KEY_ID != '' }}
+          HAS_ISSUER: ${{ secrets.ASC_ISSUER_ID != '' }}
+          HAS_APP_ID: ${{ secrets.ASC_APP_ID != '' }}
+          HAS_TEAM: ${{ secrets.ASC_TEAM_ID != '' }}
+          HAS_P12: ${{ secrets.DIST_CERT_P12_BASE64 != '' }}
+          HAS_P12_PW: ${{ secrets.DIST_CERT_PASSWORD != '' }}
+          HAS_INSTALLER_KEY: ${{ secrets.MAC_INSTALLER_KEY_PEM_BASE64 != '' }}
+        run: |
+          set -euo pipefail
+          missing=""
+          [ "$HAS_KEY" = true ] || missing="$missing ASC_API_KEY_P8_BASE64"
+          [ "$HAS_KEY_ID" = true ] || missing="$missing ASC_KEY_ID"
+          [ "$HAS_ISSUER" = true ] || missing="$missing ASC_ISSUER_ID"
+          [ "$HAS_APP_ID" = true ] || missing="$missing ASC_APP_ID"
+          [ "$HAS_TEAM" = true ] || missing="$missing ASC_TEAM_ID"
+          [ "$HAS_P12" = true ] || missing="$missing DIST_CERT_P12_BASE64"
+          [ "$HAS_P12_PW" = true ] || missing="$missing DIST_CERT_PASSWORD"
+          [ "$HAS_INSTALLER_KEY" = true ] || missing="$missing MAC_INSTALLER_KEY_PEM_BASE64"
+          [ -z "$missing" ] || { echo "::error::Missing secrets:$missing"; exit 1; }
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Dependencies
+        run: |
+          set -euo pipefail
+          flutter config --no-enable-swift-package-manager
+          flutter pub get
+          cd app
+          flutter gen-l10n
+          python3 -m pip install --quiet --disable-pip-version-check cryptography
+
+      - name: Install the Distribution identity and API key
+        env:
+          P12_B64: ${{ secrets.DIST_CERT_P12_BASE64 }}
+          P12_PW: ${{ secrets.DIST_CERT_PASSWORD }}
+          P8_B64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+        run: |
+          set -euo pipefail
+          keychain="$RUNNER_TEMP/hectopolis-macos.keychain-db"
+          keychain_password="ci-$(uuidgen)"
+          echo "$P12_B64" | base64 --decode > "$RUNNER_TEMP/distribution.p12"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$RUNNER_TEMP/distribution.p12" -k "$keychain" -P "$P12_PW" -T /usr/bin/codesign
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          security set-key-partition-list -S apple-tool:,apple:,codesign:,productsign: -s -k "$keychain_password" "$keychain" >/dev/null
+          distribution_sha=$(security find-identity -v -p codesigning "$keychain" | awk '/Apple Distribution/ {print $2; exit}')
+          [ -n "$distribution_sha" ] || { echo "::error::No Apple Distribution identity"; exit 1; }
+          echo "DISTRIBUTION_SHA1=$distribution_sha" >> "$GITHUB_ENV"
+          echo "SIGNING_KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+          echo "SIGNING_KEYCHAIN_PASSWORD=$keychain_password" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          echo "$P8_B64" | base64 --decode > "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          chmod 600 "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+
+      - name: Provision the Installer certificate and Mac profile
+        env:
+          INSTALLER_KEY_B64: ${{ secrets.MAC_INSTALLER_KEY_PEM_BASE64 }}
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          echo "$INSTALLER_KEY_B64" | base64 --decode > "$RUNNER_TEMP/installer.key"
+          openssl req -new -key "$RUNNER_TEMP/installer.key" -out "$RUNNER_TEMP/installer.csr" -subj "/CN=Hectopolis Mac Installer/O=CrispStrobe/C=DE"
+          python3 tools/asc/macos_signing.py \
+            --bundle-id "$BUNDLE_ID" \
+            --distribution-sha1 "$DISTRIBUTION_SHA1" \
+            --installer-csr "$RUNNER_TEMP/installer.csr" \
+            --installer-cert-out "$RUNNER_TEMP/installer.der" \
+            --profile-out "$RUNNER_TEMP/hectopolis.provisionprofile"
+          openssl x509 -inform DER -in "$RUNNER_TEMP/installer.der" -out "$RUNNER_TEMP/installer.pem"
+          openssl pkcs12 -export -legacy -inkey "$RUNNER_TEMP/installer.key" -in "$RUNNER_TEMP/installer.pem" -out "$RUNNER_TEMP/installer.p12" -passout pass:temporary
+          security import "$RUNNER_TEMP/installer.p12" -k "$SIGNING_KEYCHAIN" -P temporary -T /usr/bin/productbuild -T /usr/bin/productsign
+          security set-key-partition-list -S apple-tool:,apple:,codesign:,productsign: -s -k "$SIGNING_KEYCHAIN_PASSWORD" "$SIGNING_KEYCHAIN" >/dev/null
+          installer_identity=$(security find-identity -v "$SIGNING_KEYCHAIN" | sed -n 's/.*"\(3rd Party Mac Developer Installer:[^"]*\)".*/\1/p' | head -1)
+          [ -n "$installer_identity" ] || { echo "::error::No Mac Installer Distribution identity"; exit 1; }
+          echo "INSTALLER_IDENTITY=$installer_identity" >> "$GITHUB_ENV"
+          profile_uuid=$(security cms -D -i "$RUNNER_TEMP/hectopolis.provisionprofile" | plutil -extract UUID raw -o - -)
+          for directory in "$HOME/Library/MobileDevice/Provisioning Profiles" "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"; do
+            mkdir -p "$directory"
+            cp "$RUNNER_TEMP/hectopolis.provisionprofile" "$directory/$profile_uuid.provisionprofile"
+          done
+
+      - name: Build and sign the sandboxed app
+        env:
+          ASC_TEAM_ID: ${{ secrets.ASC_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          cd app
+          flutter build macos --release
+          app_path="$PWD/build/macos/Build/Products/Release/Hectopolis.app"
+          [ -d "$app_path" ] || { echo "::error::Mac app not found"; exit 1; }
+          cp "$RUNNER_TEMP/hectopolis.provisionprofile" "$app_path/Contents/embedded.provisionprofile"
+          identity=$(security find-identity -v -p codesigning "$SIGNING_KEYCHAIN" | sed -n 's/.*"\(Apple Distribution:[^"]*\)".*/\1/p' | head -1)
+          find "$app_path/Contents/Frameworks" -type f \( -name '*.dylib' -o -perm -111 \) -print0 | while IFS= read -r -d '' item; do
+            codesign --force --timestamp --options runtime --sign "$identity" "$item"
+          done
+          find "$app_path/Contents/Frameworks" -depth -type d -name '*.framework' -print0 | while IFS= read -r -d '' framework; do
+            codesign --force --timestamp --options runtime --sign "$identity" "$framework"
+          done
+          codesign --force --timestamp --options runtime --entitlements macos/Runner/Release.entitlements --sign "$identity" "$app_path"
+          codesign --verify --deep --strict --verbose=2 "$app_path"
+          codesign -d --entitlements :- "$app_path"
+
+      - name: Package, validate and optionally upload
+        env:
+          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^version:[[:space:]]*\([^+]*\)+.*$/\1/p' app/pubspec.yaml | head -1)
+          build=$(sed -n 's/^version:[[:space:]]*[^+]*+\(.*\)$/\1/p' app/pubspec.yaml | head -1)
+          package="$RUNNER_TEMP/Hectopolis-${version}-${build}.pkg"
+          productbuild --component "$PWD/app/build/macos/Build/Products/Release/Hectopolis.app" /Applications --sign "$INSTALLER_IDENTITY" "$package"
+          pkgutil --check-signature "$package"
+          xcrun altool --validate-app -f "$package" --type macos --api-key "$ASC_KEY_ID" --api-issuer "$ASC_ISSUER_ID"
+          mkdir -p dist
+          cp "$package" "dist/Hectopolis-${version}-${build}.pkg"
+          if [ "$DRY_RUN" != true ]; then
+            xcrun altool --upload-package "$package" --type macos \
+              --apple-id "$ASC_APP_ID" --bundle-id "$BUNDLE_ID" \
+              --bundle-version "$build" --bundle-short-version-string "$version" \
+              --api-key "$ASC_KEY_ID" --api-issuer "$ASC_ISSUER_ID"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hectopolis-macos-appstore-pkg
+          path: dist/*.pkg
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Attach to GitHub release
+        if: ${{ env.DRY_RUN != 'true' && startsWith(github.ref, 'refs/tags/v') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: dist/*.pkg
