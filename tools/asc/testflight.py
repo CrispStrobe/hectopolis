@@ -122,7 +122,10 @@ def prepare_external(app_id: str, build_number: str | None, wait_minutes: int) -
         raise SystemExit(f"metadata is missing primary locale {primary}")
     build = newest_build(app_id, build_number, wait_minutes)
     build_id = build["id"]
-    patch("builds", build_id, {"usesNonExemptEncryption": False})
+    if build["attributes"].get("usesNonExemptEncryption") is not False:
+        patch("builds", build_id, {"usesNonExemptEncryption": False})
+    else:
+        print("export compliance already resolved: exempt")
 
     contact = META["contact"]
     patch(
