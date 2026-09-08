@@ -1,0 +1,69 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: appstore-screenshots-upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Screenshot workflow run containing the capture artifact'
+        type: string
+        required: true
+      platform:
+        description: 'Artifact and App Store platform to publish'
+        type: choice
+        options: [MAC_OS, IOS]
+        default: MAC_OS
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download captured screenshots
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.platform == 'MAC_OS' && 'screenshots-macos' || 'screenshots-ios' }}
+          path: screenshots
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.run_id }}
+
+      - name: Flatten PNGs and install API dependencies
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --disable-pip-version-check cryptography pillow
+          python3 - <<'PY'
+          import glob
+          from PIL import Image
+          for path in sorted(glob.glob('screenshots/**/*.png', recursive=True)):
+              image = Image.open(path)
+              if image.mode != 'RGB':
+                  background = Image.new('RGB', image.size, (255, 255, 255))
+                  background.paste(
+                      image,
+                      mask=image.getchannel('A') if 'A' in image.getbands() else None,
+                  )
+                  background.save(path, optimize=True)
+                  print('flattened', path)
+          PY
+
+      - name: Plan and upload
+        env:
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          set -euo pipefail
+          python3 tools/asc/upload_screenshots.py --platform "$PLATFORM" --dry-run --replace screenshots
+          python3 tools/asc/upload_screenshots.py --platform "$PLATFORM" --replace screenshots
