@@ -263,13 +263,22 @@ def prepare_store(app_id: str, build_number: str | None, wait_minutes: int) -> N
     patch("ageRatingDeclarations", rating_id, no_content_rating)
     print("age rating questionnaire completed: no objectionable content")
 
-    schedule = client.expect("GET", f"/v1/apps/{app_id}/appPriceSchedule")["data"]
-    # Apple's `related` manualPrices URL currently 404s even though the
-    # relationship is present. The relationship-link endpoint returns the
-    # same appPrice identifiers reliably.
-    prices = client.paged(
-        f"/v1/appPriceSchedules/{schedule['id']}/relationships/manualPrices?limit=200"
+    # Apple returns a schedule from the app relationship while direct calls
+    # using that schedule ID currently 404. Include the manual prices in the
+    # relationship response instead.
+    schedule_doc = client.expect(
+        "GET",
+        query(
+            f"/v1/apps/{app_id}/appPriceSchedule",
+            include="manualPrices",
+            **{"limit[manualPrices]": "50"},
+        ),
     )
+    prices = [
+        item
+        for item in schedule_doc.get("included", [])
+        if item.get("type") == "appPrices"
+    ]
     if not prices:
         raise SystemExit("price schedule has no manual base price; review it in ASC")
     price_points = []
