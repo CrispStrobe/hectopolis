@@ -21,6 +21,7 @@ class SaveStore {
   static const _starsKey = 'stadtbau.stars.v1';
   static const _onboardingKey = 'stadtbau.onboarding.v1';
   static const _experienceKey = 'stadtbau.experience.v1';
+  static const _medalsKey = 'stadtbau.medals.v1';
 
   Future<void> save(String? levelId, Simulation sim) async {
     final prefs = await SharedPreferences.getInstance();
@@ -100,5 +101,33 @@ class SaveStore {
     best[levelId] = stars;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_starsKey, jsonEncode(best));
+  }
+
+  Future<Map<String, Set<String>>> earnedMedals() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_medalsKey);
+    if (raw == null) return {};
+    try {
+      return (jsonDecode(raw) as Map<String, dynamic>).map(
+        (key, value) =>
+            MapEntry(key, (value as List<dynamic>).cast<String>().toSet()),
+      );
+    } on Object {
+      return {};
+    }
+  }
+
+  Future<void> recordMedals(String levelId, Set<String> medals) async {
+    if (medals.isEmpty) return;
+    final earned = await earnedMedals();
+    earned.putIfAbsent(levelId, () => <String>{}).addAll(medals);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _medalsKey,
+      jsonEncode({
+        for (final entry in earned.entries)
+          entry.key: entry.value.toList()..sort(),
+      }),
+    );
   }
 }

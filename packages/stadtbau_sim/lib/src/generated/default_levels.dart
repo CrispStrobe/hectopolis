@@ -15,7 +15,10 @@ const List<String> defaultLevelsJson = [
     "concepts": ["access", "tradeoffs"],
     "features": ["prediction", "debrief"],
     "predictionId": "village_access",
-    "challenges": ["village_quiet", "village_nature"]
+    "challenges": [
+      { "id": "village_quiet", "minIndicators": { "noise": 90 } },
+      { "id": "village_nature", "minIndicators": { "biodiversity": 55 } }
+    ]
   },
   "tiles": { "housing_low": 16, "commercial": 2, "park": 2, "road": 6, "forest": 8, "meadow": null },
   "goals": [
@@ -51,7 +54,10 @@ const List<String> defaultLevelsJson = [
     "concepts": ["noise_distance", "noise_shielding", "exposure"],
     "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
     "predictionId": "noise_homes",
-    "challenges": ["noise_no_roads", "noise_two_designs"]
+    "challenges": [
+      { "id": "noise_no_roads", "maxNewTiles": { "road": 0 } },
+      { "id": "noise_fast", "maxMonths": 48 }
+    ]
   },
   "tiles": {
     "housing_high": 8,
@@ -119,7 +125,10 @@ const List<String> defaultLevelsJson = [
     "concepts": ["connectivity", "fragmentation", "maturity"],
     "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
     "predictionId": "habitat_corridor",
-    "challenges": ["habitat_no_water", "habitat_fast"]
+    "challenges": [
+      { "id": "habitat_no_water", "maxNewTiles": { "water": 0 } },
+      { "id": "habitat_fast", "maxMonths": 120 }
+    ]
   },
   "tiles": { "forest": 12, "meadow": null, "water": 2, "park": 2, "cropland": null },
   "goals": [
@@ -158,7 +167,10 @@ const List<String> defaultLevelsJson = [
     "concepts": ["budget_loop", "delay", "tradeoffs"],
     "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
     "predictionId": "budget_recovery",
-    "challenges": ["budget_reserve", "budget_clean_air"]
+    "challenges": [
+      { "id": "budget_reserve", "minMetrics": { "budgetKEur": 2000 } },
+      { "id": "budget_clean_air", "minIndicators": { "air": 70 } }
+    ]
   },
   "tiles": {
     "housing_high": 6,
@@ -217,7 +229,10 @@ const List<String> defaultLevelsJson = [
     "tier": "explorer",
     "concepts": ["feedback", "mixed_city", "resilience"],
     "features": ["causalView", "experiment", "debrief", "challenges"],
-    "challenges": ["quarter_no_new_roads", "quarter_balanced"]
+    "challenges": [
+      { "id": "quarter_no_new_roads", "maxNewTiles": { "road": 0 } },
+      { "id": "quarter_balanced", "minIndicators": { "air": 80, "noise": 75, "recreation": 70, "biodiversity": 45, "commuting": 55 } }
+    ]
   },
   "tiles": {
     "housing_high": null,

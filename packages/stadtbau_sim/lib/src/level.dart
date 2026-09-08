@@ -76,14 +76,18 @@ class MissionLearning {
     required this.concepts,
     required this.features,
     this.predictionId,
-    this.challengeIds = const [],
+    this.challenges = const [],
   });
 
   final MissionTier tier;
   final List<String> concepts;
   final Set<MissionFeature> features;
   final String? predictionId;
-  final List<String> challengeIds;
+  final List<MissionChallenge> challenges;
+
+  List<String> get challengeIds => [
+    for (final challenge in challenges) challenge.id,
+  ];
 
   bool has(MissionFeature feature) => features.contains(feature);
 
@@ -98,9 +102,79 @@ class MissionLearning {
         MissionFeature.values.byName(id),
     },
     predictionId: json['predictionId'] as String?,
-    challengeIds: (json['challenges'] as List<dynamic>? ?? const [])
-        .cast<String>(),
+    challenges: [
+      for (final value in json['challenges'] as List<dynamic>? ?? const [])
+        value is String
+            ? MissionChallenge(id: value)
+            : MissionChallenge.fromJson(value as Map<String, dynamic>),
+    ],
   );
+}
+
+/// An optional, model-evaluated way to solve a mission. Challenges always
+/// require the normal level goals as well as these additional constraints.
+class MissionChallenge {
+  const MissionChallenge({
+    required this.id,
+    this.maxNewTiles = const {},
+    this.minIndicators = const {},
+    this.minMetrics = const {},
+    this.maxMonths,
+  });
+
+  final String id;
+  final Map<TileType, int> maxNewTiles;
+  final Map<Indicator, double> minIndicators;
+  final Map<String, double> minMetrics;
+  final int? maxMonths;
+
+  static MissionChallenge fromJson(
+    Map<String, dynamic> json,
+  ) => MissionChallenge(
+    id: json['id'] as String,
+    maxNewTiles: {
+      for (final entry
+          in (json['maxNewTiles'] as Map<String, dynamic>? ?? const {}).entries)
+        TileType.fromId(entry.key): (entry.value as num).toInt(),
+    },
+    minIndicators: {
+      for (final entry
+          in (json['minIndicators'] as Map<String, dynamic>? ?? const {})
+              .entries)
+        Indicator.values.byName(entry.key): (entry.value as num).toDouble(),
+    },
+    minMetrics: {
+      for (final entry
+          in (json['minMetrics'] as Map<String, dynamic>? ?? const {}).entries)
+        entry.key: (entry.value as num).toDouble(),
+    },
+    maxMonths: (json['maxMonths'] as num?)?.toInt(),
+  );
+
+  bool met(Level level, Simulation sim, LevelProgress progress) {
+    if (!progress.allMet) return false;
+    if (maxMonths != null && sim.state.tick > maxMonths!) return false;
+    for (final entry in minIndicators.entries) {
+      if (sim.indicators.score(entry.key) < entry.value) return false;
+    }
+    for (final entry in minMetrics.entries) {
+      final value = LevelGoal(
+        metric: entry.key,
+        min: entry.value,
+      ).current(sim.indicators);
+      if (value < entry.value) return false;
+    }
+    for (final entry in maxNewTiles.entries) {
+      var initial = 0;
+      var current = 0;
+      for (var i = 0; i < level.map.length; i++) {
+        if (level.map[i] == entry.key) initial++;
+        if (sim.state.tiles[i] == entry.key) current++;
+      }
+      if (current - initial > entry.value) return false;
+    }
+    return true;
+  }
 }
 
 /// A playable scenario: map, budget, allowed tiles, goals, time limit.

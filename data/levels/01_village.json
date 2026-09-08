@@ -8,7 +8,10 @@
     "concepts": ["access", "tradeoffs"],
     "features": ["prediction", "debrief"],
     "predictionId": "village_access",
-    "challenges": ["village_quiet", "village_nature"]
+    "challenges": [
+      { "id": "village_quiet", "minIndicators": { "noise": 90 } },
+      { "id": "village_nature", "minIndicators": { "biodiversity": 55 } }
+    ]
   },
   "tiles": { "housing_low": 16, "commercial": 2, "park": 2, "road": 6, "forest": 8, "meadow": null },
   "goals": [
