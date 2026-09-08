@@ -877,9 +877,83 @@ class GameController extends ChangeNotifier {
       final current = _normalOverlayValue(sim, cell);
       final previous = _normalOverlayValue(baseline, cell);
       final direction = overlayHighIsBadFor(overlay) ? -1.0 : 1.0;
-      return (0.5 + (current - previous) * direction * 2).clamp(0, 1);
+      return _displayOverlayValue(
+        (0.5 + (current - previous) * direction * 2).clamp(0, 1),
+      );
     }
-    return _normalOverlayValue(sim, cell);
+    return _displayOverlayValue(_normalOverlayValue(sim, cell));
+  }
+
+  double _displayOverlayValue(double value) {
+    if (!simpleMode) return value;
+    if (value < 1 / 3) return 0;
+    if (value < 2 / 3) return 0.5;
+    return 1;
+  }
+
+  double? get overlayThreshold => switch (overlay) {
+    MapOverlay.noise => (55 - 35) / 40,
+    MapOverlay.heat => 2 / sim.params.heat.uhiMaxC,
+    MapOverlay.green ||
+    MapOverlay.retail ||
+    MapOverlay.jobs ||
+    MapOverlay.habitat ||
+    MapOverlay.attractiveness => 0.5,
+    MapOverlay.traffic => 0.5,
+    MapOverlay.none || MapOverlay.air => null,
+  };
+
+  bool overlayMeetsThreshold(int cell) {
+    final threshold = overlayThreshold;
+    if (threshold == null || showExperimentDelta) return false;
+    return _normalOverlayValue(sim, cell) >= threshold;
+  }
+
+  /// Nearby cells that plausibly contribute to the selected overlay value.
+  /// Exact aggregated values remain available in the inspector.
+  List<int> get selectedCausalSourceCells {
+    final selected = selectedCell;
+    if (selected == null || overlay == MapOverlay.none) return const [];
+    bool isSource(TileType type) => switch (overlay) {
+      MapOverlay.noise || MapOverlay.air =>
+        type == TileType.road ||
+            type == TileType.industry ||
+            type == TileType.commercial ||
+            type == TileType.housingHigh ||
+            type == TileType.housingLow,
+      MapOverlay.green =>
+        type == TileType.park ||
+            type == TileType.forest ||
+            type == TileType.meadow ||
+            type == TileType.water,
+      MapOverlay.retail => type == TileType.commercial,
+      MapOverlay.jobs =>
+        type == TileType.commercial || type == TileType.industry,
+      MapOverlay.habitat =>
+        type == TileType.road ||
+            type == TileType.industry ||
+            type == TileType.commercial ||
+            type == TileType.housingHigh,
+      MapOverlay.traffic => type == TileType.road,
+      MapOverlay.heat || MapOverlay.attractiveness => type != TileType.meadow,
+      MapOverlay.none => false,
+    };
+    final sx = selected % width;
+    final sy = selected ~/ width;
+    final cells = <int>[
+      for (var i = 0; i < sim.state.cellCount; i++)
+        if (i != selected && isSource(sim.state.tiles[i])) i,
+    ];
+    cells.sort((a, b) {
+      int distance(int i) {
+        final dx = i % width - sx;
+        final dy = i ~/ width - sy;
+        return dx * dx + dy * dy;
+      }
+
+      return distance(a).compareTo(distance(b));
+    });
+    return cells.take(6).toList(growable: false);
   }
 
   double _normalOverlayValue(Simulation source, int cell) {

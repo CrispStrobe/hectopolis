@@ -555,7 +555,9 @@ class _Legend extends StatelessWidget {
               Flexible(
                 flex: 2,
                 child: Text(
-                  '${l10n.overlayName(controller.overlay.name)} (${l10n.overlayUnit(controller.overlay.name)})',
+                  '${l10n.overlayName(controller.overlay.name)} '
+                  '(${l10n.overlayUnit(controller.overlay.name)})'
+                  '${controller.overlayThreshold == null || controller.showExperimentDelta ? '' : ' · ${l10n.overlayThresholdMarker}'}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

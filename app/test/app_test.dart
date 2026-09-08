@@ -174,6 +174,32 @@ void main() {
     c.dispose();
   });
 
+  test(
+    'starter overlays use bands and selected cells expose nearby causes',
+    () {
+      final c = GameController(size: 8);
+      c.setLearningMode(LearningMode.starter);
+      c.place(1, 1, TileType.road);
+      c.setOverlay(MapOverlay.noise);
+      c.select(c.sim.state.index(2, 2));
+      expect(c.overlayValue(0), anyOf(0.0, 0.5, 1.0));
+      expect(c.overlayThreshold, 0.5);
+      expect(c.selectedCausalSourceCells, contains(c.sim.state.index(1, 1)));
+      c.dispose();
+    },
+  );
+
+  test('experiment overlay represents change around a neutral midpoint', () {
+    final c = GameController(size: 8);
+    c.setLearningMode(LearningMode.explorer);
+    c.setOverlay(MapOverlay.noise);
+    c.startExperiment();
+    expect(c.overlayValue(0), closeTo(0.5, 0.001));
+    expect(c.overlayHighIsBad, isFalse);
+    expect(c.overlayMeetsThreshold(0), isFalse);
+    c.dispose();
+  });
+
   test('level guidance targets an available tile for the weakest goal', () {
     final c = GameController(size: 8);
     c.setExperience(c.experience.copyWith(haptics: false));
