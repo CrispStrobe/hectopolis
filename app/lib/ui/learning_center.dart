@@ -108,15 +108,20 @@ Future<void> showMissionBriefing(
                     const SizedBox(height: 4),
                     Text(l10n.missionPredictionPrompt(predictionId)),
                     const SizedBox(height: 8),
-                    for (final choice in _predictionChoices(predictionId))
-                      RadioListTile<String>(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(l10n.missionPredictionChoice(choice)),
-                        value: choice,
-                        groupValue: prediction,
-                        onChanged: (value) =>
-                            setState(() => prediction = value),
+                    RadioGroup<String>(
+                      groupValue: prediction,
+                      onChanged: (value) => setState(() => prediction = value),
+                      child: Column(
+                        children: [
+                          for (final choice in _predictionChoices(predictionId))
+                            RadioListTile<String>(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(l10n.missionPredictionChoice(choice)),
+                              value: choice,
+                            ),
+                        ],
                       ),
+                    ),
                   ],
                 ],
               ),
