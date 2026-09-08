@@ -373,6 +373,9 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   App Store exception referenced in the About screen.
   *Note 2026-09-05:* `.github/workflows/ios-release.yml` + `tools/ios/build-ios-appstore.sh` + `app/ios/ExportOptions.plist` following `/mnt/volume1/appstore.md` (manual signing, unsigned archive, sign at export, `--upload-package`). Bundle id `com.crispstrobe.hectopolis` registered, profile "Hectopolis AppStore CI" created, 5 of 8 secrets set. Open: human creates the app record (`ASC_APP_ID`) and exports the `.p12` (`DIST_CERT_P12_BASE64`, `DIST_CERT_PASSWORD`); first dry run. `docs/release/ios.md`.
   *Note 2026-09-05 (2):* Store screenshot pipeline: `app/integration_test/screenshots_test.dart` + `app/test_driver/integration_test.dart` + `.github/workflows/screenshots.yml` (iPhone 6.9", iPad 13", Android emulator), see `docs/release/screenshots.md`.
+  *Note 2026-09-08:* Prepared build 0.1.1+4 for external TestFlight; added
+  versioned DE/EN beta/store copy, public privacy/support pages and an idempotent
+  external-beta preparation workflow. Fixed the macOS screenshot watchdog.
 - [ ] **T-404 Windows and Linux desktop** builds; installer via MSIX (Windows) and
   AppImage/Flatpak (Linux).
 - [x] **T-405 About / licenses screen.** Shows AGPL, the section 7 exception, third-party

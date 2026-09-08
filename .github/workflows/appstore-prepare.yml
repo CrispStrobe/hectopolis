@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: appstore-prepare
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Audit ASC state or submit the newest build for external TestFlight review'
+        type: choice
+        options: [audit, submit-external]
+        default: audit
+      build_number:
+        description: 'Optional exact CFBundleVersion; blank selects the newest build'
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install --quiet --disable-pip-version-check cryptography
+      - name: Audit or prepare TestFlight
+        env:
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+          ACTION: ${{ inputs.action }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          set -euo pipefail
+          args=("$ACTION")
+          if [ -n "$BUILD_NUMBER" ]; then
+            args+=(--build-number "$BUILD_NUMBER")
+          fi
+          python3 tools/asc/testflight.py "${args[@]}"

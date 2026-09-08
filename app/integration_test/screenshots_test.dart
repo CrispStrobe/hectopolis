@@ -141,6 +141,7 @@ Future<void> _openLevel(WidgetTester tester) async {
   await _settle(tester);
   await tester.tap(card);
   await _settle(tester);
+  await _dismissOverlays(tester);
   expect(find.byType(GameScreen), findsOneWidget);
 }
 

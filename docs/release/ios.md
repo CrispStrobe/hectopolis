@@ -248,6 +248,22 @@ a release. `--upload-only` re-uploads the `.ipa` already in
 5. Create/attach the App Store version, fill in the metadata, and — human —
    hit **Submit for Review**.
 
+### External TestFlight and store copy
+
+`data/store/metadata.json` is the version-controlled source for the German and
+English listing and beta copy. The public privacy and support pages live in
+`app/web/` and are deployed with GitHub Pages.
+
+After a real build upload has processed, run **appstore-prepare** with
+`action=submit-external` and the exact build number. It sets export compliance,
+both beta localizations, review contact, per-build test notes, assigns the build
+to the external **Public Beta** group and submits it to Beta App Review. The
+default `audit` action is read-only.
+
+Full App Store submission still has two deliberate browser gates: confirm
+**Data Not Collected** under App Privacy and make the final Submit for Review
+decision. Neither has a public App Store Connect API.
+
 ---
 
 ## 5. When it breaks
