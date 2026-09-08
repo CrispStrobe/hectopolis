@@ -284,9 +284,9 @@ def prepare_store(
     patch("ageRatingDeclarations", rating_id, no_content_rating)
     print("age rating questionnaire completed: no objectionable content")
 
-    # Apple returns a schedule from the app relationship while direct calls
-    # using that schedule ID currently 404. Include the manual prices in the
-    # relationship response instead.
+    # Read the schedule through the app relationship. Individual appPrices do
+    # not expose a related appPricePoint endpoint; Apple provides price-point
+    # details by including them while listing the schedule's manual prices.
     schedule_path = query(
         f"/v1/apps/{app_id}/appPriceSchedule",
         include="manualPrices",
@@ -347,19 +347,27 @@ def prepare_store(
         )
         print("created free App Store price schedule with USA base territory")
     elif status == 200:
-        prices = [
-            item
-            for item in schedule_doc.get("included", [])
-            if item.get("type") == "appPrices"
+        schedule_id = schedule_doc["data"]["id"]
+        manual_path = query(
+            f"/v1/appPriceSchedules/{schedule_id}/manualPrices",
+            include="appPricePoint",
+            **{
+                "fields[appPrices]": "appPricePoint,startDate,endDate",
+                "fields[appPricePoints]": "customerPrice",
+                "filter[territory]": "USA",
+                "limit": "200",
+            },
+        )
+        manual_status, manual_doc = client.call("GET", manual_path)
+        if manual_status != 200:
+            raise SystemExit(
+                f"read manual App Store prices -> HTTP {manual_status}: {manual_doc}"
+            )
+        price_points = [
+            item.get("attributes", {}).get("customerPrice")
+            for item in manual_doc.get("included", [])
+            if item.get("type") == "appPricePoints"
         ]
-        if not prices:
-            raise SystemExit("price schedule has no manual base price; review it in ASC")
-        price_points = []
-        for price in prices:
-            point = client.expect(
-                "GET", f"/v1/appPrices/{price['id']}/appPricePoint"
-            )["data"]
-            price_points.append(point["attributes"].get("customerPrice"))
         if not any(str(value) in ("0", "0.0", "0.00") for value in price_points):
             raise SystemExit(f"existing price schedule is not free: {price_points}")
         print("price schedule verified free", price_points)
