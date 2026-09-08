@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'Audit ASC state or submit the newest build for external TestFlight review'
+        description: 'Audit, prepare App Store listing, or submit a build for TestFlight review'
         type: choice
-        options: [audit, listing, submit-external]
+        options: [audit, listing, ready-store, submit-external]
         default: audit
       build_number:
         description: 'Optional exact CFBundleVersion; blank selects the newest build'

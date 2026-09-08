@@ -214,9 +214,89 @@ def prepare_external(app_id: str, build_number: str | None, wait_minutes: int) -
     print("Public Beta group", group["id"], "build", build_id)
 
 
+def prepare_store(app_id: str, build_number: str | None, wait_minutes: int) -> None:
+    """Complete API-editable fields needed before full App Store review."""
+    versions = client.paged(f"/v1/apps/{app_id}/appStoreVersions?limit=50")
+    candidates = [
+        version
+        for version in versions
+        if version["attributes"].get("platform") == "IOS"
+        and version["attributes"].get("appStoreState") == "PREPARE_FOR_SUBMISSION"
+    ]
+    if len(candidates) != 1:
+        raise SystemExit(
+            f"expected one editable iOS App Store version, found {len(candidates)}"
+        )
+    version = candidates[0]
+    build = newest_build(app_id, build_number, wait_minutes)
+
+    infos = client.paged(f"/v1/apps/{app_id}/appInfos?limit=50")
+    if len(infos) != 1:
+        raise SystemExit(f"expected one app info, found {len(infos)}")
+    rating_id = infos[0]["id"]
+    no_content_rating = {
+        "advertising": False,
+        "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+        "contests": "NONE",
+        "gambling": False,
+        "gamblingSimulated": "NONE",
+        "gunsOrOtherWeapons": "NONE",
+        "healthOrWellnessTopics": False,
+        "lootBox": False,
+        "medicalOrTreatmentInformation": "NONE",
+        "messagingAndChat": False,
+        "parentalControls": False,
+        "profanityOrCrudeHumor": "NONE",
+        "ageAssurance": False,
+        "sexualContentGraphicAndNudity": "NONE",
+        "sexualContentOrNudity": "NONE",
+        "socialMedia": False,
+        "socialMediaAgeRestricted": False,
+        "horrorOrFearThemes": "NONE",
+        "matureOrSuggestiveThemes": "NONE",
+        "unrestrictedWebAccess": False,
+        "userGeneratedContent": False,
+        "violenceCartoonOrFantasy": "NONE",
+        "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+        "violenceRealistic": "NONE",
+    }
+    patch("ageRatingDeclarations", rating_id, no_content_rating)
+    print("age rating questionnaire completed: no objectionable content")
+
+    schedule = client.expect("GET", f"/v1/apps/{app_id}/appPriceSchedule")["data"]
+    prices = client.paged(
+        f"/v1/appPriceSchedules/{schedule['id']}/manualPrices?limit=200"
+    )
+    if not prices:
+        raise SystemExit("price schedule has no manual base price; review it in ASC")
+    price_points = []
+    for price in prices:
+        point = client.expect(
+            "GET", f"/v1/appPrices/{price['id']}/appPricePoint"
+        )["data"]
+        price_points.append(point["attributes"].get("customerPrice"))
+    if not any(str(value) in ("0", "0.0", "0.00") for value in price_points):
+        raise SystemExit(f"existing price schedule is not free: {price_points}")
+    print("price schedule verified free", price_points)
+
+    client.expect(
+        "PATCH",
+        f"/v1/appStoreVersions/{version['id']}/relationships/build",
+        {"data": {"type": "builds", "id": build["id"]}},
+    )
+    print(
+        "attached build",
+        build["attributes"].get("version"),
+        "to iOS version",
+        version["attributes"].get("versionString"),
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=("audit", "submit-external"))
+    parser.add_argument(
+        "action", choices=("audit", "ready-store", "submit-external")
+    )
     parser.add_argument("--build-number")
     parser.add_argument("--wait-minutes", type=int, default=30)
     args = parser.parse_args()
@@ -225,6 +305,8 @@ def main() -> None:
         raise SystemExit("Hectopolis app record not found")
     if args.action == "audit":
         audit(app_id)
+    elif args.action == "ready-store":
+        prepare_store(app_id, args.build_number, args.wait_minutes)
     else:
         prepare_external(app_id, args.build_number, args.wait_minutes)
 
