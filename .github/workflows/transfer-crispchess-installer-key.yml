@@ -2,6 +2,15 @@ name: Transfer CrispChess installer key
 
 on:
   workflow_dispatch:
+    inputs:
+      repository_public_key:
+        description: Base64 public key returned by the CrispChess Actions secrets API
+        required: true
+        type: string
+      repository_public_key_id:
+        description: Public key ID returned by the CrispChess Actions secrets API
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -16,38 +25,26 @@ jobs:
       - name: Encrypt for the CrispChess repository
         env:
           INSTALLER_KEY: ${{ secrets.MAC_INSTALLER_KEY_PEM_BASE64 }}
-          GH_TOKEN: ${{ github.token }}
+          REPOSITORY_PUBLIC_KEY: ${{ inputs.repository_public_key }}
+          REPOSITORY_PUBLIC_KEY_ID: ${{ inputs.repository_public_key_id }}
         run: |
           python3 - <<'PY'
           import base64
           import json
           import os
           import pathlib
-          import urllib.request
-
           from nacl.public import PublicKey, SealedBox
 
           if not os.environ.get("INSTALLER_KEY"):
               raise SystemExit("MAC_INSTALLER_KEY_PEM_BASE64 is missing")
 
-          request = urllib.request.Request(
-              "https://api.github.com/repos/CrispStrobe/CrispChess/actions/secrets/public-key",
-              headers={
-                  "Accept": "application/vnd.github+json",
-                  "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
-                  "X-GitHub-Api-Version": "2022-11-28",
-              },
-          )
-          with urllib.request.urlopen(request) as response:
-              repository_key = json.load(response)
-
-          public_key = PublicKey(base64.b64decode(repository_key["key"]))
+          public_key = PublicKey(base64.b64decode(os.environ["REPOSITORY_PUBLIC_KEY"]))
           ciphertext = SealedBox(public_key).encrypt(
               os.environ["INSTALLER_KEY"].encode()
           )
           pathlib.Path("crispchess-installer-key.json").write_text(
               json.dumps({
-                  "key_id": repository_key["key_id"],
+                  "key_id": os.environ["REPOSITORY_PUBLIC_KEY_ID"],
                   "encrypted_value": base64.b64encode(ciphertext).decode(),
               })
           )
