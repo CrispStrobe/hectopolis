@@ -9,8 +9,8 @@ on both platforms.
 1. Do not upload or resubmit the unchanged binary. A new submission does not
    answer a policy rejection.
 2. Reply once in the App Review section for this submission using the text
-   below. Attach three screenshots showing the scenario screen, a causal
-   overlay, and the learning explanation with its model/source tabs.
+   below. Attach three screenshots showing the scenario screen, a spatial
+   overlay, and the detailed per-cell model inspector.
 3. Ask Apple to identify the app or submissions Hectopolis allegedly
    duplicates. This matters because the rejection did not identify the
    comparison.
@@ -138,7 +138,18 @@ Use product screens, not marketing title cards:
 
 1. Scenario selection showing the five distinct missions and sandbox.
 2. **Living by the road** with the noise overlay and goals visible.
-3. Mission notebook showing the Model and Source / law explanations.
+3. Tile inspector showing local noise, air, heat, access, habitat, traffic,
+   residents, commute, car share, road access, and tile age together.
+
+The current screenshot artifact provides these exact English iPad files:
+
+- `en_01_levels.png`
+- `en_03_noise_overlay.png`
+- `en_05_inspector.png`
+
+They are in the `screenshots-ios` artifact from GitHub Actions run
+`34256693938`. If a fresh fourth screenshot is captured, make it the mission
+notebook's Model and Source / law view.
 
 If the appeal form accepts a fourth attachment, include a one-page PDF with:
 
