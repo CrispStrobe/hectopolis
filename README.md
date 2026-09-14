@@ -10,7 +10,7 @@ statistics, open scientific models); every parameter cites its source.
 - Model documentation: [`docs/model/`](docs/model/README.md)
 - Parameters: [`data/params/tiles.json`](data/params/tiles.json)
 - License: [AGPL-3.0-or-later](LICENSE) with an [app-store exception](LICENSE-EXCEPTION.md)
-- Play the current build: https://crispstrobe.github.io/stadtbau/ (deployed from `main` by `.github/workflows/pages.yml`)
+- Play the current build: https://crispstrobe.github.io/hectopolis/ (deployed from `main` by `.github/workflows/pages.yml`)
 
 ## Layout
 
