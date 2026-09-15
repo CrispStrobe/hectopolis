@@ -29,6 +29,16 @@ jobs:
       - run: cd app && flutter gen-l10n
       - name: Build web
         run: cd app && flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+      # CanvasKit ships a .symbols map next to every engine variant -- about
+      # 8 MB, a third of the build -- for symbolising engine stack traces
+      # offline. Nothing in flutter.js or the bundle ever requests one, so
+      # they are pure upload, storage and Pages quota.
+      - name: Drop engine debug symbols from the artifact
+        run: |
+          before=$(du -sm app/build/web | cut -f1)
+          find app/build/web -name '*.symbols' -delete
+          echo "artifact: ${before} MB -> $(du -sm app/build/web | cut -f1) MB"
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/build/web
