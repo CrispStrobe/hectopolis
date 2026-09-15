@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -129,6 +130,15 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
   late List<double> _overlayTo;
   late List<TileType> _previousTiles;
   final Map<int, int> _constructionStartedMs = {};
+
+  /// Bumped when the still layer has to be redrawn for a reason the controller
+  /// does not announce: so far only a building whose construction animation
+  /// has finished and which the moving layer therefore hands back.
+  final ValueNotifier<int> _stillRevision = ValueNotifier<int>(0);
+  Timer? _constructionHandover;
+
+  /// How long the construction animation in [_MapPainter] runs.
+  static const int _constructionMs = 950;
   bool _platformReduceMotion = false;
   late bool _lastAmbientAnimations;
   late bool _lastEffectAnimations;
@@ -190,6 +200,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     _lastEnvironmentAnimations = c.experience.environmentAnimations;
     _lastCityActivityAnimations = c.experience.cityActivityAnimations;
     _constructionStartedMs.clear();
+    _constructionHandover?.cancel();
     _syncMotion();
   }
 
@@ -259,6 +270,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
         _constructionStartedMs.clear();
       }
       _previousTiles = List<TileType>.of(tiles);
+      _scheduleConstructionHandover();
     }
 
     final progress = Curves.easeOutCubic.transform(_overlayTransition.value);
@@ -280,9 +292,59 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     _lastOverlay = c.overlay;
   }
 
+  _MapPainter _layerPainter(BuildContext context, _MapLayer layer) =>
+      _MapPainter(
+        c,
+        Theme.of(context),
+        m.scale,
+        layer: layer,
+        motion: _motion.value,
+        overlayProgress: Curves.easeOutCubic.transform(
+          _overlayTransition.value,
+        ),
+        overlayFrom: _overlayFrom,
+        overlayTo: _overlayTo,
+        constructionStartedMs: _constructionStartedMs,
+        animateAmbient:
+            !_platformReduceMotion && c.experience.ambientAnimations,
+        animateEffects: !_platformReduceMotion && c.experience.effectAnimations,
+        cleanVisuals: c.experience.cleanVisuals,
+      );
+
+  /// Hand finished buildings back to the still layer once their construction
+  /// animation is over. Without this they would fall between the layers: the
+  /// moving layer stops drawing them and the still layer has no reason to
+  /// repaint.
+  void _scheduleConstructionHandover() {
+    _constructionHandover?.cancel();
+    if (_constructionStartedMs.isEmpty) return;
+    final newest = _constructionStartedMs.values.reduce(math.max);
+    final remaining =
+        _constructionMs - (DateTime.now().millisecondsSinceEpoch - newest);
+    if (remaining <= 0) {
+      _finishConstructions();
+      return;
+    }
+    _constructionHandover = Timer(
+      Duration(milliseconds: remaining),
+      _finishConstructions,
+    );
+  }
+
+  void _finishConstructions() {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    _constructionStartedMs.removeWhere(
+      (_, started) => now - started >= _constructionMs,
+    );
+    _stillRevision.value++;
+    if (_constructionStartedMs.isNotEmpty) _scheduleConstructionHandover();
+  }
+
   @override
   void dispose() {
     c.removeListener(_onControllerChanged);
+    _constructionHandover?.cancel();
+    _stillRevision.dispose();
     _motion.dispose();
     _overlayTransition.dispose();
     _focus.dispose();
@@ -504,37 +566,47 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                                   c.clear(cell % c.width, cell ~/ c.width);
                                 }
                               },
-                              child: ListenableBuilder(
-                                listenable: Listenable.merge([
-                                  c,
-                                  m.transformation,
-                                  _motion,
-                                  _overlayTransition,
-                                ]),
-                                builder: (context, _) => Semantics(
-                                  label: l10n.keyboardHint,
-                                  child: CustomPaint(
-                                    size: size,
-                                    painter: _MapPainter(
-                                      c,
-                                      Theme.of(context),
-                                      m.scale,
-                                      motion: _motion.value,
-                                      overlayProgress: Curves.easeOutCubic
-                                          .transform(_overlayTransition.value),
-                                      overlayFrom: _overlayFrom,
-                                      overlayTo: _overlayTo,
-                                      constructionStartedMs:
-                                          _constructionStartedMs,
-                                      animateAmbient:
-                                          !_platformReduceMotion &&
-                                          c.experience.ambientAnimations,
-                                      animateEffects:
-                                          !_platformReduceMotion &&
-                                          c.experience.effectAnimations,
-                                      cleanVisuals: c.experience.cleanVisuals,
+                              // Two layers: the still one is rebuilt only by
+                              // the listenables it depends on -- the motion
+                              // controller is deliberately not among them --
+                              // and a RepaintBoundary keeps the moving layer
+                              // above it from dragging it into every frame.
+                              child: Semantics(
+                                label: l10n.keyboardHint,
+                                child: Stack(
+                                  children: [
+                                    RepaintBoundary(
+                                      child: ListenableBuilder(
+                                        listenable: Listenable.merge([
+                                          c,
+                                          m.transformation,
+                                          _stillRevision,
+                                        ]),
+                                        builder: (context, _) => CustomPaint(
+                                          size: size,
+                                          painter: _layerPainter(
+                                            context,
+                                            _MapLayer.still,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                    ListenableBuilder(
+                                      listenable: Listenable.merge([
+                                        c,
+                                        m.transformation,
+                                        _motion,
+                                        _overlayTransition,
+                                      ]),
+                                      builder: (context, _) => CustomPaint(
+                                        size: size,
+                                        painter: _layerPainter(
+                                          context,
+                                          _MapLayer.moving,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -824,11 +896,46 @@ class _BuildImpactCard extends StatelessWidget {
 /// A model-driven renderer. Static land-use remains legible while road
 /// topology, traffic, forest maturity, construction and overlays animate from
 /// values already present in the simulation.
+/// The map is painted in two layers, so that the six-second ambient animation
+/// does not redraw the whole city sixty times a second.
+enum _MapLayer {
+  /// The expensive part: ground, decoration and finished buildings. Repainted
+  /// only when the simulation or the viewport changes, and kept behind a
+  /// [RepaintBoundary] so that the moving layer cannot drag it along.
+  still,
+
+  /// Waves, smoke, lit windows, swaying trees, traffic, buildings still going
+  /// up, and the hover, preview and selection outlines: everything that moves.
+  ///
+  /// The overlay tint, the grid and the threshold outlines belong here too,
+  /// not because they move but because they have to stay above the tile art --
+  /// including the parts of it drawn on this layer. They are two rectangles
+  /// per cell, far cheaper than the art below them.
+  moving,
+}
+
+/// How often each map layer has painted, so that a test can assert the ambient
+/// animation does not drag the expensive layer along. Costs one increment per
+/// paint.
+@visibleForTesting
+class MapPaintCounters {
+  const MapPaintCounters._();
+
+  static int still = 0;
+  static int moving = 0;
+
+  static void reset() {
+    still = 0;
+    moving = 0;
+  }
+}
+
 class _MapPainter extends CustomPainter {
   _MapPainter(
     this.c,
     this.theme,
     this.scale, {
+    required this.layer,
     required this.motion,
     required this.overlayProgress,
     required this.overlayFrom,
@@ -842,6 +949,7 @@ class _MapPainter extends CustomPainter {
   final GameController c;
   final ThemeData theme;
   final double scale;
+  final _MapLayer layer;
   final double motion;
   final double overlayProgress;
   final List<double> overlayFrom;
@@ -851,12 +959,21 @@ class _MapPainter extends CustomPainter {
   final bool animateEffects;
   final bool cleanVisuals;
 
+  bool get _still => layer == _MapLayer.still;
+
+  bool get _moving => layer == _MapLayer.moving;
+
   /// Large maps automatically shed decorative detail while zoomed out.
   bool get _lowDetail =>
       cleanVisuals || (c.sim.state.cellCount > 1024 && scale < 1.35);
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (_still) {
+      MapPaintCounters.still++;
+    } else {
+      MapPaintCounters.moving++;
+    }
     final state = c.sim.state;
     final cell = size.width / c.width;
     final hair = 1 / scale;
@@ -887,6 +1004,7 @@ class _MapPainter extends CustomPainter {
         rect,
         construction: Curves.easeOutBack.transform(construction),
       );
+      if (_still) continue;
       if (c.overlay != MapOverlay.none &&
           i < overlayFrom.length &&
           i < overlayTo.length) {
@@ -933,6 +1051,8 @@ class _MapPainter extends CustomPainter {
       }
       canvas.drawRect(rect, grid);
     }
+
+    if (_still) return;
 
     if (c.experience.causalHighlights &&
         c.overlay != MapOverlay.none &&
@@ -1041,6 +1161,10 @@ class _MapPainter extends CustomPainter {
     }
   }
 
+  /// Draws the part of a tile that belongs to this layer.
+  ///
+  /// A preview tile ([tileOverride]) is drawn whole, on whichever layer asks
+  /// for it, because it is a single cell and has no layer of its own.
   void _drawTile(
     Canvas canvas,
     int index,
@@ -1050,51 +1174,69 @@ class _MapPainter extends CustomPainter {
   }) {
     final state = c.sim.state;
     final tile = tileOverride ?? state.tiles[index];
-    canvas.drawRect(rect, Paint()..color = _groundColor(tile));
-    if (!_lowDetail) {
-      canvas.drawRect(
-        Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height * 0.08),
-        Paint()..color = Colors.white.withValues(alpha: 0.08),
-      );
+    final whole = tileOverride != null;
+    final still = whole || _still;
+    final moving = whole || _moving;
+    // A building that is still going up is rescaled every frame, so it belongs
+    // to the moving layer until it is finished and handed back.
+    final growing = animateEffects && construction < 0.98;
+
+    if (still) {
+      canvas.drawRect(rect, Paint()..color = _groundColor(tile));
+      if (!_lowDetail) {
+        canvas.drawRect(
+          Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height * 0.08),
+          Paint()..color = Colors.white.withValues(alpha: 0.08),
+        );
+      }
     }
 
     switch (tile) {
       case TileType.meadow:
-        if (!_lowDetail) _drawMeadow(canvas, index, rect);
+        if (still && !_lowDetail) _drawMeadow(canvas, index, rect);
         break;
       case TileType.cropland:
-        _drawCropland(canvas, index, rect);
+        if (still) _drawCropland(canvas, index, rect);
         break;
       case TileType.forest:
-        _drawForest(
-          canvas,
-          index,
-          rect,
-          tileOverride != null ? 1 : _maturity(index),
-        );
+        // The whole cluster sways, so it is drawn on the moving layer.
+        if (moving) {
+          _drawForest(canvas, index, rect, whole ? 1 : _maturity(index));
+        }
         break;
       case TileType.water:
-        _drawWater(canvas, index, rect);
+        _drawWater(canvas, index, rect, still: still, moving: moving);
         break;
       case TileType.park:
-        _drawPark(canvas, index, rect);
+        if (still) _drawPark(canvas, index, rect);
         break;
       case TileType.road:
-        _drawRoad(canvas, index, rect);
+        if (still) _drawRoad(canvas, index, rect);
         break;
       case TileType.housingLow ||
           TileType.housingHigh ||
           TileType.commercial ||
           TileType.industry:
-        _withConstruction(
-          canvas,
-          rect,
-          construction,
-          () => _drawBuilding(canvas, index, rect, tile),
-        );
+        final body = growing ? moving : still;
+        if (body || moving) {
+          _withConstruction(
+            canvas,
+            rect,
+            construction,
+            () => _drawBuilding(
+              canvas,
+              index,
+              rect,
+              tile,
+              body: body,
+              lights: moving,
+            ),
+          );
+        }
         break;
     }
-    if (animateEffects &&
+    if (moving &&
+        animateEffects &&
         c.sim.params.tile(tile).category.isBuilt &&
         construction < 0.98) {
       final frame = Paint()
@@ -1182,24 +1324,37 @@ class _MapPainter extends CustomPainter {
     }
   }
 
-  void _drawWater(Canvas canvas, int index, Rect rect) {
+  void _drawWater(
+    Canvas canvas,
+    int index,
+    Rect rect, {
+    required bool still,
+    required bool moving,
+  }) {
     final state = c.sim.state;
     final x = index % c.width;
     final y = index ~/ c.width;
     bool water(int nx, int ny) =>
         state.inBounds(nx, ny) && state.tileAt(nx, ny) == TileType.water;
-    final shore = Paint()
-      ..color = const Color(0xFFE7D7A5).withValues(alpha: 0.72)
-      ..strokeWidth = math.max(0.8 / scale, rect.width * 0.045);
-    if (!water(x - 1, y)) canvas.drawLine(rect.topLeft, rect.bottomLeft, shore);
-    if (!water(x + 1, y)) {
-      canvas.drawLine(rect.topRight, rect.bottomRight, shore);
+    if (still) {
+      final shore = Paint()
+        ..color = const Color(0xFFE7D7A5).withValues(alpha: 0.72)
+        ..strokeWidth = math.max(0.8 / scale, rect.width * 0.045);
+      if (!water(x - 1, y)) {
+        canvas.drawLine(rect.topLeft, rect.bottomLeft, shore);
+      }
+      if (!water(x + 1, y)) {
+        canvas.drawLine(rect.topRight, rect.bottomRight, shore);
+      }
+      if (!water(x, y - 1)) {
+        canvas.drawLine(rect.topLeft, rect.topRight, shore);
+      }
+      if (!water(x, y + 1)) {
+        canvas.drawLine(rect.bottomLeft, rect.bottomRight, shore);
+      }
     }
-    if (!water(x, y - 1)) canvas.drawLine(rect.topLeft, rect.topRight, shore);
-    if (!water(x, y + 1)) {
-      canvas.drawLine(rect.bottomLeft, rect.bottomRight, shore);
-    }
-    if (_lowDetail ||
+    if (!moving ||
+        _lowDetail ||
         !c.experience.environmentAnimations ||
         rect.width * scale < 18) {
       return;
@@ -1262,57 +1417,83 @@ class _MapPainter extends CustomPainter {
     }
   }
 
-  void _drawBuilding(Canvas canvas, int index, Rect rect, TileType tile) {
+  /// [body] draws the masonry, [lights] the windows and the chimney smoke:
+  /// the windows shift with the time of day and so live on the moving layer
+  /// even when the building itself does not.
+  void _drawBuilding(
+    Canvas canvas,
+    int index,
+    Rect rect,
+    TileType tile, {
+    required bool body,
+    required bool lights,
+  }) {
     if (rect.width * scale < 11) return;
     switch (tile) {
       case TileType.housingLow:
-        _drawLowHousing(canvas, index, rect);
+        _drawLowHousing(canvas, index, rect, body: body, lights: lights);
       case TileType.housingHigh:
-        _drawHighHousing(canvas, index, rect);
+        _drawHighHousing(canvas, index, rect, body: body, lights: lights);
       case TileType.commercial:
-        _drawCommercial(canvas, index, rect);
+        if (body) _drawCommercial(canvas, index, rect);
       case TileType.industry:
-        _drawIndustry(canvas, index, rect);
+        _drawIndustry(canvas, index, rect, body: body, smoke: lights);
       case _:
         break;
     }
   }
 
-  void _drawLowHousing(Canvas canvas, int index, Rect rect) {
+  void _drawLowHousing(
+    Canvas canvas,
+    int index,
+    Rect rect, {
+    required bool body,
+    required bool lights,
+  }) {
     final occupied = _occupancy(index);
     for (var house = 0; house < 2; house++) {
       final left = rect.left + rect.width * (house == 0 ? 0.13 : 0.55);
       final top = rect.top + rect.height * (house == 0 ? 0.22 : 0.52);
-      final body = Rect.fromLTWH(
+      final walls = Rect.fromLTWH(
         left,
         top,
         rect.width * 0.29,
         rect.height * 0.24,
       );
-      _shadowedRect(canvas, body, const Color(0xFFFFF3E0));
-      final roof = Path()
-        ..moveTo(body.left - rect.width * 0.035, body.top)
-        ..lineTo(body.center.dx, body.top - rect.height * 0.13)
-        ..lineTo(body.right + rect.width * 0.035, body.top)
-        ..close();
-      canvas.drawPath(
-        roof,
-        Paint()
-          ..color = house == 0
-              ? const Color(0xFFB5523B)
-              : const Color(0xFF8D493A),
-      );
-      _window(
-        canvas,
-        body.center + Offset(0, body.height * 0.05),
-        rect.width * 0.055,
-        occupied,
-        index + house,
-      );
+      if (body) {
+        _shadowedRect(canvas, walls, const Color(0xFFFFF3E0));
+        final roof = Path()
+          ..moveTo(walls.left - rect.width * 0.035, walls.top)
+          ..lineTo(walls.center.dx, walls.top - rect.height * 0.13)
+          ..lineTo(walls.right + rect.width * 0.035, walls.top)
+          ..close();
+        canvas.drawPath(
+          roof,
+          Paint()
+            ..color = house == 0
+                ? const Color(0xFFB5523B)
+                : const Color(0xFF8D493A),
+        );
+      }
+      if (lights) {
+        _window(
+          canvas,
+          walls.center + Offset(0, walls.height * 0.05),
+          rect.width * 0.055,
+          occupied,
+          index + house,
+        );
+      }
     }
   }
 
-  void _drawHighHousing(Canvas canvas, int index, Rect rect) {
+  void _drawHighHousing(
+    Canvas canvas,
+    int index,
+    Rect rect, {
+    required bool body,
+    required bool lights,
+  }) {
     final occupied = _occupancy(index);
     final blocks = [
       Rect.fromLTWH(
@@ -1330,15 +1511,23 @@ class _MapPainter extends CustomPainter {
     ];
     for (var b = 0; b < blocks.length; b++) {
       final block = blocks[b];
-      _shadowedRect(
-        canvas,
-        block,
-        b == 0 ? const Color(0xFFE4D6CB) : const Color(0xFFD5C4B8),
-      );
-      canvas.drawRect(
-        Rect.fromLTWH(block.left, block.top, block.width, block.height * 0.09),
-        Paint()..color = const Color(0xFF8D6E63),
-      );
+      if (body) {
+        _shadowedRect(
+          canvas,
+          block,
+          b == 0 ? const Color(0xFFE4D6CB) : const Color(0xFFD5C4B8),
+        );
+        canvas.drawRect(
+          Rect.fromLTWH(
+            block.left,
+            block.top,
+            block.width,
+            block.height * 0.09,
+          ),
+          Paint()..color = const Color(0xFF8D6E63),
+        );
+      }
+      if (!lights) continue;
       for (var row = 0; row < 3; row++) {
         for (var column = 0; column < 2; column++) {
           _window(
@@ -1415,14 +1604,19 @@ class _MapPainter extends CustomPainter {
     );
   }
 
-  void _drawIndustry(Canvas canvas, int index, Rect rect) {
+  void _drawIndustry(
+    Canvas canvas,
+    int index,
+    Rect rect, {
+    required bool body,
+    required bool smoke,
+  }) {
     final hall = Rect.fromLTWH(
       rect.left + rect.width * 0.10,
       rect.top + rect.height * 0.38,
       rect.width * 0.68,
       rect.height * 0.43,
     );
-    _shadowedRect(canvas, hall, const Color(0xFFCFD8DC));
     final roof = Path()..moveTo(hall.left, hall.top);
     for (var tooth = 0; tooth < 4; tooth++) {
       final x = hall.left + hall.width * tooth / 4;
@@ -1434,15 +1628,19 @@ class _MapPainter extends CustomPainter {
       ..lineTo(hall.right, hall.bottom)
       ..lineTo(hall.left, hall.bottom)
       ..close();
-    canvas.drawPath(roof, Paint()..color = const Color(0xFF78909C));
     final chimney = Rect.fromLTWH(
       rect.left + rect.width * 0.73,
       rect.top + rect.height * 0.18,
       rect.width * 0.12,
       rect.height * 0.46,
     );
-    canvas.drawRect(chimney, Paint()..color = const Color(0xFF546E7A));
-    if (!animateAmbient ||
+    if (body) {
+      _shadowedRect(canvas, hall, const Color(0xFFCFD8DC));
+      canvas.drawPath(roof, Paint()..color = const Color(0xFF78909C));
+      canvas.drawRect(chimney, Paint()..color = const Color(0xFF546E7A));
+    }
+    if (!smoke ||
+        !animateAmbient ||
         !c.experience.environmentAnimations ||
         _lowDetail ||
         rect.width * scale < 18) {
@@ -1764,5 +1962,8 @@ class _MapPainter extends CustomPainter {
   }
 
   @override
+  // Both layers repaint whenever they are rebuilt, and the still layer is
+  // rebuilt only by the listenables it actually depends on -- the motion
+  // controller is not one of them.
   bool shouldRepaint(covariant _MapPainter oldDelegate) => true;
 }
