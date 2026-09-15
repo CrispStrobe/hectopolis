@@ -52,9 +52,11 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
     attenuation[i] = attenuationOf[t.index];
     final base = noiseEmissionOf[t.index];
     if (base <= 0) continue;
-    emission[i] = t == TileType.road
+    final e = t == TileType.road
         ? base + 10 * _log10(math.max(f.traffic[i], 1.0) / trafficReference)
         : base;
+    if (e <= 0) continue;
+    emission[i] = e;
     sources.add(i);
   }
 
@@ -69,17 +71,30 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
 
   final energy = Float64List(n)..fillRange(0, n, _dbToEnergy(np.backgroundDb));
   for (final s in sources) {
-    final e = emission[s];
+    energy[s] += _dbToEnergy(emission[s]);
+  }
+
+  // Path attenuation is reciprocal, so each unordered pair of cells is visited
+  // once (over half the offsets) and the shared attenuation serves both
+  // directions.
+  final half = offsets.half;
+  final halfCount = half.length;
+  for (var s = 0; s < n; s++) {
     final sx = s % width;
     final sy = s ~/ width;
-    energy[s] += _dbToEnergy(e);
-    for (var k = 0; k < offsets.length; k++) {
-      final level = e - divergence[k];
-      if (level <= cutoff) continue;
+    final es = emission[s];
+    for (var h = 0; h < halfCount; h++) {
+      final k = half[h];
       final rx = sx + dxs[k];
       if (rx < 0 || rx >= width) continue;
       final ry = sy + dys[k];
       if (ry < 0 || ry >= height) continue;
+      final r = ry * width + rx;
+      final er = emission[r];
+      final loudest = es > er ? es : er;
+      if (loudest <= 0) continue;
+      final divergenceDb = divergence[k];
+      if (loudest - divergenceDb <= cutoff) continue;
       var att = 0.0;
       final path = paths[k];
       for (var q = 0; q < path.length; q += 2) {
@@ -89,9 +104,15 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
           break;
         }
       }
-      final received = level - att;
-      if (received <= cutoff) continue;
-      energy[ry * width + rx] += _dbToEnergy(received);
+      final drop = divergenceDb + att;
+      if (es > 0) {
+        final level = es - drop;
+        if (level > cutoff) energy[r] += _dbToEnergy(level);
+      }
+      if (er > 0) {
+        final level = er - drop;
+        if (level > cutoff) energy[s] += _dbToEnergy(level);
+      }
     }
   }
   for (var i = 0; i < n; i++) {

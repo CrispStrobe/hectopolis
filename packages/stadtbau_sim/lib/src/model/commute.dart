@@ -213,6 +213,22 @@ _RoadNetwork _networkFor(WorldState w, int searchRadius) {
   return built;
 }
 
+/// Offer [from]'s cached road network to [to], which is about to become a copy
+/// of it.
+///
+/// A snapshot starts with the same roads, so without this every copy would pay
+/// for a fresh network and a fresh breadth-first tree per road cell — the bulk
+/// of a placement forecast. The network is still validated against [to]'s own
+/// tiles before it is used, so an unrelated state simply rebuilds.
+///
+/// The network's scratch buffers are shared along with it. Every kernel runs
+/// synchronously and leaves them zeroed, so two simulations may hold the same
+/// network, but nothing may hold one across a suspension point.
+void shareRoadNetwork(WorldState from, WorldState to) {
+  final cached = _networkCache[from];
+  if (cached != null) _networkCache[to] = cached;
+}
+
 /// A breadth-first tree over the road graph: [parent] per cell (-1 at the
 /// root, -2 unvisited) and the reachable road cells in visit order.
 class _Tree {
@@ -225,9 +241,10 @@ class _Tree {
 /// Road cells as a 4-connected graph with shortest-path trees from every road
 /// cell. Sized for a few hundred road cells.
 class _RoadNetwork {
-  _RoadNetwork(this.w, this.searchRadius)
+  _RoadNetwork(WorldState w, this.searchRadius)
       : n = w.cellCount,
         width = w.width,
+        height = w.height,
         nearestRoad = Int32List(w.cellCount),
         nearestRoadIdx = Int32List(w.cellCount),
         roadMask = Uint8List(w.cellCount) {
@@ -253,7 +270,7 @@ class _RoadNetwork {
       for (var k = 0; k < offsets.length; k++) {
         final nx = x + offsets.dx[k];
         final ny = y + offsets.dy[k];
-        if (!w.inBounds(nx, ny)) continue;
+        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
         final j = ny * width + nx;
         if (roadMask[j] == 1 && offsets.dist[k] < best) {
           best = offsets.dist[k];
@@ -270,14 +287,14 @@ class _RoadNetwork {
     for (final r in roads) {
       final x = r % width;
       final y = r ~/ width;
-      if (x == 0 || y == 0 || x == width - 1 || y == w.height - 1) exits.add(r);
+      if (x == 0 || y == 0 || x == width - 1 || y == height - 1) exits.add(r);
     }
   }
 
-  final WorldState w;
   final int searchRadius;
   final int n;
   final int width;
+  final int height;
   final Int32List nearestRoad;
 
   /// Index into [roads] of [nearestRoad], or -1 where there is no road in
@@ -326,7 +343,7 @@ class _RoadNetwork {
       for (final (dx, dy) in const [(1, 0), (-1, 0), (0, 1), (0, -1)]) {
         final nx = x + dx;
         final ny = y + dy;
-        if (!w.inBounds(nx, ny)) continue;
+        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
         final j = ny * width + nx;
         if (roadMask[j] != 1 || parent[j] != -2) continue;
         parent[j] = c;

@@ -23,6 +23,14 @@ Code: `packages/stadtbau_sim/lib/src/model/noise.dart`. Parameters: `noise.*` an
    blocks, commercial, industry) −5 dB per cell (screening, CNOSSOS-EU
    diffraction order of magnitude), capped at 20 dB.
 
+   The path is **reciprocal**: the cells between two tiles are the same
+   whichever of them is the source, so a screening wall attenuates equally in
+   both directions. Bresenham breaks ties towards its start point and so
+   disagrees with itself on 56 of the 196 offsets within the 8-tile radius;
+   `Offsets.pathOffsets` therefore traces each path from the canonical end of
+   its axis and mirrors it for the other. Before 2026-09-15 the two directions
+   could differ by up to ≈ 0.7 dB behind a dense screen.
+
 4. **Summation.** `L_i = 10 · log10(10^(L_bg/10) + Σ_s 10^(L_s,i/10))` with a
    rural background of 35 dB(A). Sources beyond 8 tiles (800 m) are ignored.
 

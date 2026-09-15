@@ -84,17 +84,26 @@ class Simulation {
   late IndicatorSnapshot indicators;
   double _lastBudgetDelta;
 
-  /// An independent snapshot suitable for forecasts and UI history.
-  Simulation copy() {
-    final result = Simulation(
-      state: state.copy(),
-      params: params,
-      tileBudget: tileBudget.copy(),
-      lastBudgetDeltaKEur: _lastBudgetDelta,
-    );
-    result.log.addAll(log);
-    return result;
+  /// A snapshot that shares nothing mutable with this simulation, for
+  /// forecasts, undo history and experiment baselines.
+  ///
+  /// The fields and indicators are already current, so they are cloned rather
+  /// than derived again: callers copy in order to place a tile or advance a
+  /// tick on the copy, which recomputes them anyway.
+  Simulation._cloneOf(Simulation source)
+    : state = source.state.copy(),
+      params = source.params,
+      tileBudget = source.tileBudget.copy(),
+      fields = Fields(source.state.cellCount),
+      _lastBudgetDelta = source._lastBudgetDelta {
+    shareRoadNetwork(source.state, state);
+    fields.copyFrom(source.fields);
+    indicators = source.indicators;
+    log.addAll(source.log);
   }
+
+  /// An independent snapshot suitable for forecasts and UI history.
+  Simulation copy() => Simulation._cloneOf(this);
 
   /// Recompute all fields and indicators from the current state without
   /// advancing time. Called after every placement.

@@ -17,13 +17,40 @@ class Offsets {
 
   /// For offset k, the relative cells strictly between the centre and the
   /// offset on a Bresenham line, as interleaved (dx, dy) pairs. Computed once.
+  ///
+  /// Reciprocal: the path for an offset and the path for its opposite cover
+  /// the same cells. Bresenham breaks ties towards its start point, so running
+  /// it from either end disagrees on 56 of the 196 offsets within radius 8 —
+  /// which would make a screening wall attenuate differently depending on
+  /// which of two tiles is treated as the source. Every path is therefore
+  /// traced from the canonical end of its axis and mirrored for the other.
   late final List<Int32List> pathOffsets = _buildPaths();
 
+  /// One index per (k, −k) pair, so that iterating these offsets over every
+  /// cell visits each unordered pair of cells exactly once. Path attenuation
+  /// is reciprocal, so a kernel that needs it in both directions computes it
+  /// once per pair instead of once per direction.
+  late final Int32List half = Int32List.fromList([
+    for (var k = 0; k < length; k++)
+      if (_isCanonical(k)) k,
+  ]);
+
+  /// Whether offset k is the canonical end of its (k, −k) pair.
+  bool _isCanonical(int k) => dy[k] > 0 || (dy[k] == 0 && dx[k] > 0);
+
   List<Int32List> _buildPaths() {
-    final result = <Int32List>[];
+    final result = List<Int32List?>.filled(length, null);
+    // Offset index by (dx, dy), to pair each offset with its opposite.
+    final byDelta = <int, int>{};
     for (var k = 0; k < length; k++) {
+      byDelta[dx[k] * _deltaStride + dy[k]] = k;
+    }
+    for (var k = 0; k < length; k++) {
+      if (!_isCanonical(k)) continue;
       final cells = cellsBetween(0, 0, dx[k], dy[k], 1 << 16);
       final packed = Int32List(cells.length * 2);
+      // The same cells seen from the far end of the path.
+      final mirrored = Int32List(cells.length * 2);
       for (var i = 0; i < cells.length; i++) {
         // cellsBetween packs y * width + x with width 2^16 and negative x
         // wrapping; decode with the same width.
@@ -32,11 +59,18 @@ class Offsets {
         final x = v - y * (1 << 16);
         packed[2 * i] = x;
         packed[2 * i + 1] = y;
+        mirrored[2 * i] = x - dx[k];
+        mirrored[2 * i + 1] = y - dy[k];
       }
-      result.add(packed);
+      result[k] = packed;
+      result[byDelta[-dx[k] * _deltaStride + -dy[k]]!] = mirrored;
     }
-    return result;
+    return [for (final path in result) path!];
   }
+
+  /// Offsets within the largest supported radius fit well inside this stride,
+  /// so (dx, dy) packs into one int without collisions.
+  static const int _deltaStride = 1 << 12;
 
   static final Map<int, Offsets> _cache = {};
 
