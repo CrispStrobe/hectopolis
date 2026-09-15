@@ -283,6 +283,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 - [~] **T-115 Performance.** 24×24 map full tick < 16 ms on desktop, < 50 ms on a mid
   Android phone (measure with `benchmark_harness`). Optimise kernels if needed.
   *Note 2026-09-05 (3):* 180 → 38 ms per tick on a loaded VPS (`benchmark/tick_benchmark.dart`); desktop and phone targets still to measure on real hardware.
+  *Note 2026-09-15:* Another ~3.5× on the same benchmark (interleaved A/B on a loaded VPS). Profiled per stage: commute 24.3 → 3.1 ms (road network and BFS trees cached across ticks, dense trip matrix instead of a pair hash map, subtree accumulation instead of one path walk per origin-destination pair), access 7.7 → ~3 ms and noise ~9 → ~8 ms (flat per-tile-type lookup tables in `lib/src/lookup.dart`, precomputed Huff and distance tables, `exp` instead of `pow`, `Float64List` energy buffer). `Simulation.copy()` no longer recomputes the whole field stack twice, which halves the hover placement forecast. Desktop and phone targets still to measure on real hardware.
 
 ### Phase 2 — Game UI (`app/`)
 

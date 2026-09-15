@@ -22,29 +22,33 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
   final n = w.cellCount;
   final width = w.width;
   final cp = p.commute;
-  final cellKm = p.cellSizeM / 1000.0;
 
-  final network = _RoadNetwork(w, cp.roadSearchRadiusTiles);
-  final decay = DecayTable(
-    maxDist2: w.width * w.width + w.height * w.height,
-    cellSizeM: p.cellSizeM,
-    decayM: p.access.jobDecayM,
-  );
-  // Trips aggregated per (origin road, destination road) before routing.
-  final pairTrips = <int, double>{};
-  final externalTrips = <int, double>{};
+  final network = _networkFor(w, cp.roadSearchRadiusTiles);
+  final tables = _tablesFor(w, p);
+  final decay = tables.decay;
+  final roadCount = network.roads.length;
+  final nearestRoadIdx = network.nearestRoadIdx;
 
-  // Job cells.
-  final jobCells = <int>[];
-  final jobCounts = <double>[];
+  // Job cells, with their coordinates and access road resolved once.
+  final jobCellList = <int>[];
   var jobsCapacity = 0.0;
   for (var i = 0; i < n; i++) {
-    final jobs = p.tile(w.tiles[i]).jobsPerHa.value;
-    if (jobs > 0) {
-      jobCells.add(i);
-      jobCounts.add(jobs);
-      jobsCapacity += jobs;
-    }
+    if (p.tile(w.tiles[i]).jobsPerHa.value > 0) jobCellList.add(i);
+  }
+  final jobCount = jobCellList.length;
+  final jobCells = Int32List(jobCount);
+  final jobX = Int32List(jobCount);
+  final jobY = Int32List(jobCount);
+  final jobRoad = Int32List(jobCount);
+  final jobCounts = Float64List(jobCount);
+  for (var k = 0; k < jobCount; k++) {
+    final i = jobCellList[k];
+    jobCells[k] = i;
+    jobX[k] = i % width;
+    jobY[k] = i ~/ width;
+    jobRoad[k] = nearestRoadIdx[i];
+    jobCounts[k] = p.tile(w.tiles[i]).jobsPerHa.value;
+    jobsCapacity += jobCounts[k];
   }
 
   var workers = 0.0;
@@ -66,7 +70,16 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
 
   var totalCarKm = 0.0;
 
-  final weights = Float64List(jobCells.length);
+  // Trips aggregated per (origin road, destination road) before routing, as a
+  // dense road × road matrix: a hash map keyed by cell pairs dominated the
+  // tick on dense maps.
+  final pairTrips = network.pairTrips;
+  final externalTrips = network.externalTrips..fillRange(0, roadCount, 0);
+
+  final weights = Float64List(jobCount);
+  final dist2 = Int32List(jobCount);
+  final kmTable = tables.km;
+  final carShareTable = tables.carShare;
   for (var i = 0; i < n; i++) {
     final pop = w.population[i];
     if (pop <= 0) continue;
@@ -74,11 +87,12 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
     final x = i % width;
     final y = i ~/ width;
     var wsum = 0.0;
-    for (var k = 0; k < jobCells.length; k++) {
-      final j = jobCells[k];
-      final dx = (j % width) - x;
-      final dy = (j ~/ width) - y;
-      final wk = jobCounts[k] * decay[dx * dx + dy * dy];
+    for (var k = 0; k < jobCount; k++) {
+      final dx = jobX[k] - x;
+      final dy = jobY[k] - y;
+      final d2 = dx * dx + dy * dy;
+      dist2[k] = d2;
+      final wk = jobCounts[k] * decay[d2];
       weights[k] = wk;
       wsum += wk;
     }
@@ -86,23 +100,24 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
     var carTrips = 0.0;
     final localWorkers = wsum > 0 ? cellWorkers * localFraction : 0.0;
     if (localWorkers > 0) {
-      for (var k = 0; k < jobCells.length; k++) {
-        if (weights[k] <= 0) continue;
-        final share = weights[k] / wsum;
-        final j = jobCells[k];
-        final dx = (j % width) - x;
-        final dy = (j ~/ width) - y;
-        final km = math.max(0.5, math.sqrt((dx * dx + dy * dy).toDouble()) * cellKm);
+      final ro = nearestRoadIdx[i];
+      final roRow = ro >= 0 ? ro * roadCount : -1;
+      for (var k = 0; k < jobCount; k++) {
+        final weight = weights[k];
+        if (weight <= 0) continue;
+        final share = weight / wsum;
+        final d2 = dist2[k];
+        final km = kmTable[d2];
         final commuters = localWorkers * share;
         meanKm += share * km;
-        final cars = commuters * cp.carShare(km);
+        final cars = commuters * carShareTable[d2];
         carTrips += cars;
         totalCarKm += cars * km * 2;
-        final ro = network.nearestRoad[i];
-        final rd = network.nearestRoad[j];
-        if (ro >= 0 || rd >= 0) {
-          final key = (ro >= 0 ? ro : rd) * n + (rd >= 0 ? rd : ro);
-          pairTrips[key] = (pairTrips[key] ?? 0) + cars * 2;
+        final rd = jobRoad[k];
+        if (ro >= 0) {
+          pairTrips[roRow + (rd >= 0 ? rd : ro)] += cars * 2;
+        } else if (rd >= 0) {
+          pairTrips[rd * roadCount + rd] += cars * 2;
         }
       }
     }
@@ -111,8 +126,8 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
       final cars = external * cp.externalCarShare;
       carTrips += cars;
       totalCarKm += cars * cp.externalCommuteKm * 2;
-      final r = network.nearestRoad[i];
-      if (r >= 0) externalTrips[r] = (externalTrips[r] ?? 0) + cars * 2;
+      final r = nearestRoadIdx[i];
+      if (r >= 0) externalTrips[r] += cars * 2;
     }
     final fLocal = cellWorkers > 0 ? localWorkers / cellWorkers : 0.0;
     f.meanCommuteKm[i] = fLocal * meanKm + (1 - fLocal) * cp.externalCommuteKm;
@@ -121,20 +136,18 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
 
   // In-commuters from outside fill the remaining jobs and arrive by road.
   if (inCommuters > 0 && jobsCapacity > 0) {
-    for (var k = 0; k < jobCells.length; k++) {
+    for (var k = 0; k < jobCount; k++) {
       final share = jobCounts[k] / jobsCapacity;
       final cars = inCommuters * share * cp.externalCarShare;
       totalCarKm += cars * cp.externalCommuteKm * 2;
-      final r = network.nearestRoad[jobCells[k]];
-      if (r >= 0) externalTrips[r] = (externalTrips[r] ?? 0) + cars * 2;
+      final r = jobRoad[k];
+      if (r >= 0) externalTrips[r] += cars * 2;
     }
   }
 
-  for (final e in pairTrips.entries) {
-    network.assignRoads(traffic, e.key ~/ n, e.key % n, e.value);
-  }
-  for (final e in externalTrips.entries) {
-    network.assignExternalRoad(traffic, e.key, e.value);
+  network.assignPairTrips(traffic);
+  for (var r = 0; r < roadCount; r++) {
+    if (externalTrips[r] > 0) network.assignExternalRoad(traffic, r, externalTrips[r]);
   }
 
   f.totalCarKmPerDay = totalCarKm;
@@ -144,26 +157,96 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
   f.outCommuters = outCommuters;
 }
 
-/// Road cells as a 4-connected graph with all-pairs shortest paths (BFS from
-/// every road cell). Sized for a few hundred road cells.
+/// Distance-indexed lookup tables shared by every cell of a tick. Depend only
+/// on the grid size and the parameters, so they are rebuilt only when those
+/// change.
+class _CommuteTables {
+  _CommuteTables(WorldState w, SimParams p)
+      : params = p,
+        maxDist2 = w.width * w.width + w.height * w.height,
+        decay = DecayTable(
+          maxDist2: w.width * w.width + w.height * w.height,
+          cellSizeM: p.cellSizeM,
+          decayM: p.access.jobDecayM,
+        ),
+        km = Float64List(w.width * w.width + w.height * w.height + 1),
+        carShare = Float64List(w.width * w.width + w.height * w.height + 1) {
+    final cellKm = p.cellSizeM / 1000.0;
+    for (var d2 = 0; d2 <= maxDist2; d2++) {
+      final value = math.max(0.5, math.sqrt(d2.toDouble()) * cellKm);
+      km[d2] = value;
+      carShare[d2] = p.commute.carShare(value);
+    }
+  }
+
+  final SimParams params;
+  final int maxDist2;
+  final DecayTable decay;
+
+  /// One-way commute distance in km for a squared tile distance.
+  final Float64List km;
+
+  /// Car mode share for that distance.
+  final Float64List carShare;
+}
+
+_CommuteTables? _tables;
+
+_CommuteTables _tablesFor(WorldState w, SimParams p) {
+  final cached = _tables;
+  final maxDist2 = w.width * w.width + w.height * w.height;
+  if (cached != null && identical(cached.params, p) && cached.maxDist2 == maxDist2) {
+    return cached;
+  }
+  return _tables = _CommuteTables(w, p);
+}
+
+/// One cached road network per world state. The network depends only on the
+/// road layout, which changes on placement, not on every tick.
+final Expando<_RoadNetwork> _networkCache = Expando<_RoadNetwork>();
+
+_RoadNetwork _networkFor(WorldState w, int searchRadius) {
+  final cached = _networkCache[w];
+  if (cached != null && cached.matches(w, searchRadius)) return cached;
+  final built = _RoadNetwork(w, searchRadius);
+  _networkCache[w] = built;
+  return built;
+}
+
+/// A breadth-first tree over the road graph: [parent] per cell (-1 at the
+/// root, -2 unvisited) and the reachable road cells in visit order.
+class _Tree {
+  _Tree(this.parent, this.order);
+
+  final Int32List parent;
+  final Int32List order;
+}
+
+/// Road cells as a 4-connected graph with shortest-path trees from every road
+/// cell. Sized for a few hundred road cells.
 class _RoadNetwork {
-  _RoadNetwork(this.w, int searchRadius)
+  _RoadNetwork(this.w, this.searchRadius)
       : n = w.cellCount,
         width = w.width,
-        nearestRoad = Int32List(w.cellCount) {
+        nearestRoad = Int32List(w.cellCount),
+        nearestRoadIdx = Int32List(w.cellCount),
+        roadMask = Uint8List(w.cellCount) {
     for (var i = 0; i < n; i++) {
       if (w.tiles[i] == TileType.road) {
+        roadMask[i] = 1;
         roadIndex[i] = roads.length;
         roads.add(i);
       }
     }
     final offsets = Offsets.radius(searchRadius);
     for (var i = 0; i < n; i++) {
-      if (w.tiles[i] == TileType.road) {
+      if (roadMask[i] == 1) {
         nearestRoad[i] = i;
+        nearestRoadIdx[i] = roadIndex[i]!;
         continue;
       }
       nearestRoad[i] = -1;
+      nearestRoadIdx[i] = -1;
       final x = i % width;
       final y = i ~/ width;
       var best = double.infinity;
@@ -172,14 +255,18 @@ class _RoadNetwork {
         final ny = y + offsets.dy[k];
         if (!w.inBounds(nx, ny)) continue;
         final j = ny * width + nx;
-        if (w.tiles[j] == TileType.road && offsets.dist[k] < best) {
+        if (roadMask[j] == 1 && offsets.dist[k] < best) {
           best = offsets.dist[k];
           nearestRoad[i] = j;
+          nearestRoadIdx[i] = roadIndex[j]!;
         }
       }
     }
-    // BFS parents from every road cell (lazy, cached).
-    _parents = List<Int32List?>.filled(roads.length, null);
+    // BFS trees from every road cell (lazy, cached).
+    _trees = List<_Tree?>.filled(roads.length, null);
+    pairTrips = Float64List(roads.length * roads.length);
+    externalTrips = Float64List(roads.length);
+    _accumulator = Float64List(roads.length);
     for (final r in roads) {
       final x = r % width;
       final y = r ~/ width;
@@ -188,21 +275,49 @@ class _RoadNetwork {
   }
 
   final WorldState w;
+  final int searchRadius;
   final int n;
   final int width;
   final Int32List nearestRoad;
+
+  /// Index into [roads] of [nearestRoad], or -1 where there is no road in
+  /// reach.
+  final Int32List nearestRoadIdx;
+  final Uint8List roadMask;
   final List<int> roads = [];
   final Map<int, int> roadIndex = {};
   final List<int> exits = [];
-  late final List<Int32List?> _parents;
+  late final List<_Tree?> _trees;
 
-  /// BFS tree rooted at road cell [root]; parent[cell] = previous cell or -1.
-  Int32List _tree(int root) {
+  /// Trips per (origin road, destination road), row-major over [roads].
+  /// Owned by the network so it is allocated once, and left zeroed after
+  /// every [assignPairTrips].
+  late final Float64List pairTrips;
+
+  /// Trips entering or leaving the map at each road cell.
+  late final Float64List externalTrips;
+
+  late final Float64List _accumulator;
+
+  /// Whether this network still describes [state]'s road layout.
+  bool matches(WorldState state, int radius) {
+    if (radius != searchRadius || state.cellCount != n) return false;
+    final tiles = state.tiles;
+    for (var i = 0; i < n; i++) {
+      if ((tiles[i] == TileType.road ? 1 : 0) != roadMask[i]) return false;
+    }
+    return true;
+  }
+
+  _Tree _tree(int root) {
     final ri = roadIndex[root]!;
-    final cached = _parents[ri];
+    final cached = _trees[ri];
     if (cached != null) return cached;
     final parent = Int32List(n)..fillRange(0, n, -2); // -2 = unvisited
+    final order = Int32List(roads.length);
+    var count = 0;
     parent[root] = -1;
+    order[count++] = root;
     final queue = Queue<int>()..add(root);
     while (queue.isNotEmpty) {
       final c = queue.removeFirst();
@@ -213,45 +328,77 @@ class _RoadNetwork {
         final ny = y + dy;
         if (!w.inBounds(nx, ny)) continue;
         final j = ny * width + nx;
-        if (w.tiles[j] != TileType.road || parent[j] != -2) continue;
+        if (roadMask[j] != 1 || parent[j] != -2) continue;
         parent[j] = c;
+        order[count++] = j;
         queue.add(j);
       }
     }
-    _parents[ri] = parent;
-    return parent;
+    final tree = _Tree(parent, Int32List.sublistView(order, 0, count));
+    _trees[ri] = tree;
+    return tree;
   }
 
-  /// Add [trips] to every road cell on the shortest road path between road
-  /// cells [ro] and [rd]. Unreachable pairs load only the two access cells.
-  void assignRoads(Float64List traffic, int ro, int rd, double trips) {
-    if (trips <= 0) return;
-    if (ro == rd) {
-      traffic[ro] += trips;
-      return;
-    }
-    final parent = _tree(ro);
-    if (parent[rd] == -2) {
-      traffic[ro] += trips;
-      traffic[rd] += trips;
-      return;
-    }
-    var c = rd;
-    while (c != -1) {
-      traffic[c] += trips;
-      c = parent[c];
+  /// Load every road cell on the shortest path of each non-zero entry in
+  /// [pairTrips], then reset it to zero.
+  ///
+  /// Walking each origin-destination pair separately repeats the shared head
+  /// of the paths, so instead each origin's trips are accumulated at their
+  /// destinations and summed up its BFS tree: a cell's load is the total of
+  /// its subtree, which is exactly the trips whose path passes through it.
+  void assignPairTrips(Float64List traffic) {
+    final r = roads.length;
+    final acc = _accumulator;
+    for (var a = 0; a < r; a++) {
+      final base = a * r;
+      var used = false;
+      for (var b = 0; b < r; b++) {
+        if (pairTrips[base + b] != 0) {
+          used = true;
+          break;
+        }
+      }
+      if (!used) continue;
+      final root = roads[a];
+      final tree = _tree(root);
+      final parent = tree.parent;
+      acc.fillRange(0, r, 0);
+      for (var b = 0; b < r; b++) {
+        final trips = pairTrips[base + b];
+        if (trips == 0) continue;
+        pairTrips[base + b] = 0;
+        final dest = roads[b];
+        if (parent[dest] == -2) {
+          // Unreachable by road: load only the two access cells.
+          traffic[root] += trips;
+          traffic[dest] += trips;
+          continue;
+        }
+        acc[b] += trips;
+      }
+      final order = tree.order;
+      for (var k = order.length - 1; k >= 0; k--) {
+        final cell = order[k];
+        // nearestRoadIdx is the road index itself for road cells.
+        final load = acc[nearestRoadIdx[cell]];
+        if (load == 0) continue;
+        traffic[cell] += load;
+        final up = parent[cell];
+        if (up >= 0) acc[nearestRoadIdx[up]] += load;
+      }
     }
   }
 
-  /// Trips that leave or enter the map at road cell [r]: routed to the
+  /// Trips that leave or enter the map at road cell index [r]: routed to the
   /// nearest border road.
   void assignExternalRoad(Float64List traffic, int r, double trips) {
     if (trips <= 0) return;
+    final cell = roads[r];
     if (exits.isEmpty) {
-      traffic[r] += trips;
+      traffic[cell] += trips;
       return;
     }
-    final parent = _tree(r);
+    final parent = _tree(cell).parent;
     var best = -1;
     var bestLen = 1 << 30;
     for (final e in exits) {
@@ -268,7 +415,7 @@ class _RoadNetwork {
       }
     }
     if (best < 0) {
-      traffic[r] += trips;
+      traffic[cell] += trips;
       return;
     }
     var c = best;

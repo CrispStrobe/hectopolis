@@ -51,10 +51,15 @@ class TileBudget {
 /// The game engine: owns the state, applies commands, advances ticks and
 /// exposes fields and indicators. Deterministic for a given command log.
 class Simulation {
-  Simulation({required this.state, SimParams? params, TileBudget? tileBudget})
-    : params = params ?? SimParams.defaults(),
-      tileBudget = tileBudget ?? TileBudget.unlimited(),
-      fields = Fields(state.cellCount) {
+  Simulation({
+    required this.state,
+    SimParams? params,
+    TileBudget? tileBudget,
+    double lastBudgetDeltaKEur = 0,
+  }) : params = params ?? SimParams.defaults(),
+       tileBudget = tileBudget ?? TileBudget.unlimited(),
+       fields = Fields(state.cellCount),
+       _lastBudgetDelta = lastBudgetDeltaKEur {
     recompute();
   }
 
@@ -77,7 +82,7 @@ class Simulation {
   final List<CommandRecord> log = [];
 
   late IndicatorSnapshot indicators;
-  double _lastBudgetDelta = 0;
+  double _lastBudgetDelta;
 
   /// An independent snapshot suitable for forecasts and UI history.
   Simulation copy() {
@@ -85,11 +90,9 @@ class Simulation {
       state: state.copy(),
       params: params,
       tileBudget: tileBudget.copy(),
+      lastBudgetDeltaKEur: _lastBudgetDelta,
     );
-    result
-      .._lastBudgetDelta = _lastBudgetDelta
-      ..log.addAll(log)
-      ..recompute();
+    result.log.addAll(log);
     return result;
   }
 
