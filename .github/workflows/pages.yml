@@ -29,14 +29,24 @@ jobs:
       - run: cd app && flutter gen-l10n
       - name: Build web
         run: cd app && flutter build web --release --base-href "/${{ github.event.repository.name }}/"
-      # CanvasKit ships a .symbols map next to every engine variant -- about
-      # 8 MB, a third of the build -- for symbolising engine stack traces
-      # offline. Nothing in flutter.js or the bundle ever requests one, so
-      # they are pure upload, storage and Pages quota.
-      - name: Drop engine debug symbols from the artifact
+      # Unless the build sets useLocalCanvasKit, flutter.js loads the engine
+      # from https://www.gstatic.com/flutter-canvaskit/<revision>/, so the
+      # canvaskit/ directory Flutter also writes -- 22 MB of the 24 MB build,
+      # every engine variant plus a .symbols map each -- is never requested.
+      # Verified against the access log of a headless Chrome load: it fetches
+      # flutter_bootstrap.js, main.dart.js, the manifests and the icon font,
+      # and nothing under canvaskit/. The guard keeps the directory if the
+      # build is ever switched to --no-web-resources-cdn, which self-hosts the
+      # engine and does request it.
+      - name: Drop the unused engine copy from the artifact
         run: |
           before=$(du -sm app/build/web | cut -f1)
-          find app/build/web -name '*.symbols' -delete
+          if grep -q '"useLocalCanvasKit":true' app/build/web/flutter_bootstrap.js; then
+            echo "build self-hosts the engine; keeping canvaskit/"
+            find app/build/web -name '*.symbols' -delete
+          else
+            rm -rf app/build/web/canvaskit
+          fi
           echo "artifact: ${before} MB -> $(du -sm app/build/web | cut -f1) MB"
 
       - uses: actions/upload-pages-artifact@v3
