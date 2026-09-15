@@ -28,26 +28,42 @@ jobs:
       - run: flutter pub get
       - run: cd app && flutter gen-l10n
       - name: Build web
-        run: cd app && flutter build web --release --base-href "/${{ github.event.repository.name }}/"
-      # Unless the build sets useLocalCanvasKit, flutter.js loads the engine
-      # from https://www.gstatic.com/flutter-canvaskit/<revision>/, so the
-      # canvaskit/ directory Flutter also writes -- 22 MB of the 24 MB build,
-      # every engine variant plus a .symbols map each -- is never requested.
-      # Verified against the access log of a headless Chrome load: it fetches
-      # flutter_bootstrap.js, main.dart.js, the manifests and the icon font,
-      # and nothing under canvaskit/. The guard keeps the directory if the
-      # build is ever switched to --no-web-resources-cdn, which self-hosts the
-      # engine and does request it.
-      - name: Drop the unused engine copy from the artifact
+        # --no-web-resources-cdn serves the CanvasKit engine from our own
+        # origin instead of https://www.gstatic.com/flutter-canvaskit/. That
+        # is the default, and it makes every first load a third-party request
+        # to Google; the game asks for no such thing anywhere else (T-702), so
+        # it does not start here. The cost is ~3.0 MB gzipped from our origin
+        # per first load instead of ~883 KB.
+        run: cd app && flutter build web --release --no-web-resources-cdn --base-href "/${{ github.event.repository.name }}/"
+      # We self-host the engine, so canvaskit/ is served -- but Flutter writes
+      # every variant of it and a .symbols map for each, and a given build can
+      # only ever reach some of them. flutter.js has two loaders: the CanvasKit
+      # one, which picks chromium/canvaskit.* where the browser has Chromium
+      # break iterators and image codecs and the generic canvaskit.* otherwise,
+      # and the skwasm one (skwasm, skwasm_heavy, wimp), which only a --wasm
+      # build uses. experimental_webparagraph needs an explicit
+      # canvasKitVariant. So a JS build serves two variants and ships six.
+      #
+      # Drop what this build cannot reach, and nothing else: the guards read
+      # the build's own config, so adding --wasm or dropping
+      # --no-web-resources-cdn changes what is kept without touching this step.
+      - name: Drop engine variants this build cannot reach
         run: |
-          before=$(du -sm app/build/web | cut -f1)
-          if grep -q '"useLocalCanvasKit":true' app/build/web/flutter_bootstrap.js; then
-            echo "build self-hosts the engine; keeping canvaskit/"
-            find app/build/web -name '*.symbols' -delete
+          web=app/build/web
+          before=$(du -sm $web | cut -f1)
+          find $web -name '*.symbols' -delete
+          if grep -q '"useLocalCanvasKit":true' $web/flutter_bootstrap.js; then
+            rm -rf $web/canvaskit/experimental_webparagraph
+            if ! grep -q '"compileTarget":"dart2wasm"' $web/flutter_bootstrap.js; then
+              rm -f $web/canvaskit/skwasm*.js $web/canvaskit/skwasm*.wasm \
+                    $web/canvaskit/skwasm*.mjs $web/canvaskit/wimp.js $web/canvaskit/wimp.wasm
+            fi
           else
-            rm -rf app/build/web/canvaskit
+            # The engine comes from the CDN; none of it is requested.
+            rm -rf $web/canvaskit
           fi
-          echo "artifact: ${before} MB -> $(du -sm app/build/web | cut -f1) MB"
+          echo "artifact: ${before} MB -> $(du -sm $web | cut -f1) MB"
+          echo "kept:"; ls $web/canvaskit 2>/dev/null || echo "  (none)"
 
       - uses: actions/upload-pages-artifact@v3
         with:

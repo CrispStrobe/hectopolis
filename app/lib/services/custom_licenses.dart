@@ -39,6 +39,8 @@ const dataSources = <DataSource>[
   DataSource('HDE Zahlenspiegel (Verkaufsfläche je Einwohner); BBSR Nahversorgung', 'Öffentliche Berichte (nur Werte)',
       'https://einzelhandel.de/'),
   DataSource('Material Symbols (Google)', 'Apache-2.0', 'https://fonts.google.com/icons'),
+  DataSource('Roboto (Google), bundled so that no text is fetched from a third party at runtime', 'Apache-2.0',
+      'https://fonts.google.com/specimen/Roboto'),
 ];
 
 bool _registered = false;
@@ -55,6 +57,10 @@ void ensureCustomLicensesRegistered() {
       final agpl = await rootBundle.loadString('assets/licenses/AGPL-3.0.txt');
       final exception = await rootBundle.loadString('assets/licenses/APP-STORE-EXCEPTION.md');
       yield LicenseEntryWithLineBreaks(const ['Hectopolis'], '$exception\n\n$agpl');
+      // Apache-2.0 requires the licence to travel with the binaries, and the
+      // Roboto files are redistributed inside the app.
+      final roboto = await rootBundle.loadString('assets/licenses/Roboto-Apache-2.0.txt');
+      yield LicenseEntryWithLineBreaks(const ['Roboto'], roboto);
     } on Object catch (e) {
       debugPrint('custom_licenses: could not load bundled license texts: $e');
     }
