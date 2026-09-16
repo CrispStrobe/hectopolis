@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stadtbau/game/experience_settings.dart';
 import 'package:stadtbau/game/game_controller.dart';
 import 'package:stadtbau/game/save_store.dart';
+import 'package:stadtbau/l10n/generated/app_localizations.dart';
 import 'package:stadtbau/main.dart';
 import 'package:stadtbau/ui/map_view.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
@@ -99,6 +100,44 @@ void main() {
     expect(c.activeBeat?.id, beats[1].id);
     c.dismissBeat(beats[1].id);
     expect(c.activeBeat, isNull);
+  });
+
+  testWidgets('the causal loop view names the loop that is loudest', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'stadtbau.onboarding.v1': true});
+    // Wide enough for the two-column layout but not for the roomy app bar,
+    // which spreads the overflow menu out into individual buttons.
+    tester.view.physicalSize = const Size(1100, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(const HectopolisApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.grid_on));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    // The map animates for ever, so pumpAndSettle never returns here.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await tester.tap(find.text(l10n.causalViewTitle).last);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text(l10n.causalViewTitle), findsWidgets);
+    // Loops are listed strongest first. The sandbox is young meadow with
+    // nobody in it, so the only loop doing anything is the one waiting for
+    // that meadow to grow up, and it should lead.
+    expect(
+      find.text(l10n.causalLoopName(CausalLoop.regrowth.name)),
+      findsOneWidget,
+    );
+    expect(find.text(l10n.causalDominant), findsOneWidget);
+    // That the list holds every loop is the simulation's business, and
+    // packages/stadtbau_sim/test/loops_test.dart checks it; the sheet builds
+    // its cards lazily, so off-screen ones are not in the tree to find.
   });
 
   test('autosave round trip restores the world', () async {

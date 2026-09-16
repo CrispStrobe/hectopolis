@@ -418,7 +418,19 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   with parameters and sources (extends §4.1 to ~16 types; sub-types per level).
 - [ ] **T-503 Water and runoff.** SCS curve number method (USDA, public domain) with
   sealing degree; flood risk indicator; wetlands and water as retention.
-- [ ] **T-504 Causal loop view.** Diagram of §4.6 loops with live dominance highlighting.
+- [x] **T-504 Causal loop view.** Diagram of §4.6 loops with live dominance highlighting.
+  *Note 2026-09-16:* `packages/stadtbau_sim/lib/src/loops.dart` names the five loops and reads a
+  strength for each off quantities the model already computes — the share of attractiveness that
+  noise and air fail to deliver, revenue over revenue plus upkeep, in-commuters over job capacity,
+  mean habitat threat, mean outstanding maturity. No new formulas: see `docs/model/loops.md` for
+  what each reading is and why it stands for its loop. They are different quantities, so the view
+  ranks them and refuses to invite comparison by number.
+  Drawn as chains rather than a node graph: five loops sharing nodes tangle at phone width, and the
+  readable thing is the order of the steps. Missions opt in through the existing
+  `MissionFeature.causalView`; the sandbox always offers it. DE and EN.
+  Writing the regrowth reading caught a modelling slip in my own first draft — it ignored
+  `biotopeStart`, so a fresh meadow read as owing its whole value when the model already counts
+  almost half. The test now pins it to `1 − biotopeStart`.
 - [ ] **T-505 Night noise and health.** L_night, WHO night guideline 40 dB, annoyance
   curves (WHO 2018 Environmental Noise Guidelines, free).
 - [ ] **T-506 Time and seasons.** Yearly cycle for crop yield, ETI, heat waves.
