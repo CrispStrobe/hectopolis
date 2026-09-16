@@ -5,12 +5,42 @@
   "turnLimitMonths": 96,
   "learning": {
     "tier": "starter",
-    "concepts": ["noise_distance", "noise_shielding", "exposure"],
-    "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
+    "concepts": [
+      "noise_distance",
+      "noise_shielding",
+      "exposure"
+    ],
+    "features": [
+      "prediction",
+      "causalView",
+      "experiment",
+      "debrief",
+      "challenges"
+    ],
     "predictionId": "noise_homes",
     "challenges": [
-      { "id": "noise_no_roads", "maxNewTiles": { "road": 0 } },
-      { "id": "noise_fast", "maxMonths": 48 }
+      {
+        "id": "noise_no_roads",
+        "maxNewTiles": {
+          "road": 0
+        }
+      },
+      {
+        "id": "noise_fast",
+        "maxMonths": 48
+      }
+    ],
+    "beats": [
+      {
+        "id": "noise_first_homes",
+        "afterTilesPlaced": 3
+      },
+      {
+        "id": "noise_shield",
+        "whenIndicatorBelow": {
+          "noise": 60
+        }
+      }
     ]
   },
   "tiles": {

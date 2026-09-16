@@ -5,12 +5,42 @@
   "turnLimitMonths": 72,
   "learning": {
     "tier": "guided",
-    "concepts": ["budget_loop", "delay", "tradeoffs"],
-    "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
+    "concepts": [
+      "budget_loop",
+      "delay",
+      "tradeoffs"
+    ],
+    "features": [
+      "prediction",
+      "causalView",
+      "experiment",
+      "debrief",
+      "challenges"
+    ],
     "predictionId": "budget_recovery",
     "challenges": [
-      { "id": "budget_reserve", "minMetrics": { "budgetKEur": 2000 } },
-      { "id": "budget_clean_air", "minIndicators": { "air": 70 } }
+      {
+        "id": "budget_reserve",
+        "minMetrics": {
+          "budgetKEur": 2000
+        }
+      },
+      {
+        "id": "budget_clean_air",
+        "minIndicators": {
+          "air": 70
+        }
+      }
+    ],
+    "beats": [
+      {
+        "id": "budget_monthly",
+        "afterMonths": 6
+      },
+      {
+        "id": "budget_delay",
+        "afterMonths": 30
+      }
     ]
   },
   "tiles": {

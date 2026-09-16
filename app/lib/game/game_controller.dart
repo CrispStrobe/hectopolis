@@ -114,6 +114,7 @@ class GameController extends ChangeNotifier {
   bool showExperimentDelta = false;
   int guidanceStage = 0;
   Set<String> earnedChallenges = const {};
+  final Set<String> _seenBeats = {};
 
   bool get experimentActive => _experimentBaseline != null;
 
@@ -282,6 +283,29 @@ class GameController extends ChangeNotifier {
     showExperimentDelta = false;
     guidanceStage = 0;
     earnedChallenges = const {};
+    _seenBeats.clear();
+  }
+
+  /// The staged teaching moment the player has reached and not yet dismissed,
+  /// or null.
+  ///
+  /// Beats are declared in mission order and only one is offered at a time, so
+  /// a player who advances quickly still meets them one after another instead
+  /// of being handed the whole stack at once.
+  MissionBeat? get activeBeat {
+    final lvl = level;
+    final p = progress;
+    if (lvl == null || p == null || missionBriefingPending) return null;
+    for (final beat in lvl.learning?.beats ?? const <MissionBeat>[]) {
+      if (_seenBeats.contains(beat.id)) continue;
+      return beat.isReached(lvl, sim, p) ? beat : null;
+    }
+    return null;
+  }
+
+  void dismissBeat(String id) {
+    if (!_seenBeats.add(id)) return;
+    notifyListeners();
   }
 
   void acknowledgeMissionBriefing() {

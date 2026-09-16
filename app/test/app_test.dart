@@ -45,6 +45,37 @@ void main() {
     expect(find.byIcon(Icons.radio_button_unchecked), findsWidgets);
   });
 
+  test('mission beats arrive in order and stay dismissed', () async {
+    SharedPreferences.setMockInitialValues({});
+    final level = Level.byId('village')!;
+    final beats = level.learning!.beats;
+    final c = GameController(size: level.width);
+    c.startLevel(level);
+    // The briefing owns the start of the mission; beats wait for it.
+    expect(c.activeBeat, isNull);
+    c.acknowledgeMissionBriefing();
+
+    var placed = 0;
+    for (var i = 0; placed < 4 && i < level.map.length; i++) {
+      if (c.place(i % level.width, i ~/ level.width, TileType.housingLow)) {
+        placed++;
+      }
+    }
+    expect(placed, 4, reason: 'needs four homes to reach the first beat');
+    expect(c.activeBeat?.id, beats.first.id);
+
+    // Only one beat is offered at a time, even once a later one would qualify.
+    for (var i = 0; i < 30; i++) {
+      c.step();
+    }
+    expect(c.activeBeat?.id, beats.first.id);
+
+    c.dismissBeat(beats.first.id);
+    expect(c.activeBeat?.id, beats[1].id);
+    c.dismissBeat(beats[1].id);
+    expect(c.activeBeat, isNull);
+  });
+
   test('autosave round trip restores the world', () async {
     SharedPreferences.setMockInitialValues({});
     final store = SaveStore();

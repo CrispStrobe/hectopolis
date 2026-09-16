@@ -77,6 +77,7 @@ class MissionLearning {
     required this.features,
     this.predictionId,
     this.challenges = const [],
+    this.beats = const [],
   });
 
   final MissionTier tier;
@@ -84,6 +85,10 @@ class MissionLearning {
   final Set<MissionFeature> features;
   final String? predictionId;
   final List<MissionChallenge> challenges;
+
+  /// Teaching moments staged through the mission, in the order they are meant
+  /// to be reached.
+  final List<MissionBeat> beats;
 
   List<String> get challengeIds => [
     for (final challenge in challenges) challenge.id,
@@ -108,7 +113,77 @@ class MissionLearning {
             ? MissionChallenge(id: value)
             : MissionChallenge.fromJson(value as Map<String, dynamic>),
     ],
+    beats: [
+      for (final value in json['beats'] as List<dynamic>? ?? const [])
+        MissionBeat.fromJson(value as Map<String, dynamic>),
+    ],
   );
+}
+
+/// One staged teaching moment inside a mission: a short prompt that appears
+/// once the player has got far enough for it to mean something.
+///
+/// The point of the triggers is that a beat arrives when the player can see
+/// what it is talking about — after the first homes are up, after the noise
+/// has had months to spread — rather than as a wall of instructions before
+/// anyone has touched the map. A beat with no trigger is reached immediately.
+/// Text lives in the app, keyed by [id]; this package owns only when it fires.
+class MissionBeat {
+  const MissionBeat({
+    required this.id,
+    this.afterMonths,
+    this.afterTilesPlaced,
+    this.afterGoalsMet,
+    this.whenIndicatorBelow = const {},
+  });
+
+  final String id;
+
+  /// Months of simulated time that must have passed.
+  final int? afterMonths;
+
+  /// Tiles the player must have placed, counted as cells that differ from the
+  /// level's starting map.
+  final int? afterTilesPlaced;
+
+  /// Level goals that must already be met.
+  final int? afterGoalsMet;
+
+  /// Indicator scores that must have dropped to or below these values —
+  /// for the beats that are meant to arrive when something goes wrong.
+  final Map<Indicator, double> whenIndicatorBelow;
+
+  static MissionBeat fromJson(Map<String, dynamic> json) => MissionBeat(
+    id: json['id'] as String,
+    afterMonths: (json['afterMonths'] as num?)?.toInt(),
+    afterTilesPlaced: (json['afterTilesPlaced'] as num?)?.toInt(),
+    afterGoalsMet: (json['afterGoalsMet'] as num?)?.toInt(),
+    whenIndicatorBelow: {
+      for (final entry
+          in (json['whenIndicatorBelow'] as Map<String, dynamic>? ?? const {})
+              .entries)
+        Indicator.values.byName(entry.key): (entry.value as num).toDouble(),
+    },
+  );
+
+  /// Whether the player has got far enough for this beat to be worth showing.
+  bool isReached(Level level, Simulation sim, LevelProgress progress) {
+    if (afterMonths != null && sim.state.tick < afterMonths!) return false;
+    if (afterGoalsMet != null && progress.metCount < afterGoalsMet!) {
+      return false;
+    }
+    if (afterTilesPlaced != null) {
+      var changed = 0;
+      for (var i = 0; i < level.map.length; i++) {
+        if (sim.state.tiles[i] != level.map[i]) changed++;
+      }
+      if (changed < afterTilesPlaced!) return false;
+    }
+    for (final entry in whenIndicatorBelow.entries) {
+      if (sim.indicators.score(entry.key) > entry.value) return false;
+    }
+    return true;
+  }
 }
 
 /// An optional, model-evaluated way to solve a mission. Challenges always

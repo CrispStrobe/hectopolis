@@ -12,20 +12,65 @@ const List<String> defaultLevelsJson = [
   "turnLimitMonths": 120,
   "learning": {
     "tier": "starter",
-    "concepts": ["access", "tradeoffs"],
-    "features": ["prediction", "debrief"],
+    "concepts": [
+      "access",
+      "tradeoffs"
+    ],
+    "features": [
+      "prediction",
+      "debrief"
+    ],
     "predictionId": "village_access",
     "challenges": [
-      { "id": "village_quiet", "minIndicators": { "noise": 90 } },
-      { "id": "village_nature", "minIndicators": { "biodiversity": 55 } }
+      {
+        "id": "village_quiet",
+        "minIndicators": {
+          "noise": 90
+        }
+      },
+      {
+        "id": "village_nature",
+        "minIndicators": {
+          "biodiversity": 55
+        }
+      }
+    ],
+    "beats": [
+      {
+        "id": "village_first_homes",
+        "afterTilesPlaced": 4
+      },
+      {
+        "id": "village_quiet_left",
+        "afterMonths": 24
+      }
     ]
   },
-  "tiles": { "housing_low": 16, "commercial": 2, "park": 2, "road": 6, "forest": 8, "meadow": null },
+  "tiles": {
+    "housing_low": 16,
+    "commercial": 2,
+    "park": 2,
+    "road": 6,
+    "forest": 8,
+    "meadow": null
+  },
   "goals": [
-    { "indicator": "housing", "min": 60 },
-    { "indicator": "shopping", "min": 50 },
-    { "indicator": "noise", "min": 80 },
-    { "indicator": "biodiversity", "min": 45 }
+    {
+      "indicator": "housing",
+      "min": 60
+    },
+    {
+      "indicator": "shopping",
+      "min": 50
+    },
+    {
+      "indicator": "noise",
+      "min": 80
+    },
+    {
+      "indicator": "biodiversity",
+      "min": 45
+    }
   ],
   "map": [
     "cccccccccccc",
@@ -51,12 +96,42 @@ const List<String> defaultLevelsJson = [
   "turnLimitMonths": 96,
   "learning": {
     "tier": "starter",
-    "concepts": ["noise_distance", "noise_shielding", "exposure"],
-    "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
+    "concepts": [
+      "noise_distance",
+      "noise_shielding",
+      "exposure"
+    ],
+    "features": [
+      "prediction",
+      "causalView",
+      "experiment",
+      "debrief",
+      "challenges"
+    ],
     "predictionId": "noise_homes",
     "challenges": [
-      { "id": "noise_no_roads", "maxNewTiles": { "road": 0 } },
-      { "id": "noise_fast", "maxMonths": 48 }
+      {
+        "id": "noise_no_roads",
+        "maxNewTiles": {
+          "road": 0
+        }
+      },
+      {
+        "id": "noise_fast",
+        "maxMonths": 48
+      }
+    ],
+    "beats": [
+      {
+        "id": "noise_first_homes",
+        "afterTilesPlaced": 3
+      },
+      {
+        "id": "noise_shield",
+        "whenIndicatorBelow": {
+          "noise": 60
+        }
+      }
     ]
   },
   "tiles": {
@@ -122,19 +197,62 @@ const List<String> defaultLevelsJson = [
   "turnLimitMonths": 240,
   "learning": {
     "tier": "guided",
-    "concepts": ["connectivity", "fragmentation", "maturity"],
-    "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
+    "concepts": [
+      "connectivity",
+      "fragmentation",
+      "maturity"
+    ],
+    "features": [
+      "prediction",
+      "causalView",
+      "experiment",
+      "debrief",
+      "challenges"
+    ],
     "predictionId": "habitat_corridor",
     "challenges": [
-      { "id": "habitat_no_water", "maxNewTiles": { "water": 0 } },
-      { "id": "habitat_fast", "maxMonths": 120 }
+      {
+        "id": "habitat_no_water",
+        "maxNewTiles": {
+          "water": 0
+        }
+      },
+      {
+        "id": "habitat_fast",
+        "maxMonths": 120
+      }
+    ],
+    "beats": [
+      {
+        "id": "habitat_two_patches",
+        "afterTilesPlaced": 4
+      },
+      {
+        "id": "habitat_maturity",
+        "afterMonths": 36
+      }
     ]
   },
-  "tiles": { "forest": 12, "meadow": null, "water": 2, "park": 2, "cropland": null },
+  "tiles": {
+    "forest": 12,
+    "meadow": null,
+    "water": 2,
+    "park": 2,
+    "cropland": null
+  },
   "goals": [
-    { "indicator": "biodiversity", "min": 70 },
-    { "indicator": "housing", "min": 50 },
-    { "indicator": "recreation", "min": 60 }
+    {
+      "indicator": "biodiversity",
+      "min": 70
+    },
+    {
+      "indicator": "housing",
+      "min": 50
+    },
+    {
+      "indicator": "recreation",
+      "min": 60
+    }
   ],
   "map": [
     "ffffcccccccccccc",
@@ -164,12 +282,42 @@ const List<String> defaultLevelsJson = [
   "turnLimitMonths": 72,
   "learning": {
     "tier": "guided",
-    "concepts": ["budget_loop", "delay", "tradeoffs"],
-    "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
+    "concepts": [
+      "budget_loop",
+      "delay",
+      "tradeoffs"
+    ],
+    "features": [
+      "prediction",
+      "causalView",
+      "experiment",
+      "debrief",
+      "challenges"
+    ],
     "predictionId": "budget_recovery",
     "challenges": [
-      { "id": "budget_reserve", "minMetrics": { "budgetKEur": 2000 } },
-      { "id": "budget_clean_air", "minIndicators": { "air": 70 } }
+      {
+        "id": "budget_reserve",
+        "minMetrics": {
+          "budgetKEur": 2000
+        }
+      },
+      {
+        "id": "budget_clean_air",
+        "minIndicators": {
+          "air": 70
+        }
+      }
+    ],
+    "beats": [
+      {
+        "id": "budget_monthly",
+        "afterMonths": 6
+      },
+      {
+        "id": "budget_delay",
+        "afterMonths": 30
+      }
     ]
   },
   "tiles": {
@@ -227,11 +375,44 @@ const List<String> defaultLevelsJson = [
   "turnLimitMonths": 180,
   "learning": {
     "tier": "explorer",
-    "concepts": ["feedback", "mixed_city", "resilience"],
-    "features": ["causalView", "experiment", "debrief", "challenges"],
+    "concepts": [
+      "feedback",
+      "mixed_city",
+      "resilience"
+    ],
+    "features": [
+      "causalView",
+      "experiment",
+      "debrief",
+      "challenges"
+    ],
     "challenges": [
-      { "id": "quarter_no_new_roads", "maxNewTiles": { "road": 0 } },
-      { "id": "quarter_balanced", "minIndicators": { "air": 80, "noise": 75, "recreation": 70, "biodiversity": 45, "commuting": 55 } }
+      {
+        "id": "quarter_no_new_roads",
+        "maxNewTiles": {
+          "road": 0
+        }
+      },
+      {
+        "id": "quarter_balanced",
+        "minIndicators": {
+          "air": 80,
+          "noise": 75,
+          "recreation": 70,
+          "biodiversity": 45,
+          "commuting": 55
+        }
+      }
+    ],
+    "beats": [
+      {
+        "id": "quarter_first_block",
+        "afterTilesPlaced": 6
+      },
+      {
+        "id": "quarter_balance",
+        "afterGoalsMet": 2
+      }
     ]
   },
   "tiles": {
