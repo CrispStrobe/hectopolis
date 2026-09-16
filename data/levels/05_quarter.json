@@ -5,11 +5,44 @@
   "turnLimitMonths": 180,
   "learning": {
     "tier": "explorer",
-    "concepts": ["feedback", "mixed_city", "resilience"],
-    "features": ["causalView", "experiment", "debrief", "challenges"],
+    "concepts": [
+      "feedback",
+      "mixed_city",
+      "resilience"
+    ],
+    "features": [
+      "causalView",
+      "experiment",
+      "debrief",
+      "challenges"
+    ],
     "challenges": [
-      { "id": "quarter_no_new_roads", "maxNewTiles": { "road": 0 } },
-      { "id": "quarter_balanced", "minIndicators": { "air": 80, "noise": 75, "recreation": 70, "biodiversity": 45, "commuting": 55 } }
+      {
+        "id": "quarter_no_new_roads",
+        "maxNewTiles": {
+          "road": 0
+        }
+      },
+      {
+        "id": "quarter_balanced",
+        "minIndicators": {
+          "air": 80,
+          "noise": 75,
+          "recreation": 70,
+          "biodiversity": 45,
+          "commuting": 55
+        }
+      }
+    ],
+    "beats": [
+      {
+        "id": "quarter_first_block",
+        "afterTilesPlaced": 6
+      },
+      {
+        "id": "quarter_balance",
+        "afterGoalsMet": 2
+      }
     ]
   },
   "tiles": {

@@ -353,6 +353,17 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   *Note 2026-09-08:* Added the reusable schema and localized learning notebook for all five
   scenarios; the noise mission is the complete first teaching slice. Playtesting and staged
   mission beats remain open.
+  *Note 2026-09-16:* Staged mission beats added. `MissionBeat` in the sim package owns only
+  when a beat fires — `afterMonths`, `afterTilesPlaced`, `afterGoalsMet`, `whenIndicatorBelow`
+  — so a teaching moment arrives when the player can see what it is talking about rather than
+  as instructions before anyone has touched the map. Beats are declared in mission order and
+  only one is offered at a time, so a fast player still meets them one after another. The card
+  sits in the goals panel and outranks the tactical `goalGuidance` hint while it is showing.
+  Two beats per scenario, ten in all, DE and EN. Verified in a browser: the first village beat
+  appears on the fourth home and replaces the hint (screenshot via the T-202 CDP harness); the
+  German copy is covered by the i18n lint and the existing German widget tests, not visually.
+  **The copy is a first pass and wants your voice** — the structure is the durable part.
+  Broader playtesting remains open.
 - [x] **T-306 Counterfactual experiments.** Pin the current deterministic simulation,
   freely test builds and time, compare live indicator and overlay deltas, then keep or
   discard the branch without affecting the pinned city.

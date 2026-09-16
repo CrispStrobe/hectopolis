@@ -18,6 +18,52 @@ void main() {
     }
   });
 
+  test('every mission stages its teaching beats', () {
+    for (final level in Level.builtIn()) {
+      final learning = level.learning;
+      if (learning == null) continue;
+      expect(learning.beats, isNotEmpty, reason: level.id);
+      final ids = {for (final b in learning.beats) b.id};
+      expect(ids.length, learning.beats.length, reason: '${level.id} duplicate');
+      // A beat with no trigger at all would fire before the player has done
+      // anything, which is what the briefing is for.
+      for (final beat in learning.beats) {
+        expect(
+          beat.afterMonths != null ||
+              beat.afterTilesPlaced != null ||
+              beat.afterGoalsMet != null ||
+              beat.whenIndicatorBelow.isNotEmpty,
+          isTrue,
+          reason: '${level.id}/${beat.id} has no trigger',
+        );
+      }
+    }
+  });
+
+  test('beats wait for the player to get far enough', () {
+    final level = Level.byId('village')!;
+    final sim = level.start();
+    final beat = MissionBeat(id: 'x', afterTilesPlaced: 2, afterMonths: 3);
+    LevelProgress progress() => level.evaluate(sim.indicators);
+    expect(beat.isReached(level, sim, progress()), isFalse);
+
+    // Placing tiles alone is not enough while the month trigger is unmet.
+    var placed = 0;
+    for (var i = 0; placed < 2 && i < level.map.length; i++) {
+      if (level.map[i] == TileType.terrain || level.map[i] == TileType.meadow) {
+        final r = sim.apply(
+          PlaceTile(i % level.width, i ~/ level.width, TileType.housingLow),
+        );
+        if (r.ok) placed++;
+      }
+    }
+    expect(placed, 2);
+    expect(beat.isReached(level, sim, progress()), isFalse);
+
+    sim.apply(const AdvanceTick(3));
+    expect(beat.isReached(level, sim, progress()), isTrue);
+  });
+
   test('param overrides change the level simulation', () {
     final noise = Level.byId('noise')!;
     expect(noise.params().noise.baselineThroughTraffic, 14000);

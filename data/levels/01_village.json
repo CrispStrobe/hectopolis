@@ -5,20 +5,65 @@
   "turnLimitMonths": 120,
   "learning": {
     "tier": "starter",
-    "concepts": ["access", "tradeoffs"],
-    "features": ["prediction", "debrief"],
+    "concepts": [
+      "access",
+      "tradeoffs"
+    ],
+    "features": [
+      "prediction",
+      "debrief"
+    ],
     "predictionId": "village_access",
     "challenges": [
-      { "id": "village_quiet", "minIndicators": { "noise": 90 } },
-      { "id": "village_nature", "minIndicators": { "biodiversity": 55 } }
+      {
+        "id": "village_quiet",
+        "minIndicators": {
+          "noise": 90
+        }
+      },
+      {
+        "id": "village_nature",
+        "minIndicators": {
+          "biodiversity": 55
+        }
+      }
+    ],
+    "beats": [
+      {
+        "id": "village_first_homes",
+        "afterTilesPlaced": 4
+      },
+      {
+        "id": "village_quiet_left",
+        "afterMonths": 24
+      }
     ]
   },
-  "tiles": { "housing_low": 16, "commercial": 2, "park": 2, "road": 6, "forest": 8, "meadow": null },
+  "tiles": {
+    "housing_low": 16,
+    "commercial": 2,
+    "park": 2,
+    "road": 6,
+    "forest": 8,
+    "meadow": null
+  },
   "goals": [
-    { "indicator": "housing", "min": 60 },
-    { "indicator": "shopping", "min": 50 },
-    { "indicator": "noise", "min": 80 },
-    { "indicator": "biodiversity", "min": 45 }
+    {
+      "indicator": "housing",
+      "min": 60
+    },
+    {
+      "indicator": "shopping",
+      "min": 50
+    },
+    {
+      "indicator": "noise",
+      "min": 80
+    },
+    {
+      "indicator": "biodiversity",
+      "min": 45
+    }
   ],
   "map": [
     "cccccccccccc",

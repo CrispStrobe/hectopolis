@@ -55,13 +55,20 @@ class GoalsPanel extends StatelessWidget {
         final guidanceCard = guidance == null
             ? null
             : _GuidanceCard(controller: controller, guidance: guidance);
+        // A staged teaching moment outranks the tactical hint: it is authored
+        // for this mission and this point in it, and it is dismissed once.
+        final beat = controller.activeBeat;
+        final beatCard = beat == null
+            ? null
+            : _BeatCard(controller: controller, beat: beat);
         if (compact) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Column(
               children: [
                 Wrap(spacing: 8, runSpacing: 2, children: [header, ...rows]),
-                ?guidanceCard,
+                ?beatCard,
+                if (beatCard == null) ?guidanceCard,
               ],
             ),
           );
@@ -70,7 +77,12 @@ class GoalsPanel extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [header, ...rows, ?guidanceCard],
+            children: [
+              header,
+              ...rows,
+              ?beatCard,
+              if (beatCard == null) ?guidanceCard,
+            ],
           ),
         );
       },
@@ -133,6 +145,35 @@ class _GoalRow extends StatelessWidget {
             ),
         ],
       ],
+    );
+  }
+}
+
+/// A staged teaching moment (T-305): mission-specific, authored for the point
+/// the player has reached, and shown until they dismiss it.
+class _BeatCard extends StatelessWidget {
+  const _BeatCard({required this.controller, required this.beat});
+
+  final GameController controller;
+  final MissionBeat beat;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      color: scheme.secondaryContainer,
+      child: ListTile(
+        dense: true,
+        leading: const Icon(Icons.school_outlined),
+        title: Text(l10n.missionBeatTitle(beat.id)),
+        subtitle: Text(l10n.missionBeatBody(beat.id)),
+        trailing: IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: l10n.actionClose,
+          onPressed: () => controller.dismissBeat(beat.id),
+        ),
+      ),
     );
   }
 }

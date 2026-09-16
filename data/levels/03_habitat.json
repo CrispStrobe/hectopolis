@@ -5,19 +5,62 @@
   "turnLimitMonths": 240,
   "learning": {
     "tier": "guided",
-    "concepts": ["connectivity", "fragmentation", "maturity"],
-    "features": ["prediction", "causalView", "experiment", "debrief", "challenges"],
+    "concepts": [
+      "connectivity",
+      "fragmentation",
+      "maturity"
+    ],
+    "features": [
+      "prediction",
+      "causalView",
+      "experiment",
+      "debrief",
+      "challenges"
+    ],
     "predictionId": "habitat_corridor",
     "challenges": [
-      { "id": "habitat_no_water", "maxNewTiles": { "water": 0 } },
-      { "id": "habitat_fast", "maxMonths": 120 }
+      {
+        "id": "habitat_no_water",
+        "maxNewTiles": {
+          "water": 0
+        }
+      },
+      {
+        "id": "habitat_fast",
+        "maxMonths": 120
+      }
+    ],
+    "beats": [
+      {
+        "id": "habitat_two_patches",
+        "afterTilesPlaced": 4
+      },
+      {
+        "id": "habitat_maturity",
+        "afterMonths": 36
+      }
     ]
   },
-  "tiles": { "forest": 12, "meadow": null, "water": 2, "park": 2, "cropland": null },
+  "tiles": {
+    "forest": 12,
+    "meadow": null,
+    "water": 2,
+    "park": 2,
+    "cropland": null
+  },
   "goals": [
-    { "indicator": "biodiversity", "min": 70 },
-    { "indicator": "housing", "min": 50 },
-    { "indicator": "recreation", "min": 60 }
+    {
+      "indicator": "biodiversity",
+      "min": 70
+    },
+    {
+      "indicator": "housing",
+      "min": 50
+    },
+    {
+      "indicator": "recreation",
+      "min": 60
+    }
   ],
   "map": [
     "ffffcccccccccccc",
