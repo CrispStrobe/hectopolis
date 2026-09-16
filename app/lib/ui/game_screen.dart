@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
@@ -207,95 +208,158 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 1000;
-        final roomyAppBar = constraints.maxWidth >= 1280;
-        return Scaffold(
-          appBar: AppBar(
-            leading: IconButton(
-              tooltip: l10n.actionBackToLevels,
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).maybePop(),
-            ),
-            title: Text(
-              c.level == null
-                  ? l10n.levelTitle('sandbox')
-                  : l10n.levelTitle(c.level!.id),
-            ),
-            actions: roomyAppBar
-                ? [
-                    _Clock(controller: c),
-                    const SizedBox(width: 8),
-                    _Transport(controller: c),
-                    _HistoryControls(controller: c),
-                    _OverlayMenu(controller: c),
-                    IconButton(
-                      tooltip: l10n.actionZoomOut,
-                      icon: const Icon(Icons.zoom_out),
-                      onPressed: _map.zoomOut,
-                    ),
-                    IconButton(
-                      tooltip: l10n.actionZoomIn,
-                      icon: const Icon(Icons.zoom_in),
-                      onPressed: _map.zoomIn,
-                    ),
-                    IconButton(
-                      tooltip: l10n.actionZoomReset,
-                      icon: const Icon(Icons.center_focus_strong),
-                      onPressed: _map.reset,
-                    ),
-                    if (c.level == null)
+    // Global, so that Tab-ing to a palette card or an app-bar button does not
+    // silently disable the keyboard. Cursor keys stay with the map: they are
+    // cell movement, and making them global would fight focus traversal.
+    return CallbackShortcuts(
+      bindings: _globalShortcuts(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth >= 1000;
+          final roomyAppBar = constraints.maxWidth >= 1280;
+          return Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                tooltip: l10n.actionBackToLevels,
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).maybePop(),
+              ),
+              title: Text(
+                c.level == null
+                    ? l10n.levelTitle('sandbox')
+                    : l10n.levelTitle(c.level!.id),
+              ),
+              actions: roomyAppBar
+                  ? [
+                      _Clock(controller: c),
+                      const SizedBox(width: 8),
+                      _Transport(controller: c),
+                      _HistoryControls(controller: c),
+                      _OverlayMenu(controller: c),
                       IconButton(
-                        tooltip: l10n.actionNewGame,
-                        icon: const Icon(Icons.restart_alt),
-                        onPressed: _newGame,
+                        tooltip: l10n.actionZoomOut,
+                        icon: const Icon(Icons.zoom_out),
+                        onPressed: _map.zoomOut,
                       ),
-                    IconButton(
-                      tooltip: l10n.actionMissionNotebook,
-                      icon: const Icon(Icons.school_outlined),
-                      onPressed: c.level?.learning == null ? null : _learning,
-                    ),
-                    IconButton(
-                      tooltip: l10n.actionExperienceSettings,
-                      icon: const Icon(Icons.tune),
-                      onPressed: _settings,
-                    ),
-                    IconButton(
-                      tooltip: l10n.actionLanguage,
-                      icon: const Icon(Icons.translate),
-                      onPressed: widget.onLocaleToggle,
-                    ),
-                    IconButton(
-                      tooltip: l10n.actionAbout,
-                      icon: const Icon(Icons.info_outline),
-                      onPressed: _about,
-                    ),
-                  ]
-                : [
-                    _Clock(controller: c, compact: true),
-                    _Transport(controller: c, compact: true),
-                    _OverlayMenu(controller: c),
-                    if (c.level?.learning != null)
+                      IconButton(
+                        tooltip: l10n.actionZoomIn,
+                        icon: const Icon(Icons.zoom_in),
+                        onPressed: _map.zoomIn,
+                      ),
+                      IconButton(
+                        tooltip: l10n.actionZoomReset,
+                        icon: const Icon(Icons.center_focus_strong),
+                        onPressed: _map.reset,
+                      ),
+                      if (c.level == null)
+                        IconButton(
+                          tooltip: l10n.actionNewGame,
+                          icon: const Icon(Icons.restart_alt),
+                          onPressed: _newGame,
+                        ),
                       IconButton(
                         tooltip: l10n.actionMissionNotebook,
                         icon: const Icon(Icons.school_outlined),
-                        onPressed: _learning,
+                        onPressed: c.level?.learning == null ? null : _learning,
                       ),
-                    _MoreMenu(
-                      controller: c,
-                      map: _map,
-                      onNewGame: c.level == null ? _newGame : null,
-                      onSettings: _settings,
-                      onLocaleToggle: widget.onLocaleToggle,
-                      onAbout: _about,
-                    ),
-                  ],
-          ),
-          body: wide ? _wide() : _narrow(),
-        );
-      },
+                      IconButton(
+                        tooltip: l10n.actionExperienceSettings,
+                        icon: const Icon(Icons.tune),
+                        onPressed: _settings,
+                      ),
+                      IconButton(
+                        tooltip: l10n.actionLanguage,
+                        icon: const Icon(Icons.translate),
+                        onPressed: widget.onLocaleToggle,
+                      ),
+                      IconButton(
+                        tooltip: l10n.actionAbout,
+                        icon: const Icon(Icons.info_outline),
+                        onPressed: _about,
+                      ),
+                    ]
+                  : [
+                      _Clock(controller: c, compact: true),
+                      _Transport(controller: c, compact: true),
+                      _OverlayMenu(controller: c),
+                      if (c.level?.learning != null)
+                        IconButton(
+                          tooltip: l10n.actionMissionNotebook,
+                          icon: const Icon(Icons.school_outlined),
+                          onPressed: _learning,
+                        ),
+                      _MoreMenu(
+                        controller: c,
+                        map: _map,
+                        onNewGame: c.level == null ? _newGame : null,
+                        onSettings: _settings,
+                        onLocaleToggle: widget.onLocaleToggle,
+                        onAbout: _about,
+                        onKeyboardHelp: _showKeyboardHelp,
+                      ),
+                    ],
+            ),
+            body: wide ? _wide() : _narrow(),
+          );
+        },
+      ),
     );
+  }
+
+  /// Shortcuts that work wherever the focus happens to be.
+  ///
+  /// Digits, undo/redo and Escape are about the game rather than about the
+  /// map, so they should not depend on the map holding the keyboard. The app
+  /// has no text input anywhere, so bare digits are unambiguous.
+  Map<ShortcutActivator, VoidCallback> _globalShortcuts() {
+    const digits = [
+      LogicalKeyboardKey.digit1,
+      LogicalKeyboardKey.digit2,
+      LogicalKeyboardKey.digit3,
+      LogicalKeyboardKey.digit4,
+      LogicalKeyboardKey.digit5,
+      LogicalKeyboardKey.digit6,
+      LogicalKeyboardKey.digit7,
+      LogicalKeyboardKey.digit8,
+      LogicalKeyboardKey.digit9,
+      LogicalKeyboardKey.digit0,
+    ];
+    return {
+      for (var i = 0; i < digits.length; i++)
+        SingleActivator(digits[i]): () => c.selectBrushByIndex(i),
+      const SingleActivator(LogicalKeyboardKey.escape): c.clearBrush,
+      const SingleActivator(LogicalKeyboardKey.keyZ, control: true): c.undo,
+      const SingleActivator(LogicalKeyboardKey.keyZ, meta: true): c.undo,
+      const SingleActivator(
+        LogicalKeyboardKey.keyZ,
+        control: true,
+        shift: true,
+      ): c.redo,
+      const SingleActivator(LogicalKeyboardKey.keyZ, meta: true, shift: true):
+          c.redo,
+      const SingleActivator(LogicalKeyboardKey.keyY, control: true): c.redo,
+      const SingleActivator(LogicalKeyboardKey.slash, shift: true):
+          _showKeyboardHelp,
+      const SingleActivator(LogicalKeyboardKey.f1): _showKeyboardHelp,
+    };
+  }
+
+  void _showKeyboardHelp() {
+    final l10n = AppLocalizations.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.keyboard),
+        title: Text(l10n.keyboardShortcutsTitle),
+        content: Text(l10n.keyboardHint),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.actionClose),
+          ),
+        ],
+      ),
+    ).then((_) => c.requestMapFocus());
   }
 
   Widget _wide() => Row(
@@ -647,6 +711,7 @@ class _MoreMenu extends StatelessWidget {
     required this.onSettings,
     required this.onLocaleToggle,
     required this.onAbout,
+    required this.onKeyboardHelp,
   });
 
   final GameController controller;
@@ -655,6 +720,7 @@ class _MoreMenu extends StatelessWidget {
   final VoidCallback onSettings;
   final VoidCallback onLocaleToggle;
   final VoidCallback onAbout;
+  final VoidCallback onKeyboardHelp;
 
   @override
   Widget build(BuildContext context) {
@@ -666,6 +732,14 @@ class _MoreMenu extends StatelessWidget {
         icon: const Icon(Icons.more_vert),
         onSelected: (action) => action(),
         itemBuilder: (context) => [
+          PopupMenuItem(
+            value: onKeyboardHelp,
+            child: ListTile(
+              leading: const Icon(Icons.keyboard),
+              title: Text(l10n.keyboardShortcutsTitle),
+            ),
+          ),
+          const PopupMenuDivider(),
           PopupMenuItem(
             value: controller.undo,
             enabled: controller.canUndo,

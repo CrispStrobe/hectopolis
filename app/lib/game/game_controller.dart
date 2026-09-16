@@ -432,8 +432,19 @@ class GameController extends ChangeNotifier {
     );
   }
 
+  /// Bumped when the keyboard focus belongs back on the map.
+  ///
+  /// Every cursor key is handled by the map's focus node, so picking a tile
+  /// with the mouse — or with Tab and Enter on a palette card — used to leave
+  /// the arrow keys dead with nothing on screen to say why. Selecting a brush
+  /// now hands focus back.
+  final ValueNotifier<int> mapFocusRequests = ValueNotifier<int>(0);
+
+  void requestMapFocus() => mapFocusRequests.value++;
+
   void setBrush(TileType? t) {
     brush = brush == t ? null : t;
+    requestMapFocus();
     notifyListeners();
   }
 
@@ -447,6 +458,7 @@ class GameController extends ChangeNotifier {
     final types = allowedTypes;
     if (i < 0 || i >= types.length) return;
     brush = types[i];
+    requestMapFocus();
     notifyListeners();
   }
 
@@ -1019,6 +1031,7 @@ class GameController extends ChangeNotifier {
   void dispose() {
     _stopTimer();
     _saveTimer?.cancel();
+    mapFocusRequests.dispose();
     super.dispose();
   }
 }
