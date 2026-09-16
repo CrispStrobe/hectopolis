@@ -181,6 +181,20 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     _lastEnvironmentAnimations = c.experience.environmentAnimations;
     _lastCityActivityAnimations = c.experience.cityActivityAnimations;
     c.addListener(_onControllerChanged);
+    c.mapFocusRequests.addListener(_onMapFocusRequested);
+    _focus.addListener(_onFocusChanged);
+  }
+
+  /// Something outside the map (a palette card, a global shortcut) handed the
+  /// keyboard back.
+  void _onMapFocusRequested() {
+    if (mounted && !_focus.hasFocus) _focus.requestFocus();
+  }
+
+  /// The cursor is drawn differently when the map does not hold the keyboard,
+  /// so "why do the arrow keys do nothing" is answerable by looking.
+  void _onFocusChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -188,7 +202,9 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller == widget.controller) return;
     oldWidget.controller.removeListener(_onControllerChanged);
+    oldWidget.controller.mapFocusRequests.removeListener(_onMapFocusRequested);
     widget.controller.addListener(_onControllerChanged);
+    widget.controller.mapFocusRequests.addListener(_onMapFocusRequested);
     _lastVisualRevision = c.visualRevision;
     _lastOverlay = c.overlay;
     _overlayTo = _captureOverlay();
@@ -292,24 +308,24 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     _lastOverlay = c.overlay;
   }
 
-  _MapPainter _layerPainter(BuildContext context, _MapLayer layer) =>
-      _MapPainter(
-        c,
-        Theme.of(context),
-        m.scale,
-        layer: layer,
-        motion: _motion.value,
-        overlayProgress: Curves.easeOutCubic.transform(
-          _overlayTransition.value,
-        ),
-        overlayFrom: _overlayFrom,
-        overlayTo: _overlayTo,
-        constructionStartedMs: _constructionStartedMs,
-        animateAmbient:
-            !_platformReduceMotion && c.experience.ambientAnimations,
-        animateEffects: !_platformReduceMotion && c.experience.effectAnimations,
-        cleanVisuals: c.experience.cleanVisuals,
-      );
+  _MapPainter _layerPainter(
+    BuildContext context,
+    _MapLayer layer,
+  ) => _MapPainter(
+    c,
+    Theme.of(context),
+    m.scale,
+    layer: layer,
+    motion: _motion.value,
+    overlayProgress: Curves.easeOutCubic.transform(_overlayTransition.value),
+    overlayFrom: _overlayFrom,
+    overlayTo: _overlayTo,
+    constructionStartedMs: _constructionStartedMs,
+    animateAmbient: !_platformReduceMotion && c.experience.ambientAnimations,
+    animateEffects: !_platformReduceMotion && c.experience.effectAnimations,
+    cleanVisuals: c.experience.cleanVisuals,
+    keyboardFocused: _focus.hasFocus,
+  );
 
   /// Hand finished buildings back to the still layer once their construction
   /// animation is over. Without this they would fall between the layers: the
@@ -343,6 +359,8 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
   @override
   void dispose() {
     c.removeListener(_onControllerChanged);
+    c.mapFocusRequests.removeListener(_onMapFocusRequested);
+    _focus.removeListener(_onFocusChanged);
     _constructionHandover?.cancel();
     _stillRevision.dispose();
     _motion.dispose();
@@ -944,6 +962,7 @@ class _MapPainter extends CustomPainter {
     required this.animateAmbient,
     required this.animateEffects,
     required this.cleanVisuals,
+    required this.keyboardFocused,
   });
 
   final GameController c;
@@ -958,6 +977,10 @@ class _MapPainter extends CustomPainter {
   final bool animateAmbient;
   final bool animateEffects;
   final bool cleanVisuals;
+
+  /// Whether the map holds the keyboard focus, and so whether the cursor keys
+  /// currently do anything.
+  final bool keyboardFocused;
 
   bool get _still => layer == _MapLayer.still;
 
@@ -1146,18 +1169,29 @@ class _MapPainter extends CustomPainter {
     final cursor = c.cursorCell;
     if (cursor != null) {
       final rect = cellRect(cursor);
+      // Solid and full strength while the map has the keyboard; faint when it
+      // does not, so a dead arrow key is visible rather than mysterious.
+      final strength = keyboardFocused ? 1.0 : 0.35;
       _outline(
         canvas,
         rect.deflate(hair),
-        theme.colorScheme.onSurface,
-        2 * hair,
+        theme.colorScheme.onSurface.withValues(alpha: strength),
+        (keyboardFocused ? 2 : 1.5) * hair,
       );
       _outline(
         canvas,
         rect.deflate(4 * hair),
-        theme.colorScheme.surface,
+        theme.colorScheme.surface.withValues(alpha: strength),
         2 * hair,
       );
+      if (keyboardFocused) {
+        _outline(
+          canvas,
+          rect.deflate(-2 * hair),
+          theme.colorScheme.primary.withValues(alpha: 0.9),
+          2 * hair,
+        );
+      }
     }
   }
 

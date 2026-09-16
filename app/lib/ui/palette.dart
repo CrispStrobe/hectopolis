@@ -187,6 +187,11 @@ class _TileCard extends StatelessWidget {
           child: InkWell(
             onTap: () => controller.setBrush(type),
             borderRadius: BorderRadius.circular(8),
+            // Selection is the coloured border; focus is this wash. They are
+            // different states — the card Tab lands on is not yet the brush.
+            focusColor: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.22),
             child: content,
           ),
         ),
