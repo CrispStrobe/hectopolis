@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Hectopolis
+GenericName=City simulation
+GenericName[de]=Stadtsimulation
+Comment=Build a town and watch its habitat, noise, climate and budget respond.
+Comment[de]=Baue eine Stadt und beobachte, wie Lebensraum, Lärm, Klima und Haushalt reagieren.
+Exec=hectopolis
+Icon=com.crispstrobe.hectopolis
+Categories=Game;Simulation;Education;
+Keywords=city;simulation;ecology;urban;planning;
+Keywords[de]=Stadt;Simulation;Ökologie;Stadtplanung;
+StartupWMClass=hectopolis
+StartupNotify=true

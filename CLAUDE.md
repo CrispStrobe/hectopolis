@@ -12,7 +12,10 @@ export PUB_CACHE=/mnt/volume1/pub-cache
 ```
 
 - Flutter 3.44.1 stable, Dart 3.12.1. No Android SDK, no Xcode here: build and test **web**
-  and pure Dart. Desktop Linux build needs GTK dev headers (check before assuming).
+  and pure Dart. **Desktop Linux builds work on this box**: gtk+-3.0 3.24.41 dev headers,
+  cmake, ninja and clang are all present (checked 2026-09-16). `xvfb-run`/`Xvfb` and
+  ImageMagick's `import` are there too, so a desktop build can be launched and screenshotted
+  headlessly.
 - `/mnt/volume1` is nearly full. **Large output goes to `/mnt/storage/code/stadtbau`**
   (CIFS mount): `app/build/` is a symlink there, raw datasets live in
   `/mnt/storage/code/stadtbau/data`. Never put datasets or build output in the repo.
