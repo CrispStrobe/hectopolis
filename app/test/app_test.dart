@@ -6,6 +6,7 @@ import 'package:stadtbau/game/experience_settings.dart';
 import 'package:stadtbau/game/game_controller.dart';
 import 'package:stadtbau/game/save_store.dart';
 import 'package:stadtbau/main.dart';
+import 'package:stadtbau/ui/map_view.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 void main() {
@@ -30,6 +31,30 @@ void main() {
       expect(find.byIcon(Icons.play_arrow), findsOneWidget);
     },
   );
+
+  testWidgets('the ambient animation repaints only the moving map layer', (
+    tester,
+  ) async {
+    // Skip the first-launch onboarding overlay (T-208).
+    SharedPreferences.setMockInitialValues({'stadtbau.onboarding.v1': true});
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(const HectopolisApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.grid_on));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    // Ten frames of nothing but the ambient animation: the moving layer
+    // redraws, the still layer underneath must not (task T-202).
+    MapPaintCounters.reset();
+    for (var frame = 0; frame < 10; frame++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(MapPaintCounters.moving, greaterThan(0));
+    expect(MapPaintCounters.still, 0);
+  });
 
   testWidgets('a level shows its goals', (tester) async {
     // Skip the first-launch onboarding overlay (T-208).

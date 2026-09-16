@@ -51,10 +51,15 @@ class TileBudget {
 /// The game engine: owns the state, applies commands, advances ticks and
 /// exposes fields and indicators. Deterministic for a given command log.
 class Simulation {
-  Simulation({required this.state, SimParams? params, TileBudget? tileBudget})
-    : params = params ?? SimParams.defaults(),
-      tileBudget = tileBudget ?? TileBudget.unlimited(),
-      fields = Fields(state.cellCount) {
+  Simulation({
+    required this.state,
+    SimParams? params,
+    TileBudget? tileBudget,
+    double lastBudgetDeltaKEur = 0,
+  }) : params = params ?? SimParams.defaults(),
+       tileBudget = tileBudget ?? TileBudget.unlimited(),
+       fields = Fields(state.cellCount),
+       _lastBudgetDelta = lastBudgetDeltaKEur {
     recompute();
   }
 
@@ -77,21 +82,28 @@ class Simulation {
   final List<CommandRecord> log = [];
 
   late IndicatorSnapshot indicators;
-  double _lastBudgetDelta = 0;
+  double _lastBudgetDelta;
+
+  /// A snapshot that shares nothing mutable with this simulation, for
+  /// forecasts, undo history and experiment baselines.
+  ///
+  /// The fields and indicators are already current, so they are cloned rather
+  /// than derived again: callers copy in order to place a tile or advance a
+  /// tick on the copy, which recomputes them anyway.
+  Simulation._cloneOf(Simulation source)
+    : state = source.state.copy(),
+      params = source.params,
+      tileBudget = source.tileBudget.copy(),
+      fields = Fields(source.state.cellCount),
+      _lastBudgetDelta = source._lastBudgetDelta {
+    shareRoadNetwork(source.state, state);
+    fields.copyFrom(source.fields);
+    indicators = source.indicators;
+    log.addAll(source.log);
+  }
 
   /// An independent snapshot suitable for forecasts and UI history.
-  Simulation copy() {
-    final result = Simulation(
-      state: state.copy(),
-      params: params,
-      tileBudget: tileBudget.copy(),
-    );
-    result
-      .._lastBudgetDelta = _lastBudgetDelta
-      ..log.addAll(log)
-      ..recompute();
-    return result;
-  }
+  Simulation copy() => Simulation._cloneOf(this);
 
   /// Recompute all fields and indicators from the current state without
   /// advancing time. Called after every placement.

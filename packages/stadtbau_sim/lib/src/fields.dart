@@ -66,6 +66,38 @@ class Fields {
   /// 1 if a main road is within reach, else 0.
   final Uint8List connected;
 
+  /// Overwrite every field and aggregate with [other]'s, which must describe a
+  /// grid of the same size.
+  ///
+  /// Copying derived state is several thousand times cheaper than deriving it
+  /// again, so a snapshot of an up-to-date simulation clones the fields rather
+  /// than recomputing them.
+  void copyFrom(Fields other) {
+    noiseDb.setAll(0, other.noiseDb);
+    airConcentration.setAll(0, other.airConcentration);
+    airIndex.setAll(0, other.airIndex);
+    coolingCapacity.setAll(0, other.coolingCapacity);
+    heatDeltaC.setAll(0, other.heatDeltaC);
+    greenAccess.setAll(0, other.greenAccess);
+    retailAccess.setAll(0, other.retailAccess);
+    jobAccess.setAll(0, other.jobAccess);
+    habitatQuality.setAll(0, other.habitatQuality);
+    habitatThreat.setAll(0, other.habitatThreat);
+    traffic.setAll(0, other.traffic);
+    meanCommuteKm.setAll(0, other.meanCommuteKm);
+    carShare.setAll(0, other.carShare);
+    attractiveness.setAll(0, other.attractiveness);
+    connected.setAll(0, other.connected);
+    totalCarKmPerDay = other.totalCarKmPerDay;
+    workers = other.workers;
+    jobsCapacity = other.jobsCapacity;
+    inCommuters = other.inCommuters;
+    outCommuters = other.outCommuters;
+    biodiversityIndex = other.biodiversityIndex;
+    habitatAreaEff = other.habitatAreaEff;
+    habitatConnectivity = other.habitatConnectivity;
+  }
+
   /// Aggregates produced while computing the fields.
   double totalCarKmPerDay = 0;
   double workers = 0;

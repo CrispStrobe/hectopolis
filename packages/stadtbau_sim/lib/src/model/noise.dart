@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import '../fields.dart';
 import '../geometry.dart';
+import '../lookup.dart';
 import '../params.dart';
 import '../tile_type.dart';
 import '../world.dart';
@@ -20,23 +21,17 @@ import '../world.dart';
 void computeNoise(WorldState w, SimParams p, Fields f) {
   final n = w.cellCount;
   final width = w.width;
+  final height = w.height;
   final np = p.noise;
   final offsets = Offsets.radius(np.radiusTiles);
-  final energy = List<double>.filled(n, math.pow(10, np.backgroundDb / 10).toDouble());
-
-  double emissionOf(int i) {
-    final t = w.tiles[i];
-    final base = p.tile(t).noiseEmissionDb.value;
-    if (base <= 0) return 0;
-    if (t == TileType.road) {
-      final q = math.max(f.traffic[i], 1.0);
-      return base + 10 * _log10(q / np.trafficReferenceVehiclesPerDay);
-    }
-    return base;
-  }
+  final dxs = offsets.dx;
+  final dys = offsets.dy;
+  final paths = offsets.pathOffsets;
+  final maxAttenuation = np.maxPathAttenuationDb;
+  final noiseEmissionOf = TileLookup.of(p).noiseEmissionDb;
 
   // Per-tile attenuation contribution, looked up by tile type.
-  final attenuationOf = List<double>.filled(TileType.values.length, 0);
+  final attenuationOf = Float64List(TileType.values.length);
   for (final t in TileType.values) {
     final cat = p.tile(t).category;
     if (t == TileType.forest || t == TileType.park) {
@@ -46,15 +41,23 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
     }
   }
 
-  double pathAttenuation(int sx, int sy, int k) {
-    var att = 0.0;
-    final path = offsets.pathOffsets[k];
-    for (var i = 0; i < path.length; i += 2) {
-      final c = (sy + path[i + 1]) * width + sx + path[i];
-      att += attenuationOf[w.tiles[c].index];
-      if (att >= np.maxPathAttenuationDb) return np.maxPathAttenuationDb;
-    }
-    return att;
+  // Emission and screening per cell, so the inner loops index flat arrays
+  // rather than resolving enums and parameters per offset.
+  final emission = Float64List(n);
+  final attenuation = Float64List(n);
+  final sources = <int>[];
+  final trafficReference = np.trafficReferenceVehiclesPerDay;
+  for (var i = 0; i < n; i++) {
+    final t = w.tiles[i];
+    attenuation[i] = attenuationOf[t.index];
+    final base = noiseEmissionOf[t.index];
+    if (base <= 0) continue;
+    final e = t == TileType.road
+        ? base + 10 * _log10(math.max(f.traffic[i], 1.0) / trafficReference)
+        : base;
+    if (e <= 0) continue;
+    emission[i] = e;
+    sources.add(i);
   }
 
   // Free-field level per offset is the same for every source: precompute.
@@ -66,27 +69,60 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
   }
   final cutoff = np.backgroundDb - 15;
 
+  final energy = Float64List(n)..fillRange(0, n, _dbToEnergy(np.backgroundDb));
+  for (final s in sources) {
+    energy[s] += _dbToEnergy(emission[s]);
+  }
+
+  // Path attenuation is reciprocal, so each unordered pair of cells is visited
+  // once (over half the offsets) and the shared attenuation serves both
+  // directions.
+  final half = offsets.half;
+  final halfCount = half.length;
   for (var s = 0; s < n; s++) {
-    final e = emissionOf(s);
-    if (e <= 0) continue;
     final sx = s % width;
     final sy = s ~/ width;
-    energy[s] += math.pow(10, e / 10).toDouble();
-    for (var k = 0; k < offsets.length; k++) {
-      final rx = sx + offsets.dx[k];
-      final ry = sy + offsets.dy[k];
-      if (!w.inBounds(rx, ry)) continue;
-      var level = e - divergence[k];
-      if (level <= cutoff) continue;
-      level -= pathAttenuation(sx, sy, k);
-      if (level <= cutoff) continue;
-      energy[ry * width + rx] += math.pow(10, level / 10).toDouble();
+    final es = emission[s];
+    for (var h = 0; h < halfCount; h++) {
+      final k = half[h];
+      final rx = sx + dxs[k];
+      if (rx < 0 || rx >= width) continue;
+      final ry = sy + dys[k];
+      if (ry < 0 || ry >= height) continue;
+      final r = ry * width + rx;
+      final er = emission[r];
+      final loudest = es > er ? es : er;
+      if (loudest <= 0) continue;
+      final divergenceDb = divergence[k];
+      if (loudest - divergenceDb <= cutoff) continue;
+      var att = 0.0;
+      final path = paths[k];
+      for (var q = 0; q < path.length; q += 2) {
+        att += attenuation[(sy + path[q + 1]) * width + sx + path[q]];
+        if (att >= maxAttenuation) {
+          att = maxAttenuation;
+          break;
+        }
+      }
+      final drop = divergenceDb + att;
+      if (es > 0) {
+        final level = es - drop;
+        if (level > cutoff) energy[r] += _dbToEnergy(level);
+      }
+      if (er > 0) {
+        final level = er - drop;
+        if (level > cutoff) energy[s] += _dbToEnergy(level);
+      }
     }
   }
   for (var i = 0; i < n; i++) {
     f.noiseDb[i] = 10 * _log10(energy[i]);
   }
 }
+
+/// Sound energy for a level in dB. `exp` is markedly cheaper than `pow` and
+/// this runs once per source and offset.
+double _dbToEnergy(double db) => math.exp(db * (math.ln10 / 10));
 
 /// One row of a per-cell breakdown: how much a tile type contributes.
 class Contribution {

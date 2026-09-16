@@ -32,3 +32,16 @@ flutter:
   generate: true
   assets:
     - assets/licenses/
+  # Bundled so that no text needs Flutter's font fallback, which downloads
+  # Roboto from https://fonts.gstatic.com/s/ on every first load. Apache-2.0,
+  # taken from the Flutter SDK's material_fonts artifact; the licence text
+  # ships in assets/licenses/Roboto-Apache-2.0.txt.
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Roboto-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700

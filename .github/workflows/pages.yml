@@ -28,7 +28,43 @@ jobs:
       - run: flutter pub get
       - run: cd app && flutter gen-l10n
       - name: Build web
-        run: cd app && flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+        # --no-web-resources-cdn serves the CanvasKit engine from our own
+        # origin instead of https://www.gstatic.com/flutter-canvaskit/. That
+        # is the default, and it makes every first load a third-party request
+        # to Google; the game asks for no such thing anywhere else (T-702), so
+        # it does not start here. The cost is ~3.0 MB gzipped from our origin
+        # per first load instead of ~883 KB.
+        run: cd app && flutter build web --release --no-web-resources-cdn --base-href "/${{ github.event.repository.name }}/"
+      # We self-host the engine, so canvaskit/ is served -- but Flutter writes
+      # every variant of it and a .symbols map for each, and a given build can
+      # only ever reach some of them. flutter.js has two loaders: the CanvasKit
+      # one, which picks chromium/canvaskit.* where the browser has Chromium
+      # break iterators and image codecs and the generic canvaskit.* otherwise,
+      # and the skwasm one (skwasm, skwasm_heavy, wimp), which only a --wasm
+      # build uses. experimental_webparagraph needs an explicit
+      # canvasKitVariant. So a JS build serves two variants and ships six.
+      #
+      # Drop what this build cannot reach, and nothing else: the guards read
+      # the build's own config, so adding --wasm or dropping
+      # --no-web-resources-cdn changes what is kept without touching this step.
+      - name: Drop engine variants this build cannot reach
+        run: |
+          web=app/build/web
+          before=$(du -sm $web | cut -f1)
+          find $web -name '*.symbols' -delete
+          if grep -q '"useLocalCanvasKit":true' $web/flutter_bootstrap.js; then
+            rm -rf $web/canvaskit/experimental_webparagraph
+            if ! grep -q '"compileTarget":"dart2wasm"' $web/flutter_bootstrap.js; then
+              rm -f $web/canvaskit/skwasm*.js $web/canvaskit/skwasm*.wasm \
+                    $web/canvaskit/skwasm*.mjs $web/canvaskit/wimp.js $web/canvaskit/wimp.wasm
+            fi
+          else
+            # The engine comes from the CDN; none of it is requested.
+            rm -rf $web/canvaskit
+          fi
+          echo "artifact: ${before} MB -> $(du -sm $web | cut -f1) MB"
+          echo "kept:"; ls $web/canvaskit 2>/dev/null || echo "  (none)"
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/build/web
