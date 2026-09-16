@@ -394,8 +394,18 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   *Note 2026-09-08:* Prepared build 0.1.1+4 for external TestFlight; added
   versioned DE/EN beta/store copy, public privacy/support pages and an idempotent
   external-beta preparation workflow. Fixed the macOS screenshot watchdog.
-- [ ] **T-404 Windows and Linux desktop** builds; installer via MSIX (Windows) and
+- [~] **T-404 Windows and Linux desktop** builds; installer via MSIX (Windows) and
   AppImage/Flatpak (Linux).
+  *Note 2026-09-16:* The builds were already there — `desktop-release.yml` builds Linux, macOS
+  and Windows on tags and has run green. The gap was the installers, and the Linux half is now
+  done: `tools/package_appimage.sh` assembles an AppDir from the bundle with the desktop entry
+  and icon in `app/linux/packaging`, and `desktop-release.yml` attaches the AppImage to the
+  release next to the zip. Verified locally end to end: built on this box (gtk+-3.0 dev headers
+  are present), packaged to a 10 MB AppImage, extracted, checked that every library resolves,
+  then launched under Xvfb and screenshotted showing the real level-select screen.
+  **Windows MSIX is still open** and is deliberately not guessed at: it needs the `msix` pub
+  package, a licence allow-list entry and pubspec configuration, none of which can be exercised
+  from Linux — committing it untested would only surface on a release tag. Flatpak is also open.
 - [x] **T-405 About / licenses screen.** Shows AGPL, the section 7 exception, third-party
   licenses (`THIRD_PARTY.md`), data attributions, link to source repository.
   *Note 2026-09-05:* `AboutScreen` like the sibling apps: header with version, provider, contact, privacy, disclaimer, license + section 7 exception, data sources, `showLicensePage` with the bundled AGPL/exception texts and data-source entries registered via `LicenseRegistry`. Widget tests in DE and EN.

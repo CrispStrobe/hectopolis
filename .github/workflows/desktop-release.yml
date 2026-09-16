@@ -77,6 +77,13 @@ jobs:
           ${{ matrix.zip_cmd }}
         shell: powershell
 
+      # The zip is the raw bundle; the AppImage is the thing a Linux user can
+      # download and run without installing anything.
+      - name: Package AppImage (Linux)
+        if: matrix.target == 'linux'
+        run: tools/package_appimage.sh "$GITHUB_WORKSPACE/dist"
+        shell: bash
+
       - name: Attach to GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
