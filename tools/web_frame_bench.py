@@ -14,7 +14,16 @@ one of the usual locations, including a Playwright cache).
 The numbers are only comparable between runs on the same machine: Chrome falls
 back to software rasterisation in headless mode, so absolute frame times say
 nothing about a real device. Use it to compare two builds, not to certify a
-frame rate. Every run writes a screenshot; a run is only meaningful if that
+frame rate.
+
+**A median sitting exactly on a round number is a floor, not a result.**
+Headless Chrome paces requestAnimationFrame at a fixed rate with no display
+attached -- 100.0 ms, i.e. 10 Hz, on a GitHub runner. Every build that keeps up
+with that cadence reports exactly 100.0 and they are indistinguishable; only a
+build that MISSES it reports anything larger. So equal medians at the floor
+mean "both fit in the budget", not "both cost the same", and a larger median
+is a real overrun. The share of frames over the cadence, printed below, is the
+more honest figure. Every run writes a screenshot; a run is only meaningful if that
 screenshot shows the populated map, since the app is driven by clicking at
 fixed coordinates in a 1200x800 window.
 """
@@ -194,10 +203,15 @@ async def main():
                 continue
             ordered = sorted(frames[1:])  # the first interval includes start-up
             n = len(ordered)
-            medians.append(ordered[n // 2])
-            print(f"  run {run}: {n:4d} frames  median {ordered[n // 2]:6.1f} ms  "
+            median = ordered[n // 2]
+            medians.append(median)
+            # The cadence the browser is pacing to, inferred from the fastest
+            # frames rather than assumed; anything above it is an overrun.
+            cadence = ordered[max(0, n // 10)]
+            over = sum(1 for f in ordered if f > cadence * 1.15) / n
+            print(f"  run {run}: {n:4d} frames  median {median:6.1f} ms  "
                   f"p95 {ordered[int(n * 0.95)]:6.1f} ms  "
-                  f"{1000 / (sum(ordered) / n):5.1f} fps avg   {shot}")
+                  f"cadence {cadence:5.1f} ms  over {over * 100:4.0f}%   {shot}")
     finally:
         httpd.shutdown()
     if medians:
