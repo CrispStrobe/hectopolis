@@ -21,8 +21,21 @@ echo "== no networking in first-party code"
 # url_launcher is the one sanctioned outbound path: it hands a URL to the
 # platform browser when the player taps a link on the About screen. It cannot
 # fetch anything back into the app, and nothing calls it during play.
+#
+# Line comments are stripped before matching, because the claim being checked
+# is about code. packages/stadtbau_net (T-601) has to explain in prose where a
+# WebSocket transport will live and why it is not here yet, and a guard that
+# fails on its own documentation teaches people to delete the documentation.
+# The trade is that a networking call written after `//` on the same line as
+# code would be missed; nothing in this codebase puts code after a comment.
 net='dart:io|package:http|package:dio|HttpClient|HttpRequest|WebSocket|RawSocket|ServerSocket|Socket\.|InternetAddress|package:web_socket'
-if hits=$(grep -nE "$net" $sources 2>/dev/null); then
+# `|| true` per file: grep exits 1 when a file is clean, and with `set -e`
+# that ended the audit early -- silently reporting success for every check
+# after this one.
+hits=$(for f in $sources; do
+         sed 's|//.*||' "$f" | grep -nE "$net" | sed "s|^|$f:|" || true
+       done)
+if [ -n "$hits" ]; then
   echo "$hits" | sed 's/^/  /'
   echo "  a networking API appeared in first-party code"
   failures=$((failures + 1))

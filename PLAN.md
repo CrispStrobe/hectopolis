@@ -533,9 +533,33 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 
 ### Phase 6 — Multiplayer (same WLAN, cross-play)
 
-- [ ] **T-601 Protocol package** `packages/stadtbau_net`: message schema (JSON, versioned),
+- [x] **T-601 Protocol package** `packages/stadtbau_net`: message schema (JSON, versioned),
   `Host` (authoritative sim, WebSocket server via `shelf_web_socket`) and `Client`.
   Tests with in-memory transport.
+  *Note 2026-09-17:* Done except the WebSocket server, which moves to T-602 on purpose:
+  `Transport` is an interface over send/receive/close, the only implementation here is an
+  in-memory pair, and **no first-party code touches a networking API**. Opening a listening
+  socket is the moment the About screen's "no network requests while you play" has to be
+  restated for an opt-in LAN mode, and `tools/privacy_audit.sh` fails the build on any
+  networking API — that guard should hold until the promise and the store listings are
+  changed in the same commit, not be quietly bypassed under a protocol task. Documented in
+  `docs/multiplayer.md`. **Design decision:** the wire carries commands, not state. Every
+  client could instead run the simulation and agree because it is deterministic, but
+  "deterministic" means the same binary on the same input — not two builds, two platforms
+  or two web engines — so that trades a 20 ms round trip for a city that silently drifts
+  apart. Instead every `applied`/`ticked` carries the host's `WorldState.hash()`, one
+  disagreement throws the client's world away for a snapshot, and
+  `SessionClient.resyncCount` is asserted to stay zero in a healthy session, which turns a
+  determinism bug into a failing test. Three bugs the in-memory transport exposed, all of
+  which would have been real over a socket: closing a connection from inside a message
+  handler threw (a host rejecting a `hello` does exactly that); the whole host-client-host
+  resync round trip was re-entrant, so delivery now happens from a microtask and
+  `InMemoryTransport.settle()` gives tests a condition instead of a guessed number of
+  pumps; and a seat cached its own copy of the player record, so `assignDistrict` wrote to
+  one and the intent validator read the other — a district that silently did not apply. The
+  privacy audit also now strips line comments before matching, since it was failing on the
+  paragraph explaining where the socket *will* go, and a guard that fails on its own
+  documentation teaches people to delete the documentation.
 - [ ] **T-602 Discovery.** mDNS/DNS-SD via `bonsoir` on native; room code + QR code
   (`qr_flutter`, BSD) as universal fallback; manual IP entry.
 - [ ] **T-603 Lobby UI.** Host or join, player list, district assignment, ready check.

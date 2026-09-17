@@ -1,0 +1,19 @@
+name: stadtbau_net
+description: >-
+  Versioned message protocol and authoritative host/client session logic for
+  co-operative play in Hectopolis. Pure Dart, transport-agnostic, no sockets.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+resolution: workspace
+
+dependencies:
+  meta: ^1.16.0
+  stadtbau_sim: ^0.1.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0

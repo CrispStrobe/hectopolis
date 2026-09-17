@@ -25,10 +25,12 @@ echo "== l10n"
 
 echo "== analyze"
 (cd packages/stadtbau_sim && dart analyze --fatal-infos)
+(cd packages/stadtbau_net && dart analyze --fatal-infos)
 (cd app && flutter analyze --fatal-infos)
 
 echo "== test"
 (cd packages/stadtbau_sim && dart test)
+(cd packages/stadtbau_net && dart test)
 (cd app && flutter test)
 
 echo "== i18n lint"
