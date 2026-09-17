@@ -7,9 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../game/experience_settings.dart';
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
-
-const _modelDocsUrl =
-    'https://github.com/CrispStrobe/stadtbau/tree/main/docs/model';
+import 'doc_links.dart';
 
 List<String> _predictionChoices(String predictionId) => switch (predictionId) {
   'village_access' => const ['near', 'far', 'balance'],
@@ -310,7 +308,7 @@ class _ConceptTile extends StatelessWidget {
     ),
     TextButton.icon(
       onPressed: () async {
-        final uri = Uri.parse(_modelDocsUrl);
+        final uri = Uri.parse(modelDocsUrl);
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
         }

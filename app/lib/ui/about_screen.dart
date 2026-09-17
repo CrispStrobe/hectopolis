@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../services/custom_licenses.dart';
+import 'doc_links.dart';
 
 /// About / legal screen, laid out like our sibling apps: app header with
 /// version, provider (Impressum), contact, privacy, disclaimer, license
@@ -19,8 +20,7 @@ class AboutScreen extends StatelessWidget {
   static const email = 'postmaster@crispstro.be';
   static const phone = '+49 176 6421 8601';
   static const phoneUri = 'tel:+4917664218601';
-  static const repoUrl = 'https://github.com/CrispStrobe/stadtbau';
-  static const modelDocsUrl = 'https://github.com/CrispStrobe/stadtbau/tree/main/docs/model';
+  static const repoUrl = repositoryUrl;
   static const agplUrl = 'https://www.gnu.org/licenses/agpl-3.0.html';
 
   @override
@@ -82,6 +82,8 @@ class AboutScreen extends StatelessWidget {
                       ),
                     const SizedBox(height: 8),
                     const _LinkText(text: modelDocsUrl, uri: modelDocsUrl),
+                    const SizedBox(height: 4),
+                    const _LinkText(text: sourcesDocUrl, uri: sourcesDocUrl),
                   ],
                 ),
               ),

@@ -1,5 +1,10 @@
 # Model documentation
 
+These pages are published at <https://crispstrobe.github.io/hectopolis/docs/>
+(`tools/build_docs_site.dart`), with a generated
+[Quellen page](https://crispstrobe.github.io/hectopolis/docs/quellen.html)
+listing every law, standard and dataset the model uses.
+
 One file per model component. Each file states the formula as implemented in
 `packages/stadtbau_sim/lib/src/model/`, the parameters it reads from
 `data/params/tiles.json`, and the sources for both. Values marked

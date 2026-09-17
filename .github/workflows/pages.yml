@@ -65,6 +65,17 @@ jobs:
           echo "artifact: ${before} MB -> $(du -sm $web | cut -f1) MB"
           echo "kept:"; ls $web/canvaskit 2>/dev/null || echo "  (none)"
 
+      # The model documentation ships with the game rather than on its own
+      # deployment: /docs/ beside the app, so the in-app links (doc_links.dart)
+      # resolve on the same origin and one workflow publishes both. The
+      # generator has no dependencies, so nothing needs installing, and the
+      # pages have no script and no webfont -- the privacy promise holds for
+      # the docs too (T-702, T-703).
+      - name: Render the model documentation
+        run: |
+          dart run tools/build_docs_site.dart --out app/build/web/docs
+          echo "docs: $(find app/build/web/docs -name '*.html' | wc -l) pages"
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/build/web

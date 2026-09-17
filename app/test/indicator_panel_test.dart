@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stadtbau/game/experience_settings.dart';
 import 'package:stadtbau/game/game_controller.dart';
 import 'package:stadtbau/l10n/generated/app_localizations.dart';
+import 'package:stadtbau/ui/doc_links.dart';
 import 'package:stadtbau/ui/indicator_panel.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
@@ -29,18 +30,12 @@ Widget _app(
 void main() {
   test('every indicator maps to a model document', () {
     for (final i in Indicator.values) {
-      expect(indicatorDocFile[i], isNotNull, reason: i.name);
-      expect(indicatorDocUrl(i), startsWith(indicatorDocsBaseUrl));
+      expect(indicatorDocPage[i], isNotNull, reason: i.name);
+      expect(indicatorDocUrl(i), startsWith(modelDocsUrl));
     }
-    expect(
-      indicatorDocUrl(Indicator.commuting),
-      endsWith('/docs/model/commute.md'),
-    );
-    expect(indicatorDocUrl(Indicator.climate), endsWith('/docs/model/heat.md'));
-    expect(
-      indicatorDocUrl(Indicator.housing),
-      endsWith('/docs/model/economy.md'),
-    );
+    expect(indicatorDocUrl(Indicator.commuting), endsWith('/model/commute.html'));
+    expect(indicatorDocUrl(Indicator.climate), endsWith('/model/heat.html'));
+    expect(indicatorDocUrl(Indicator.housing), endsWith('/model/economy.html'));
   });
 
   testWidgets('tapping a gauge opens the detail sheet with the source link', (

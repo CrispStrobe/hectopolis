@@ -34,6 +34,9 @@ echo "== test"
 echo "== i18n lint"
 dart run tools/i18n_lint.dart
 
+echo "== docs site"
+dart run tools/build_docs_site.dart --check
+
 echo "== license audit"
 tools/license_audit.sh
 
