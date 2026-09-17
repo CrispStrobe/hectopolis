@@ -10,18 +10,41 @@ import 'tile_type.dart';
 import 'world.dart';
 
 /// ASCII legend used by level maps (one character per cell).
+///
+/// Lower case is the softer member of a pair where there is one (`w` water /
+/// `W` wetland, `h` low / `H` high density). Every tile type needs an entry or
+/// no level can contain it -- the six added by T-502 had none until T-303
+/// needed to generate a map from land-cover data, which is why
+/// [levelMapLegendIsComplete] now asserts it.
 const Map<String, TileType> levelMapLegend = {
   '.': TileType.meadow,
   'c': TileType.cropland,
   'f': TileType.forest,
   'w': TileType.water,
+  'W': TileType.wetland,
   'p': TileType.park,
   'h': TileType.housingLow,
   'H': TileType.housingHigh,
+  'M': TileType.mixedUse,
   'C': TileType.commercial,
   'I': TileType.industry,
+  'S': TileType.school,
+  'V': TileType.solarField,
   'r': TileType.road,
+  'T': TileType.tramStop,
+  'b': TileType.cyclePath,
 };
+
+/// The character that writes [type] in a level map.
+final Map<TileType, String> levelMapChar = {
+  for (final e in levelMapLegend.entries) e.value: e.key,
+};
+
+/// Whether every tile type can appear in a level map. Asserted by a test: a
+/// tile with no legend character is a tile no level can ever place, and
+/// nothing else in the codebase would notice.
+bool get levelMapLegendIsComplete =>
+    levelMapLegend.values.toSet().length == TileType.values.length;
 
 /// A goal on an indicator score (0–100) or a raw metric.
 class LevelGoal {
@@ -266,6 +289,7 @@ class Level {
     this.populate = true,
     this.paramOverrides,
     this.learning,
+    this.attribution,
   });
 
   final String id;
@@ -291,6 +315,12 @@ class Level {
 
   /// Optional, mission-specific learning tools and concepts.
   final MissionLearning? learning;
+
+  /// Source notice for a level built from someone else's data, shown wherever
+  /// the level is (T-303). Not localised: the wording is the one the licence
+  /// prescribes, e.g. "© GeoBasis-DE / BKG (2021) dl-de/by-2.0". A level drawn
+  /// by hand has none.
+  final String? attribution;
 
   static Level fromJson(Map<String, dynamic> json) {
     final rows = (json['map'] as List<dynamic>).cast<String>();
@@ -330,6 +360,7 @@ class Level {
       learning: json['learning'] == null
           ? null
           : MissionLearning.fromJson(json['learning'] as Map<String, dynamic>),
+      attribution: json['attribution'] as String?,
     );
   }
 

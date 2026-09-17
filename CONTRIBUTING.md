@@ -21,6 +21,9 @@ Thank you for helping. Before you start, read `PLAN.md` (scope, model, roadmap) 
 - **[Adding a tile type](docs/adding-a-tile-type.md)** — the six files involved, the
   sourcing convention for parameters, and the four things the analyzer will *not*
   catch (one of them a runtime crash).
+- **[Building a level from open data](docs/level-generator.md)** — the
+  land-cover converter, the licence and attribution obligations that come with
+  someone else's data, and the parts of a level a generator cannot author.
 - **[The model](docs/model/)** — one file per component, each with its formulas,
   its calibration and an explicit list of what it leaves out. Published at
   <https://crispstrobe.github.io/hectopolis/docs/>, rendered by

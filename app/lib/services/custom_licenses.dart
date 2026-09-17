@@ -38,6 +38,18 @@ const dataSources = <DataSource>[
       'https://doi.org/10.1023/A:1008129329289'),
   DataSource('HDE Zahlenspiegel (Verkaufsfläche je Einwohner); BBSR Nahversorgung', 'Öffentliche Berichte (nur Werte)',
       'https://einzelhandel.de/'),
+  // Used by the level generator (T-303) and therefore shipped inside the
+  // `tuebingen` level. CC BY 4.0 obliges us to carry the source notice and to
+  // say that the data was changed; the level's own `attribution` field does
+  // that where the level is played, and this is the same notice on the About
+  // screen. The complete, generated list of everything the model cites is the
+  // Quellen page linked above.
+  DataSource('Landbedeckungsmodell LBM-DE2021 (BKG)',
+      'CC BY 4.0 — © BKG (2026), bearbeitet: 1-ha-Raster, 16 Kachelarten', 'https://gdz.bkg.bund.de/'),
+  DataSource('KOSTRA-DWD-2020 (Deutscher Wetterdienst), design rainfall', 'DWD, free re-use with attribution',
+      'https://doi.org/10.5676/DWD/KOSTRA-DWD-2020'),
+  DataSource('Copernicus Imperviousness (HRL), sealed share per land cover', 'Copernicus, free with attribution',
+      'https://land.copernicus.eu/'),
   DataSource('Material Symbols (Google)', 'Apache-2.0', 'https://fonts.google.com/icons'),
   DataSource('Roboto (Google), bundled so that no text is fetched from a third party at runtime', 'Apache-2.0',
       'https://fonts.google.com/specimen/Roboto'),

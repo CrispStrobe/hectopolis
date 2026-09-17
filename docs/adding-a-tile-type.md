@@ -64,6 +64,19 @@ put it beside the tiles it belongs with rather than at the end.
 
 `TileType.terrain` is an alias for `meadow`, not a value of its own.
 
+## 2b. The level legend
+
+`levelMapLegend` in `packages/stadtbau_sim/lib/src/level.dart` maps one ASCII
+character to each tile type, and it is what a level file is written in. A tile
+with no character is a tile **no level can ever contain** — and nothing else
+notices: the game runs, the palette offers the tile, the tests pass. The six
+tiles added by T-502 sat like that until T-303 needed to write them out of
+land-cover data. `level_test.dart` now asserts that the legend covers every
+`TileType`, so this cannot happen again quietly.
+
+Pick a character in the existing pattern: lower case is the softer member of a
+pair (`w` water / `W` wetland, `h` low density / `H` high).
+
 ## 3. What the compiler will catch, and what it will not
 
 The analyzer finds exhaustive `switch` statements over `TileType` — there are

@@ -116,4 +116,38 @@ void main() {
       0,
     );
   });
+
+  group('T-303 generated levels', () {
+    test('every tile type has a legend character', () {
+      // A tile with no character is a tile no level can ever contain, and
+      // nothing else in the codebase notices: the six added by T-502 were
+      // unreachable from a level file until T-303 needed them. TileType.index
+      // order is irrelevant here, only coverage.
+      expect(levelMapLegendIsComplete, isTrue,
+          reason: 'missing: '
+              '${TileType.values.where((t) => !levelMapChar.containsKey(t)).map((t) => t.id).join(", ")}');
+      expect(levelMapChar.length, TileType.values.length);
+    });
+
+    test('a level built from open data carries its source notice', () {
+      // CC BY 4.0 obliges us to name the source and to say the data was
+      // changed. If the field is dropped the level still loads and the
+      // obligation is silently broken, so it is asserted.
+      final generated = Level.builtIn()
+          .where((l) => l.attribution != null)
+          .toList();
+      expect(generated, isNotEmpty,
+          reason: 'the tuebingen level should carry an attribution');
+      for (final l in generated) {
+        expect(l.attribution, contains('BKG'));
+        expect(l.attribution, contains('CC BY 4.0'));
+        expect(l.attribution!.toLowerCase(), contains('sampled'),
+            reason: 'the notice must say the data was modified');
+      }
+    });
+
+    test('a level without external data needs no notice', () {
+      expect(Level.byId('village')!.attribution, isNull);
+    });
+  });
 }

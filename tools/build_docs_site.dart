@@ -83,6 +83,7 @@ const _pages = <PageSpec>[
       _sectionModel),
   PageSpec('docs/adding-a-tile-type.md', 'adding-a-tile-type.html',
       _sectionProject),
+  PageSpec('docs/level-generator.md', 'level-generator.html', _sectionProject),
   PageSpec('docs/privacy.md', 'privacy.html', _sectionProject),
 ];
 
@@ -347,6 +348,18 @@ class MarkdownDoc {
         continue;
       }
 
+      if (line.startsWith('>')) {
+        flushParagraph(para);
+        final quoted = <String>[];
+        while (i < lines.length && lines[i].startsWith('>')) {
+          quoted.add(lines[i].replaceFirst(RegExp(r'^> ?'), '').trim());
+          i++;
+        }
+        b.writeln('<blockquote><p>'
+            '${_inline(quoted.join(' '), depth, pageOf, path)}</p></blockquote>');
+        continue;
+      }
+
       final heading = RegExp(r'^(#{1,4}) +(.*)$').firstMatch(line);
       if (heading != null) {
         flushParagraph(para);
@@ -446,9 +459,9 @@ class MarkdownDoc {
 void _unsupported(String path, int line, String text) {
   final bad = <RegExp, String>{
     RegExp(r'!\['): 'images',
-    RegExp(r'^>'): 'block quotes',
     RegExp(r'^\s{2,}[-*+] '): 'nested lists',
-    RegExp(r'^\s*<[a-zA-Z/]'): 'raw HTML',
+    // An autolink at the start of a line is not raw HTML; _spans handles it.
+    RegExp(r'^\s*<(?!https?://)[a-zA-Z/]'): 'raw HTML',
     RegExp(r'^\s*[-*+] {2,}\S'): 'indented list markers',
     RegExp(r'\]\[')  : 'reference links',
     RegExp(r'^={3,}$'): 'setext headings',
@@ -1023,6 +1036,11 @@ th { font-weight: 620; color: var(--dim); font-size: .82rem;
 td.num, th:last-child { white-space: nowrap; }
 td.num { text-align: right; font-variant-numeric: tabular-nums; }
 tbody tr:hover { background: var(--panel); }
+blockquote {
+  margin: 1.2rem 0; padding: .1rem 0 .1rem 1rem;
+  border-left: 3px solid var(--accent); color: var(--dim);
+}
+blockquote p { margin: .3rem 0; }
 ul.cards { list-style: none; padding: 0; display: grid; gap: .6rem;
            grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
 ul.cards a {

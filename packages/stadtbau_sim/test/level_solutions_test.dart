@@ -119,4 +119,72 @@ void main() {
     _rect(m, 0, 0, 13, 2, TileType.forest);
     expect(_play('quarter', m).stars, 3);
   });
+
+  // The generated level (T-303): a town that already exists, where the plan
+  // is what to take away rather than what to add. The lever is not the
+  // biotope value of what is planted but the habitat threat of what is
+  // removed -- replacing the industrial estate and the sealed cells next to
+  // homes beats growing one large connected wood, which scores far better on
+  // biodiversity alone (49 against 39) and then fails recreation.
+  test('tuebingen', () {
+    final level = Level.byId('tuebingen')!;
+    final m = <Move>[];
+    var forest = 40, park = 40, wetland = 15, tram = 6, cycle = 30;
+    final w = level.width;
+    TileType at(int x, int y) => level.map[y * w + x];
+    bool beside(int x, int y, TileType t) => [
+          if (x > 0) at(x - 1, y),
+          if (x < w - 1) at(x + 1, y),
+          if (y > 0) at(x, y - 1),
+          if (y < level.height - 1) at(x, y + 1),
+        ].contains(t);
+
+    for (var y = 0; y < level.height; y++) {
+      for (var x = 0; x < w; x++) {
+        final t = at(x, y);
+        if (t == TileType.water) continue;
+        if (wetland > 0 &&
+            beside(x, y, TileType.water) &&
+            (t == TileType.road || t == TileType.industry ||
+                t == TileType.meadow || t == TileType.cropland)) {
+          m.add((x, y, TileType.wetland));
+          wetland--;
+        }
+      }
+    }
+    for (final (source, planted) in [
+      (TileType.industry, TileType.forest),
+      (TileType.commercial, TileType.park),
+      (TileType.cropland, TileType.forest),
+      (TileType.meadow, TileType.forest),
+    ]) {
+      for (var y = 0; y < level.height; y++) {
+        for (var x = 0; x < w; x++) {
+          if (at(x, y) != source) continue;
+          if (m.any((mv) => mv.$1 == x && mv.$2 == y)) continue;
+          if (planted == TileType.forest && forest > 0) {
+            m.add((x, y, TileType.forest));
+            forest--;
+          } else if (planted == TileType.park && park > 0) {
+            m.add((x, y, TileType.park));
+            park--;
+          }
+        }
+      }
+    }
+    for (var y = 0; y < level.height; y += 3) {
+      for (var x = 0; x < w; x++) {
+        if (at(x, y) != TileType.road) continue;
+        if (m.any((mv) => mv.$1 == x && mv.$2 == y)) continue;
+        if (tram > 0) {
+          m.add((x, y, TileType.tramStop));
+          tram--;
+        } else if (cycle > 0) {
+          m.add((x, y, TileType.cyclePath));
+          cycle--;
+        }
+      }
+    }
+    expect(_play('tuebingen', m).stars, 3);
+  });
 }

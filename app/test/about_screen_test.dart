@@ -44,7 +44,6 @@ void main() {
         l10n.aboutDisclaimer,
         l10n.aboutLicense,
         l10n.aboutDataSources,
-        l10n.aboutOpenSourceLicenses,
       ]) {
         expect(find.text(label), findsOneWidget, reason: label);
       }
@@ -52,6 +51,15 @@ void main() {
       expect(find.text(AboutScreen.phone), findsOneWidget);
       expect(find.textContaining('Bundeskompensationsverordnung'), findsOneWidget);
       expect(find.text(l10n.aboutVersionLabel('0.1.0+1')), findsOneWidget);
+      // The licenses button sits below the data-source list, which grows as
+      // sources are added, and German wraps longer than English. Scrolling to
+      // it is the check; a taller surface only postpones the same failure.
+      await tester.scrollUntilVisible(
+        find.text(l10n.aboutOpenSourceLicenses),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text(l10n.aboutOpenSourceLicenses), findsOneWidget);
     });
   }
 
