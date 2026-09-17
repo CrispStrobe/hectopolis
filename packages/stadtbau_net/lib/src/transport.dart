@@ -67,14 +67,29 @@ class InMemoryTransport implements Transport {
   /// pumps. [settle] uses this.
   static int _inFlight = 0;
 
+  /// True while a message is being handed to a listener. [close] only has to
+  /// defer when this is set: a broadcast controller cannot be closed while it
+  /// is firing, but outside delivery there is nothing to wait for.
+  static bool _delivering = false;
+
   /// Completes once every message sent so far has been delivered, including
-  /// the ones the handlers sent in response. A resync is three hops -- tick,
-  /// resync request, snapshot -- so "await one microtask" is not enough.
+  /// the ones the handlers sent in response, and once every close in progress
+  /// has told the other end. A resync is three hops -- tick, resync request,
+  /// snapshot -- so "await one microtask" is not enough.
+  ///
+  /// Closing is synchronous outside delivery (see [close]), so a disconnect
+  /// is visible to the other side as soon as `close()` returns.
   static Future<void> settle() async {
     var guard = 0;
     while (_inFlight > 0) {
-      await Future<void>.delayed(Duration.zero);
-      if (++guard > 10000) {
+      // A microtask, not a zero-duration timer. Delivery is scheduled as a
+      // microtask, so this is the matching primitive -- and a timer would be
+      // worse than merely indirect: `flutter_test` fakes the clock, so a
+      // `Future.delayed` inside `testWidgets` never completes unless the test
+      // pumps, which hangs the widget tests that drive a real session
+      // (T-603). Microtasks are not faked.
+      await Future<void>.microtask(() {});
+      if (++guard > 100000) {
         throw StateError('in-memory transport never settled: '
             '$_inFlight message(s) still in flight');
       }
@@ -104,7 +119,13 @@ class InMemoryTransport implements Transport {
     _inFlight++;
     scheduleMicrotask(() {
       _inFlight--;
-      if (!peer._closed && !peer._in.isClosed) peer._in.add(message);
+      if (peer._closed || peer._in.isClosed) return;
+      _delivering = true;
+      try {
+        peer._in.add(message);
+      } finally {
+        _delivering = false;
+      }
     });
   }
 
@@ -121,13 +142,29 @@ class InMemoryTransport implements Transport {
     // delivering an event ("Cannot fire new event"). A socket's close is
     // asynchronous for the same reason, so this matches the real transport
     // rather than working around the fake one.
-    await Future<void>.delayed(Duration.zero);
-    await _in.close();
+    //
+    // ...and only when there is something to defer past. Deferring
+    // unconditionally cost two days of confusion in T-603: under
+    // `flutter_test`'s faked clock the hop never resumed, so a session closed
+    // from a test body never told the other end, and the test hung waiting
+    // for a disconnect that had not happened. Outside delivery the close is
+    // immediate, which is also what a caller expects.
+    if (_delivering) {
+      await Future<void>.microtask(() {});
+    }
+    // Not awaited, here or below. These are broadcast controllers, and a
+    // broadcast controller's `done` future is not something teardown can rely
+    // on: with no listeners left there is nothing to deliver, and under
+    // `flutter_test`'s faked clock it simply never completes -- which hung
+    // every widget test that closed a session (T-603). The close itself still
+    // happens, and the peer's listener still gets its done event, which is
+    // what the host needs in order to notice the disconnect.
+    unawaited(_in.close());
     // Closing one end completes the other end's stream, the way a TCP FIN
     // does. Without this a host never learns that a client is gone.
     if (peer != null && !peer._closed) {
       peer._closed = true;
-      await peer._in.close();
+      unawaited(peer._in.close());
     }
   }
 }

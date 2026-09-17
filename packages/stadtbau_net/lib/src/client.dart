@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
+
 import 'protocol.dart';
 import 'transport.dart';
 
@@ -190,7 +191,11 @@ class SessionClient {
 
   Future<void> dispose() async {
     await _sub.cancel();
-    await _changes.close();
+    // Not awaited. By this point [changes] has no listeners left, so closing
+    // it has nothing to deliver and its `done` future carries no information
+    // -- and under `flutter_test`'s fake async it never completes at all,
+    // which hung every widget test that tore a session down (T-603).
+    unawaited(_changes.close());
     await transport.close();
   }
 }

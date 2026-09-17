@@ -562,7 +562,26 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   documentation teaches people to delete the documentation.
 - [ ] **T-602 Discovery.** mDNS/DNS-SD via `bonsoir` on native; room code + QR code
   (`qr_flutter`, BSD) as universal fallback; manual IP entry.
-- [ ] **T-603 Lobby UI.** Host or join, player list, district assignment, ready check.
+- [x] **T-603 Lobby UI.** Host or join, player list, district assignment, ready check.
+  *Note 2026-09-17:* `SessionController` (the only place that knows both the protocol and
+  Flutter) and `LobbyScreen`, with seven widget tests driving a real host and a real guest
+  over the in-memory transport. **No menu entry yet, on purpose:** a player reaches a lobby
+  by hosting or joining over a network and there is no transport until T-602, so wiring a
+  button that cannot work would be worse than leaving it out; the screen is verified end to
+  end regardless. Districts are vertical strips in player order, last strip taking the
+  remainder — strips rather than quadrants because every strip touches both edges, while a
+  quadrant would shield the player in the far corner from everyone else's noise and
+  traffic, in a mode whose point is that effects cross borders. Building it found a gap in
+  T-601: `SessionHost` broadcast to its clients, but the host's own screen is not a client,
+  so a lobby on the hosting device never saw anyone arrive; `SessionHost.changes` now fires
+  from `_broadcast`, the single place every outgoing message passes through. Two lessons
+  about `flutter_test` cost most of the time and are written into `docs/multiplayer.md`:
+  never wait on a timer (`Future.delayed(Duration.zero)` is a timer, and a faked clock will
+  not run it — the in-memory transport now defers with microtasks, which is the matching
+  primitive anyway), and never await a session teardown inside a test body. The transport
+  also now defers a close **only when it is inside a message delivery**, which is the only
+  time a broadcast controller cannot be closed; deferring unconditionally meant a session
+  closed from a test body never told the other end.
 - [ ] **T-604 Turn-based co-op mode.** Districts, per-player tile budgets, shared
   indicators, cross-border effects visible in overlays.
 - [~] **T-605 Reconnect and state sync.** Full state on join, diffs afterwards, hash check

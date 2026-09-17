@@ -898,5 +898,45 @@
   },
   "keyboardShortcutsTitle": "Keyboard shortcuts",
   "keyboardHint": "Arrow keys move the cursor, Enter places the selected tile, Delete or Backspace clears the cell, 1–9 and 0 pick a tile, Escape drops the brush. Control or Command Z undoes a build.",
-  "actionMore": "More"
+  "actionMore": "More",
+  "lobbyTitle": "Local co-op",
+  "lobbyPlayers": "Players",
+  "lobbyYou": "you",
+  "lobbyHostLabel": "host",
+  "lobbyWaiting": "Waiting for players to join…",
+  "lobbyReady": "Ready",
+  "lobbyNotReady": "Not ready",
+  "lobbyDisconnected": "Connection lost — seat held",
+  "lobbySplitDistricts": "Divide the map",
+  "lobbyDistrictOf": "Columns {from}–{to}",
+  "@lobbyDistrictOf": {
+    "description": "Which columns of the map a player owns",
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "lobbyNoDistrict": "No district yet",
+  "lobbyStart": "Start building",
+  "lobbyStartHint": "Everyone has to be ready first.",
+  "lobbyReleaseSeat": "Give up this seat",
+  "lobbyRejected": "Could not join: {reason}",
+  "@lobbyRejected": {
+    "description": "Why joining a session failed; reason is one of the lobbyReject* strings",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "lobbyRejectFull": "the session is full",
+  "lobbyRejectStarted": "the game has already started",
+  "lobbyRejectName": "that name is taken",
+  "lobbyRejectSeat": "that seat is gone",
+  "lobbyRejectProtocol": "the two versions do not match — one side needs updating",
+  "lobbyDistrictsExplain": "Everyone builds in their own columns, but noise, air, heat and traffic cross the borders. That is the point."
 }
