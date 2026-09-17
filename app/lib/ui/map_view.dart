@@ -982,6 +982,48 @@ class _MapPainter extends CustomPainter {
   /// currently do anything.
   final bool keyboardFocused;
 
+  /// Per-cell readings the tile art responds to, each normalised against the
+  /// range the field **actually occupies**, not against 0-1.
+  ///
+  /// This matters more than it looks. These are absolute model scores, and
+  /// most of them never approach 1: a healthy untouched meadow scores 0.42 for
+  /// habitat quality, a decent residential block 0.65 for attractiveness, and
+  /// a busy map only drags the air index from 100 down to about 95. Driving
+  /// colour across the full 0-1 of them paints a pristine map brown and dulls
+  /// every facade. The anchors below are measured from the model, not assumed.
+  ///
+  /// They are read on the still layer, which is rasterised once and cached, so
+  /// letting the art express the model costs nothing per frame -- only a
+  /// repaint when the simulation actually changes.
+
+  /// Encroachment on habitat: 0 where nothing is pressing, up to about 0.66
+  /// beside a road. The degradation is what varies, so the art keys off it
+  /// rather than off the quality score.
+  double _threat(int i) => c.sim.fields.habitatThreat[i].clamp(0.0, 1.0);
+
+  /// Heat, against the roughly 1 degree a town of this size reaches rather
+  /// than the 3 degree theoretical maximum.
+  double _warmth(int i) =>
+      (c.sim.fields.heatDeltaC[i] / (c.sim.params.heat.uhiMaxC * 0.35)).clamp(
+        0.0,
+        1.0,
+      );
+
+  /// Dirty air on the scale the game reaches: 100 is clean and a busy map
+  /// sits near 95, so the band is a few points wide, not a hundred.
+  double _haze(int i) => ((100 - c.sim.fields.airIndex[i]) / 8).clamp(0.0, 1.0);
+
+  /// Appeal against a decent block rather than an unreachable perfect one.
+  double _appeal(int i) =>
+      (c.sim.fields.attractiveness[i] / 0.7).clamp(0.0, 1.0);
+
+  /// Whether the art may colour itself by the model.
+  ///
+  /// Suppressed while an overlay is up: the overlay is the precise reading and
+  /// a second, vaguer one underneath it only muddies the colours.
+  bool get _modelTinting =>
+      !_lowDetail && c.overlay == MapOverlay.none && !cleanVisuals;
+
   bool get _still => layer == _MapLayer.still;
 
   bool get _moving => layer == _MapLayer.moving;
@@ -1223,6 +1265,29 @@ class _MapPainter extends CustomPainter {
           Paint()..color = Colors.white.withValues(alpha: 0.08),
         );
       }
+      if (!whole && _modelTinting) {
+        // Heat and dirty air are fields the player could only see by turning
+        // an overlay on. A wash this faint does not read as a measurement --
+        // it reads as a place that feels hot, or hazy.
+        final warmth = _warmth(index);
+        if (warmth > 0.05) {
+          canvas.drawRect(
+            rect,
+            Paint()
+              ..color = const Color(
+                0xFFFF7043,
+              ).withValues(alpha: 0.16 * warmth),
+          );
+        }
+        final haze = _haze(index);
+        if (haze > 0.05) {
+          canvas.drawRect(
+            rect,
+            Paint()
+              ..color = const Color(0xFF8D8778).withValues(alpha: 0.16 * haze),
+          );
+        }
+      }
     }
 
     switch (tile) {
@@ -1311,12 +1376,22 @@ class _MapPainter extends CustomPainter {
 
   void _drawMeadow(Canvas canvas, int index, Rect rect) {
     if (rect.width * scale < 14) return;
+    // A meadow hemmed in by roads and buildings is thinner and drier than one
+    // in the open. Both readings come from the habitat model, so the picture
+    // and the biodiversity score cannot disagree.
+    final pressure = _modelTinting ? _threat(index) : 0.0;
     final grass = Paint()
-      ..color = const Color(0xFF4F8A51).withValues(alpha: 0.65)
+      // Green by default, drying only where something is pressing on it.
+      ..color = Color.lerp(
+        const Color(0xFF4F8A51),
+        const Color(0xFF9E8B3F),
+        pressure * 0.7,
+      )!.withValues(alpha: 0.65)
       ..style = PaintingStyle.stroke
       ..strokeWidth = math.max(0.55 / scale, rect.width * 0.018)
       ..strokeCap = StrokeCap.round;
-    for (var tuft = 0; tuft < 5; tuft++) {
+    final tufts = 5 - (pressure * 2).round();
+    for (var tuft = 0; tuft < tufts; tuft++) {
       final x =
           rect.left + rect.width * (0.12 + _unit(index * 41 + tuft) * 0.76);
       final y =
@@ -1325,7 +1400,8 @@ class _MapPainter extends CustomPainter {
       canvas.drawLine(Offset(x, y), Offset(x - h * 0.28, y - h), grass);
       canvas.drawLine(Offset(x, y), Offset(x + h * 0.30, y - h * 0.82), grass);
     }
-    if (_unit(index * 101) > 0.48) {
+    // Flowers thin out where the meadow is under pressure.
+    if (_unit(index * 101) > 0.48 && pressure < 0.4) {
       canvas.drawCircle(
         Offset(rect.left + rect.width * 0.68, rect.top + rect.height * 0.40),
         math.max(0.7 / scale, rect.width * 0.022),
@@ -1495,7 +1571,7 @@ class _MapPainter extends CustomPainter {
         rect.height * 0.24,
       );
       if (body) {
-        _shadowedRect(canvas, walls, const Color(0xFFFFF3E0));
+        _shadowedRect(canvas, walls, _facade(index, const Color(0xFFFFF3E0)));
         final roof = Path()
           ..moveTo(walls.left - rect.width * 0.035, walls.top)
           ..lineTo(walls.center.dx, walls.top - rect.height * 0.13)
@@ -1549,7 +1625,10 @@ class _MapPainter extends CustomPainter {
         _shadowedRect(
           canvas,
           block,
-          b == 0 ? const Color(0xFFE4D6CB) : const Color(0xFFD5C4B8),
+          _facade(
+            index,
+            b == 0 ? const Color(0xFFE4D6CB) : const Color(0xFFD5C4B8),
+          ),
         );
         canvas.drawRect(
           Rect.fromLTWH(
@@ -1577,6 +1656,20 @@ class _MapPainter extends CustomPainter {
         }
       }
     }
+  }
+
+  /// A facade, dulled where the place is a poor one to live.
+  ///
+  /// Attractiveness is what population actually follows, so this shows the
+  /// crowding loop on the map: the blocks beside the loud road go grey before
+  /// their residents leave.
+  Color _facade(int index, Color base) {
+    if (!_modelTinting) return base;
+    return Color.lerp(
+      const Color(0xFF9E9689),
+      base,
+      0.35 + 0.65 * _appeal(index),
+    )!;
   }
 
   void _drawCommercial(Canvas canvas, int index, Rect rect) {
@@ -1686,13 +1779,23 @@ class _MapPainter extends CustomPainter {
         (c.sim.params.tile(c.sim.state.tiles[index]).airEmission.value /
                 reference)
             .clamp(0.0, 1.0);
+    // The plume leans the way the wind actually blows it in the air model, so
+    // a player can see which homes are downwind before reading an overlay.
+    // Costs nothing extra: the same puffs, offset.
+    final air = c.sim.params.air;
+    final towards = (air.windFromDegrees + 180) * math.pi / 180;
+    final drift = air.hasWind
+        ? Offset(math.sin(towards), -math.cos(towards)) *
+              (rect.width * 0.34 * (1 - 1 / air.windStretch))
+        : Offset.zero;
     for (var puff = 0; puff < 1 + (intensity * 2).round(); puff++) {
       final rise =
           (motion * (0.35 + intensity * 0.35) + _unit(index * 83 + puff)) % 1;
       final centre = Offset(
         chimney.center.dx +
-            math.sin((rise + puff) * math.pi * 2) * rect.width * 0.05,
-        chimney.top - rise * rect.height * 0.32,
+            math.sin((rise + puff) * math.pi * 2) * rect.width * 0.05 +
+            drift.dx * rise,
+        chimney.top - rise * rect.height * 0.32 + drift.dy * rise,
       );
       canvas.drawCircle(
         centre,
@@ -1890,7 +1993,13 @@ class _MapPainter extends CustomPainter {
       const Offset(0.22, 0.72),
       const Offset(0.75, 0.72),
     ];
-    final visible = 2 + (maturity * 3).round();
+    // Maturity says how grown the wood is; threat says how much of it survives
+    // being hemmed in. A fragmented wood should look fragmented.
+    final pressure = _modelTinting ? _threat(index) : 0.0;
+    final visible = math.max(
+      1,
+      (2 + (maturity * 3).round()) - (pressure * 2).round(),
+    );
     for (var tree = 0; tree < visible; tree++) {
       final p = positions[tree];
       final centre = Offset(
