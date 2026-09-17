@@ -42,3 +42,60 @@ Code: `packages/stadtbau_sim/lib/src/model/commute.dart`. Parameters: `commute.*
   https://www.mobilitaet-in-deutschland.de/archive/pdf/MiD2017_Analyse_zum_Rad_und_Fussverkehr.pdf
 - Destatis, Erwerbstätigenrechnung
 - Umweltbundesamt, Emissionsdaten Pkw (≈ 150 g CO₂/km Flottenmittel)
+
+## Public transport and cycling (T-502 follow-up, 2026-09-17)
+
+`tram_stop` and `cycle_path` shipped with no mechanism: they acted only through
+their land cover, and carried a placeholder negative `co2PerHaYear` because the
+traffic they replace had nowhere to go. They now act where they should.
+
+### A substitution, not a fourth mode
+
+The mode share bins are walk, bike and car; there is no public-transport mode,
+so the car share absorbs what would be transit. Rather than add a mode and
+recalibrate every bin, a stop or a route **takes a share of a cell's car trips
+away**:
+
+```
+transit = mean(transitAccess[origin], transitAccess[destination]) · transitCarReduction
+cycle   = mean(cycleAccess[origin],   cycleAccess[destination])   · cycleCarReduction
+                                                     … and 0 beyond cycleCompetitiveKm
+cars   ·= max(minCarShareFactor, 1 − transit − cycle)
+```
+
+Everything downstream — traffic on the road network, noise, air, CO₂ — follows
+from the reduced car count without any further change.
+
+`transitAccess` and `cycleAccess` are 1 on the tile and fall linearly to 0 at
+their radius, so a stop helps its neighbourhood rather than only its own cell.
+A trip needs the infrastructure **at both ends**, which is why the two ends are
+averaged; the external commute is served by a stop but not by a cycle route,
+being far beyond the competitive distance.
+
+`minCarShareFactor` keeps at least half of a cell's car trips: some journeys
+are not served by either, and a model that can reach zero cars invites a
+scenario that is won by tiling stops.
+
+### Where the numbers come from
+
+Anchored on the MiD 2017 national modal split — 22 % on foot, 11 % bicycle,
+43 % car driver, 14 % car passenger, **10 % public transport**. That 10 % mixes
+served and unserved places, so a stop in walking distance taking up to a
+quarter of a cell's car trips puts a fully served map above the national
+average without reaching the share of a large city. The cycling figure is of
+the order of the 11 % bicycle share, and of this model's own bins, which
+already peak cycling at 21 % between 1 and 1.5 km.
+
+The stop catchment of 400 m is ordinary planning practice for tram and light
+rail. These are **design values, not measured elasticities**, and say so in
+their `source` fields.
+
+### Limits
+
+- No timetable, capacity, line or network: a stop is useful in isolation, and
+  two stops do not connect to each other.
+- No fare, no operating subsidy. A stop costs its build and upkeep only.
+- The car trips removed do not reappear as transit trips anywhere: they simply
+  stop existing, so the commute distance and mode statistics describe the cars
+  that remain rather than all travel.
+- Cycling's cutoff is a hard distance rather than a taper.

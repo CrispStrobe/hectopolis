@@ -56,13 +56,19 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
     workers += w.population[i] * cp.labourParticipation;
   }
 
-  final localFraction = workers > 0 ? math.min(1.0, jobsCapacity / workers) : 0.0;
+  final localFraction = workers > 0
+      ? math.min(1.0, jobsCapacity / workers)
+      : 0.0;
   final inCommuters = math.max(0.0, jobsCapacity - workers);
   final outCommuters = workers * (1 - localFraction);
 
+  _computeAccess(w, p, f);
+
   final traffic = f.traffic;
   for (var i = 0; i < n; i++) {
-    traffic[i] = w.tiles[i] == TileType.road ? p.noise.baselineThroughTraffic : 0.0;
+    traffic[i] = w.tiles[i] == TileType.road
+        ? p.noise.baselineThroughTraffic
+        : 0.0;
     f.meanCommuteKm[i] = 0;
     f.carShare[i] = 0;
     f.connected[i] = network.nearestRoad[i] >= 0 ? 1 : 0;
@@ -110,7 +116,10 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
         final km = kmTable[d2];
         final commuters = localWorkers * share;
         meanKm += share * km;
-        final cars = commuters * carShareTable[d2];
+        final cars =
+            commuters *
+            carShareTable[d2] *
+            _modeFactor(p, f, i, jobCells[k], km);
         carTrips += cars;
         totalCarKm += cars * km * 2;
         final rd = jobRoad[k];
@@ -123,7 +132,12 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
     }
     final external = cellWorkers - localWorkers;
     if (external > 0) {
-      final cars = external * cp.externalCarShare;
+      // A stop serves a trip out of town too; a cycle route does not, since
+      // the external commute is far beyond the competitive distance.
+      final cars =
+          external *
+          cp.externalCarShare *
+          _shiftFactor(p, f.transitAccess[i] * cp.transitCarReduction);
       carTrips += cars;
       totalCarKm += cars * cp.externalCommuteKm * 2;
       final r = nearestRoadIdx[i];
@@ -147,7 +161,9 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
 
   network.assignPairTrips(traffic);
   for (var r = 0; r < roadCount; r++) {
-    if (externalTrips[r] > 0) network.assignExternalRoad(traffic, r, externalTrips[r]);
+    if (externalTrips[r] > 0) {
+      network.assignExternalRoad(traffic, r, externalTrips[r]);
+    }
   }
 
   f.totalCarKmPerDay = totalCarKm;
@@ -157,20 +173,89 @@ void computeCommute(WorldState w, SimParams p, Fields f) {
   f.outCommuters = outCommuters;
 }
 
+/// How much of a cell's car traffic public transport and cycling take away.
+///
+/// The model has no public-transport mode of its own -- the mode share bins
+/// are walk, bike and car, and the car share absorbs what would be transit --
+/// so a stop and a route act as a substitution away from the car rather than
+/// as a fourth mode. That keeps the change to one multiplier and keeps the
+/// traffic, noise and air chain downstream of it untouched.
+///
+/// A trip needs the infrastructure at both ends, so the origin and destination
+/// reach are averaged. Cycling only competes below `cycleCompetitiveKm`.
+double _modeFactor(
+  SimParams p,
+  Fields f,
+  int origin,
+  int destination,
+  double km,
+) {
+  final cp = p.commute;
+  final transit =
+      0.5 *
+      (f.transitAccess[origin] + f.transitAccess[destination]) *
+      cp.transitCarReduction;
+  var cycle =
+      0.5 *
+      (f.cycleAccess[origin] + f.cycleAccess[destination]) *
+      cp.cycleCarReduction;
+  if (km > cp.cycleCompetitiveKm) {
+    cycle = 0;
+  }
+  return _shiftFactor(p, transit + cycle);
+}
+
+/// Turn a shift share into a multiplier on car trips, with the floor applied.
+double _shiftFactor(SimParams p, double shift) =>
+    math.max(p.commute.minCarShareFactor, 1 - shift);
+
+/// Reach of a tram stop and of a cycle route per cell, 1 on the tile itself
+/// and falling linearly to 0 at the radius.
+void _computeAccess(WorldState w, SimParams p, Fields f) {
+  final cp = p.commute;
+  _reach(w, f.transitAccess, TileType.tramStop, cp.transitWalkRadiusTiles);
+  _reach(w, f.cycleAccess, TileType.cyclePath, cp.cyclePathRadiusTiles);
+}
+
+void _reach(WorldState w, Float64List out, TileType source, int radius) {
+  final n = w.cellCount;
+  final width = w.width;
+  final height = w.height;
+  out.fillRange(0, n, 0);
+  final offsets = Offsets.radius(radius);
+  for (var s = 0; s < n; s++) {
+    if (w.tiles[s] != source) continue;
+    out[s] = 1;
+    final sx = s % width;
+    final sy = s ~/ width;
+    for (var k = 0; k < offsets.length; k++) {
+      final rx = sx + offsets.dx[k];
+      if (rx < 0 || rx >= width) continue;
+      final ry = sy + offsets.dy[k];
+      if (ry < 0 || ry >= height) continue;
+      final value = 1 - offsets.dist[k] / radius;
+      final j = ry * width + rx;
+      if (value > out[j]) {
+        out[j] = value;
+      }
+    }
+  }
+}
+
 /// Distance-indexed lookup tables shared by every cell of a tick. Depend only
 /// on the grid size and the parameters, so they are rebuilt only when those
 /// change.
 class _CommuteTables {
   _CommuteTables(WorldState w, SimParams p)
-      : params = p,
-        maxDist2 = w.width * w.width + w.height * w.height,
-        decay = DecayTable(
-          maxDist2: w.width * w.width + w.height * w.height,
-          cellSizeM: p.cellSizeM,
-          decayM: p.access.jobDecayM,
-        ),
-        km = Float64List(w.width * w.width + w.height * w.height + 1),
-        carShare = Float64List(w.width * w.width + w.height * w.height + 1) {
+    : params = p,
+      maxDist2 = w.width * w.width + w.height * w.height,
+      decay = DecayTable(
+        maxDist2: w.width * w.width + w.height * w.height,
+        cellSizeM: p.cellSizeM,
+        decayM: p.access.jobDecayM,
+      ),
+      km = Float64List(w.width * w.width + w.height * w.height + 1),
+      carShare = Float64List(w.width * w.width + w.height * w.height + 1) {
     final cellKm = p.cellSizeM / 1000.0;
     for (var d2 = 0; d2 <= maxDist2; d2++) {
       final value = math.max(0.5, math.sqrt(d2.toDouble()) * cellKm);
@@ -195,7 +280,9 @@ _CommuteTables? _tables;
 _CommuteTables _tablesFor(WorldState w, SimParams p) {
   final cached = _tables;
   final maxDist2 = w.width * w.width + w.height * w.height;
-  if (cached != null && identical(cached.params, p) && cached.maxDist2 == maxDist2) {
+  if (cached != null &&
+      identical(cached.params, p) &&
+      cached.maxDist2 == maxDist2) {
     return cached;
   }
   return _tables = _CommuteTables(w, p);
@@ -242,12 +329,12 @@ class _Tree {
 /// cell. Sized for a few hundred road cells.
 class _RoadNetwork {
   _RoadNetwork(WorldState w, this.searchRadius)
-      : n = w.cellCount,
-        width = w.width,
-        height = w.height,
-        nearestRoad = Int32List(w.cellCount),
-        nearestRoadIdx = Int32List(w.cellCount),
-        roadMask = Uint8List(w.cellCount) {
+    : n = w.cellCount,
+      width = w.width,
+      height = w.height,
+      nearestRoad = Int32List(w.cellCount),
+      nearestRoadIdx = Int32List(w.cellCount),
+      roadMask = Uint8List(w.cellCount) {
     for (var i = 0; i < n; i++) {
       if (w.tiles[i] == TileType.road) {
         roadMask[i] = 1;

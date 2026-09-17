@@ -436,9 +436,17 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   makes solar the strongest climate lever in the game. It was left at the derived value rather
   than quietly scaled; whether to cap or rescale it is a design decision, noted in
   `docs/model/tiles.md`. No shipped level allows the tile, so nothing existing changed.
-  **Open:** `tram_stop` and `cycle_path` act only through their land cover. The point of both is
-  the car traffic they replace, which belongs in the commute model — mode share is derived from
-  distance alone today. Sub-types per level are also still open.
+  *Note 2026-09-17 (2):* `tram_stop` and `cycle_path` now act. The model has no public-transport
+  mode — the bins are walk, bike and car, and the car share absorbs what would be transit — so a
+  stop or a route takes a share of a cell's car trips away rather than adding a fourth mode, and
+  everything downstream (traffic, noise, air, CO₂) follows without further change. Reach falls
+  linearly to zero at the radius, a trip needs the infrastructure at both ends so the two are
+  averaged, and cycling stops competing past `cycleCompetitiveKm`. `minCarShareFactor` keeps at
+  least half the car trips, so no scenario is won by tiling stops. Anchored on the MiD 2017 modal
+  split (10% public transport, 11% bicycle nationally) and 400 m stop catchment from planning
+  practice; the reduction shares are design values and say so. Both placeholder `co2PerHaYear`
+  figures are gone — the benefit is modelled once now, in the commute, rather than twice.
+  **Open:** sub-types per level.
 - [~] **T-503 Water and runoff.** SCS curve number method (USDA, public domain) with
   sealing degree; flood risk indicator; wetlands and water as retention.
   *Note 2026-09-17:* `model/water.dart` implements the SCS curve number method in millimetres.
