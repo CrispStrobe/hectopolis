@@ -37,4 +37,7 @@ dart run tools/i18n_lint.dart
 echo "== license audit"
 tools/license_audit.sh
 
+echo "== privacy audit"
+tools/privacy_audit.sh
+
 echo "all checks passed"

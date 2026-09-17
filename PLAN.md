@@ -534,7 +534,21 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   the actual semantics tree, including the live-region flag.
   **Open:** a contrast and focus-order audit against BITV 2.0 / EN 301 549, and testing with a
   real screen reader — neither of which can be done from here.
-- [ ] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
+- [x] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
+  *Note 2026-09-17:* The guarantee already held — there is no networking API anywhere in
+  first-party code, and the dependency list is seven packages none of which reports anything.
+  So the work was turning a claim in a user-facing string into an invariant CI can fail on.
+  `tools/privacy_audit.sh`, wired into `check.sh`, fails if a networking API appears in
+  first-party code, if an analytics or crash-reporting package enters the **lock file** (so a
+  transitive dependency cannot slip one in), or if the app writes a `shared_preferences` key that
+  `docs/privacy.md` does not document. All three arms were verified by making each one fail on
+  purpose and checking the exit code, not just the message.
+  `docs/privacy.md` lists the five stored keys, names `url_launcher` as the single outbound path
+  and why it cannot fetch anything back, and records that the web build serves its own engine and
+  font so a first load contacts nobody — the two requests to Google that Flutter makes by
+  default. Local statistics are the stars and medals already kept for the player; nothing is
+  aggregated, and no identifier of any kind is generated, because nothing is sent that would need
+  one.
 - [ ] **T-703 Model documentation site.** `docs/model` rendered as a static site with
   formulas; "Quellen" page listing every dataset and law used.
 - [ ] **T-704 Contributor guide** for adding tile types and parameters with citations.
