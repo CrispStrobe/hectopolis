@@ -86,10 +86,15 @@ class CDP:
             await asyncio.sleep(0.05)
 
 
-# Palette row and grid geometry of the 1200x800 layout this drives.
-GRID_LEFT, GRID_TOP, CELL = 281, 65, 36.2
-SANDBOX_ROW = (600, 152)
-SPEED_10X = (979, 27)
+# Geometry of the 1400x900 layout this drives. The width matters: below 1280
+# the app bar collapses its speed buttons into the overflow menu, so --play
+# would click a zoom icon and measure a paused game. The palette is a
+# fixed-width column, so its rows are the same at any width; the grid and the
+# app bar are not.
+WINDOW = (1400, 900)
+GRID_LEFT, GRID_TOP, CELL = 331, 65, 42.5
+SANDBOX_ROW = (700, 152)
+SPEED_10X = (939, 27)
 PLAN = [((129, 283), [(x, y) for x in range(2, 14) for y in (2, 3)]),
         ((129, 531), [(x, y) for x in range(2, 14) for y in (6, 7, 8)]),
         ((129, 593), [(x, y) for x in range(2, 14) for y in (10, 11)])]
@@ -101,7 +106,7 @@ async def measure(chrome, url, port, seconds, shot, play=False):
         [chrome, "--headless=new", "--no-sandbox", "--disable-dev-shm-usage",
          "--use-gl=swiftshader", "--enable-unsafe-swiftshader", "--hide-scrollbars",
          f"--remote-debugging-port={port}", f"--user-data-dir={profile}",
-         "--window-size=1200,800", "about:blank"],
+         f"--window-size={WINDOW[0]},{WINDOW[1]}", "about:blank"],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         ws_url = None
