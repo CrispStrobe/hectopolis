@@ -775,6 +775,505 @@
         "value": 61,
         "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the verge is lawn in good condition; the carriageway is carried by tiles.*.sealing"
       }
+    },
+    "wetland": {
+      "category": "nature",
+      "residentsPerHa": {
+        "value": 0,
+        "source": "n/a"
+      },
+      "jobsPerHa": {
+        "value": 0,
+        "source": "n/a"
+      },
+      "sealing": {
+        "value": 0.0,
+        "source": "unsealed by definition"
+      },
+      "biotopeValue": {
+        "value": 22,
+        "source": "BKompV Anlage 2: Roehrichte und Grossseggenriede sit among the highest-valued biotope types, above open water (16) and below the scale maximum (24)",
+        "note": "initial estimate within the BKompV range"
+      },
+      "biotopeStart": {
+        "value": 0.35,
+        "source": "a newly created wetland is bare mud before the reed establishes",
+        "note": "initial estimate"
+      },
+      "recoveryMonths": {
+        "value": 180,
+        "source": "reed and sedge stands establish over roughly 15 years",
+        "note": "initial estimate"
+      },
+      "noiseEmissionDb": {
+        "value": 0,
+        "source": "no source"
+      },
+      "airEmission": {
+        "value": 0.0,
+        "source": "no source"
+      },
+      "airSink": {
+        "value": 0.08,
+        "source": "vegetated surface, below forest (0.20) and near park (0.10); Nowak et al. 2006 scaled",
+        "note": "initial estimate"
+      },
+      "shade": {
+        "value": 0.1,
+        "source": "InVEST Urban Cooling: open reed gives little canopy shade"
+      },
+      "albedo": {
+        "value": 0.12,
+        "source": "InVEST Urban Cooling: wet surfaces are dark"
+      },
+      "eti": {
+        "value": 0.95,
+        "source": "InVEST Urban Cooling: standing water and reed transpire near the potential rate, the highest of any cover here"
+      },
+      "greenWeight": {
+        "value": 0.5,
+        "source": "design: green and visible but not walkable recreation space, half of park"
+      },
+      "co2PerHaYear": {
+        "value": -5.0,
+        "source": "UBA: intact peat and wetland soils are net carbon sinks; set between park (-3) and forest (-10)",
+        "note": "initial estimate"
+      },
+      "buildCostKEur": {
+        "value": 250,
+        "source": "Renaturierung/Anlage von Feuchtflaechen, near open water (200)",
+        "note": "initial estimate"
+      },
+      "maintenanceKEurYear": {
+        "value": 1,
+        "source": "occasional reed cutting",
+        "note": "initial estimate"
+      },
+      "retailFloorM2": {
+        "value": 0,
+        "source": "n/a"
+      },
+      "noiseNightReductionDb": {
+        "value": 0,
+        "source": "no night emission to reduce"
+      },
+      "perviousCurveNumber": {
+        "value": 98,
+        "source": "open water and wetland do not infiltrate; handled as retention rather than as runoff-generating, see docs/model/water.md"
+      }
+    },
+    "solar_field": {
+      "category": "infrastructure",
+      "residentsPerHa": {
+        "value": 0,
+        "source": "n/a"
+      },
+      "jobsPerHa": {
+        "value": 0.5,
+        "source": "Freiflaechen-PV needs little on-site labour beyond maintenance",
+        "note": "initial estimate"
+      },
+      "sealing": {
+        "value": 0.1,
+        "source": "Freiflaechen-PV: modules stand on posts and the ground between them stays open; only foundations, tracks and inverter pads are sealed",
+        "note": "initial estimate"
+      },
+      "biotopeValue": {
+        "value": 8,
+        "source": "BKompV Anlage 2: extensively managed grassland under the modules, well below meadow (18) because of shading and access tracks",
+        "note": "initial estimate"
+      },
+      "biotopeStart": {
+        "value": 0.7,
+        "source": "the grassland is sown with the installation",
+        "note": "initial estimate"
+      },
+      "recoveryMonths": {
+        "value": 60,
+        "source": "sward establishes within about five years",
+        "note": "initial estimate"
+      },
+      "noiseEmissionDb": {
+        "value": 0,
+        "source": "inverter hum is negligible at 100 m"
+      },
+      "airEmission": {
+        "value": 0.0,
+        "source": "no source"
+      },
+      "airSink": {
+        "value": 0.02,
+        "source": "sparse vegetation between modules",
+        "note": "initial estimate"
+      },
+      "shade": {
+        "value": 0.3,
+        "source": "InVEST Urban Cooling: modules shade the ground but are themselves hot surfaces"
+      },
+      "albedo": {
+        "value": 0.1,
+        "source": "InVEST Urban Cooling: photovoltaic modules are deliberately dark, the lowest albedo of any cover here"
+      },
+      "eti": {
+        "value": 0.3,
+        "source": "InVEST Urban Cooling: shaded sward transpires less than open grassland"
+      },
+      "greenWeight": {
+        "value": 0.1,
+        "source": "design: fenced and not accessible, so almost no recreation value"
+      },
+      "co2PerHaYear": {
+        "value": -266.0,
+        "source": "derived: German ground-mount PV occupies about 1.4 ha per MWp, so 1 ha is roughly 0.7 MWp; at about 1000 kWh/kWp/yr that is 700 MWh/ha/yr, and at the UBA grid emission factor of about 380 g CO2/kWh that displaces 266 t/ha/yr",
+        "note": "this is an AVOIDED emission, an order of magnitude larger than any emitted value in this table; see docs/model/tiles.md"
+      },
+      "buildCostKEur": {
+        "value": 700,
+        "source": "Freiflaechen-PV investment is roughly 500-700 EUR/kWp, so about 0.7 MWp/ha gives 350-490 kEUR plus grid connection",
+        "note": "initial estimate"
+      },
+      "maintenanceKEurYear": {
+        "value": 8,
+        "source": "PV operation and maintenance runs a low single-digit percent of investment per year",
+        "note": "initial estimate"
+      },
+      "retailFloorM2": {
+        "value": 0,
+        "source": "n/a"
+      },
+      "noiseNightReductionDb": {
+        "value": 0,
+        "source": "no night emission to reduce"
+      },
+      "perviousCurveNumber": {
+        "value": 61,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the sward between modules is grassland in good condition"
+      }
+    },
+    "mixed_use": {
+      "category": "residential",
+      "residentsPerHa": {
+        "value": 120,
+        "source": "design: between apartment blocks (180) and detached housing (45); the ground floor is given to shops and workshops instead of flats"
+      },
+      "jobsPerHa": {
+        "value": 45,
+        "source": "design: ground-floor retail, offices and workshops, between apartment blocks (15) and commercial (100)"
+      },
+      "sealing": {
+        "value": 0.7,
+        "source": "design: dense but with courtyards, just below apartment blocks (0.75)"
+      },
+      "biotopeValue": {
+        "value": 4,
+        "source": "BKompV Anlage 2: densely built land with courtyards, as apartment blocks (4)"
+      },
+      "biotopeStart": {
+        "value": 1.0,
+        "source": "built land does not mature"
+      },
+      "recoveryMonths": {
+        "value": 1,
+        "source": "n/a"
+      },
+      "noiseEmissionDb": {
+        "value": 55,
+        "source": "design: quieter than pure commercial (58) because the upper floors are homes, louder than apartment blocks (50) because of deliveries and custom"
+      },
+      "airEmission": {
+        "value": 0.35,
+        "source": "design: between apartment blocks (0.3) and commercial (0.6)"
+      },
+      "airSink": {
+        "value": 0.02,
+        "source": "street trees and courtyards",
+        "note": "initial estimate"
+      },
+      "shade": {
+        "value": 0.35,
+        "source": "InVEST Urban Cooling: built up with some courtyard planting"
+      },
+      "albedo": {
+        "value": 0.2,
+        "source": "InVEST Urban Cooling: mixed roof and render surfaces"
+      },
+      "eti": {
+        "value": 0.25,
+        "source": "InVEST Urban Cooling: little transpiring surface"
+      },
+      "greenWeight": {
+        "value": 0.05,
+        "source": "design: courtyards only, as apartment blocks"
+      },
+      "co2PerHaYear": {
+        "value": 55,
+        "source": "design: between apartment blocks (50) and commercial (60), reflecting both residents and business"
+      },
+      "buildCostKEur": {
+        "value": 450,
+        "source": "design: above apartment blocks (400) for the commercial ground floor"
+      },
+      "maintenanceKEurYear": {
+        "value": 10,
+        "source": "design: between apartment blocks and commercial"
+      },
+      "retailFloorM2": {
+        "value": 3000,
+        "source": "design: a ground floor of shops at about a third of the commercial figure"
+      },
+      "noiseNightReductionDb": {
+        "value": 6,
+        "source": "design: between homes (5) and shops (8); the flats stay occupied but the shops close"
+      },
+      "perviousCurveNumber": {
+        "value": 61,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: courtyards are lawn in good condition; the sealed part is carried by sealing"
+      }
+    },
+    "school": {
+      "category": "work",
+      "residentsPerHa": {
+        "value": 0,
+        "source": "n/a: pupils are counted at home, not at school"
+      },
+      "jobsPerHa": {
+        "value": 25,
+        "source": "design: teaching and support staff for a school serving a few thousand residents, a quarter of commercial (100)"
+      },
+      "sealing": {
+        "value": 0.5,
+        "source": "design: buildings and a hard yard, with a sports field and planting; above detached housing (0.45) and well below commercial (0.85)"
+      },
+      "biotopeValue": {
+        "value": 6,
+        "source": "BKompV Anlage 2: school grounds with lawn and trees, above apartment blocks (4) and near cropland (6)",
+        "note": "initial estimate"
+      },
+      "biotopeStart": {
+        "value": 0.8,
+        "source": "grounds are planted with the building",
+        "note": "initial estimate"
+      },
+      "recoveryMonths": {
+        "value": 120,
+        "source": "yard trees take a decade to matter",
+        "note": "initial estimate"
+      },
+      "noiseEmissionDb": {
+        "value": 52,
+        "source": "design: a school yard is loud in bursts but quiet outside school hours; between apartment blocks (50) and mixed use (55)"
+      },
+      "airEmission": {
+        "value": 0.15,
+        "source": "design: heating and the school run, as detached housing"
+      },
+      "airSink": {
+        "value": 0.05,
+        "source": "grounds planting, as meadow",
+        "note": "initial estimate"
+      },
+      "shade": {
+        "value": 0.4,
+        "source": "InVEST Urban Cooling: yard trees and a sports field"
+      },
+      "albedo": {
+        "value": 0.22,
+        "source": "InVEST Urban Cooling: light roofs and hard yard"
+      },
+      "eti": {
+        "value": 0.4,
+        "source": "InVEST Urban Cooling: lawn and sports turf"
+      },
+      "greenWeight": {
+        "value": 0.3,
+        "source": "design: grounds are open out of hours in many places but are not a park"
+      },
+      "co2PerHaYear": {
+        "value": 30,
+        "source": "design: a heated public building with few processes, above detached housing (25)"
+      },
+      "buildCostKEur": {
+        "value": 900,
+        "source": "design: the most expensive tile: a school building is a large public investment per hectare"
+      },
+      "maintenanceKEurYear": {
+        "value": 45,
+        "source": "design: staffed and heated year round, the highest upkeep of any tile"
+      },
+      "retailFloorM2": {
+        "value": 0,
+        "source": "n/a"
+      },
+      "noiseNightReductionDb": {
+        "value": 12,
+        "source": "design: empty at night, the largest night reduction of any emitter"
+      },
+      "perviousCurveNumber": {
+        "value": 61,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: lawn and sports turf in good condition; the sealed part is carried by sealing"
+      }
+    },
+    "tram_stop": {
+      "category": "infrastructure",
+      "residentsPerHa": {
+        "value": 0,
+        "source": "n/a"
+      },
+      "jobsPerHa": {
+        "value": 1,
+        "source": "design: a stop is not a workplace beyond occasional staff"
+      },
+      "sealing": {
+        "value": 0.85,
+        "source": "design: track bed, platform and pavement, just below main road (0.95); grassed track is possible but not assumed"
+      },
+      "biotopeValue": {
+        "value": 1,
+        "source": "BKompV Anlage 2: sealed transport land, between main road (0) and commercial (2)"
+      },
+      "biotopeStart": {
+        "value": 1.0,
+        "source": "built land does not mature"
+      },
+      "recoveryMonths": {
+        "value": 1,
+        "source": "n/a"
+      },
+      "noiseEmissionDb": {
+        "value": 56,
+        "source": "design: trams are quieter per passenger than the equivalent car traffic but squeal on curves and at stops; below main road (60)"
+      },
+      "airEmission": {
+        "value": 0.05,
+        "source": "design: electric traction emits nothing locally; the figure covers brake and rail dust"
+      },
+      "airSink": {
+        "value": 0.0,
+        "source": "no source"
+      },
+      "shade": {
+        "value": 0.1,
+        "source": "InVEST Urban Cooling: shelter and any stop planting"
+      },
+      "albedo": {
+        "value": 0.12,
+        "source": "InVEST Urban Cooling: rail and asphalt"
+      },
+      "eti": {
+        "value": 0.05,
+        "source": "InVEST Urban Cooling: almost nothing transpires"
+      },
+      "greenWeight": {
+        "value": 0.0,
+        "source": "n/a"
+      },
+      "co2PerHaYear": {
+        "value": -20.0,
+        "source": "design placeholder: the point of a stop is the car traffic it replaces, which belongs in the commute model rather than in a per-hectare figure; a modest negative stands in until that exists"
+      },
+      "buildCostKEur": {
+        "value": 800,
+        "source": "design: a stop plus its share of track is expensive per hectare, near a school"
+      },
+      "maintenanceKEurYear": {
+        "value": 25,
+        "source": "design: track and vehicle upkeep"
+      },
+      "retailFloorM2": {
+        "value": 0,
+        "source": "n/a"
+      },
+      "noiseNightReductionDb": {
+        "value": 9,
+        "source": "design: night service is thinner than the day timetable, a larger drop than a road (6.5)"
+      },
+      "perviousCurveNumber": {
+        "value": 61,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the verge beside the track is lawn; the sealed part is carried by sealing"
+      }
+    },
+    "cycle_path": {
+      "category": "infrastructure",
+      "residentsPerHa": {
+        "value": 0,
+        "source": "n/a"
+      },
+      "jobsPerHa": {
+        "value": 0,
+        "source": "n/a"
+      },
+      "sealing": {
+        "value": 0.35,
+        "source": "design: a 3 m asphalt path in a green corridor seals a third of the hectare, far less than a main road (0.95)"
+      },
+      "biotopeValue": {
+        "value": 12,
+        "source": "BKompV Anlage 2: a path through a green verge keeps most of the hectare vegetated; between park (13) and school grounds (6)",
+        "note": "initial estimate"
+      },
+      "biotopeStart": {
+        "value": 0.6,
+        "source": "the verge is sown with the path",
+        "note": "initial estimate"
+      },
+      "recoveryMonths": {
+        "value": 120,
+        "source": "verge trees and hedges take a decade",
+        "note": "initial estimate"
+      },
+      "noiseEmissionDb": {
+        "value": 0,
+        "source": "bicycles are inaudible against a 35 dB rural background at 100 m"
+      },
+      "airEmission": {
+        "value": 0.0,
+        "source": "no source"
+      },
+      "airSink": {
+        "value": 0.06,
+        "source": "verge planting, between meadow (0.05) and park (0.10)",
+        "note": "initial estimate"
+      },
+      "shade": {
+        "value": 0.35,
+        "source": "InVEST Urban Cooling: hedge and verge trees along the route"
+      },
+      "albedo": {
+        "value": 0.15,
+        "source": "InVEST Urban Cooling: asphalt with green either side"
+      },
+      "eti": {
+        "value": 0.55,
+        "source": "InVEST Urban Cooling: mostly vegetated, below meadow"
+      },
+      "greenWeight": {
+        "value": 0.4,
+        "source": "design: a green corridor people use, below park (1.0) but real"
+      },
+      "co2PerHaYear": {
+        "value": -2.0,
+        "source": "design placeholder: the point of a cycle path is the car trips it replaces, which belongs in the commute model; the verge itself is a small sink, near meadow (-1)"
+      },
+      "buildCostKEur": {
+        "value": 120,
+        "source": "design: asphalt path plus verge, well below a main road (300)"
+      },
+      "maintenanceKEurYear": {
+        "value": 3,
+        "source": "design: sweeping, surface and hedge cutting"
+      },
+      "retailFloorM2": {
+        "value": 0,
+        "source": "n/a"
+      },
+      "noiseNightReductionDb": {
+        "value": 0,
+        "source": "no night emission to reduce"
+      },
+      "perviousCurveNumber": {
+        "value": 58,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the verge is meadow, continuous grass; the sealed part is carried by sealing"
+      }
     }
   },
   "noise": {

@@ -74,6 +74,27 @@ void main() {
     expect(sealed.fields.floodRiskCells, lessThan(riskBefore));
   });
 
+  test('wetland retains like open water', () {
+    double meanRunoffWith(TileType retention) {
+      final sim = Simulation.sandbox();
+      for (var x = 4; x < 11; x++) {
+        for (var y = 4; y < 11; y++) {
+          sim.apply(PlaceTile(x, y, TileType.industry));
+        }
+      }
+      final sealed = sim.fields.meanRunoffMm;
+      sim.apply(PlaceTile(7, 7, retention));
+      expect(sim.fields.meanRunoffMm, lessThan(sealed), reason: retention.id);
+      return sim.fields.meanRunoffMm;
+    }
+
+    // Both hold a storm back, and by the same capacity parameter.
+    expect(
+      meanRunoffWith(TileType.wetland),
+      closeTo(meanRunoffWith(TileType.water), 1e-12),
+    );
+  });
+
   test('a bare map shows no flood risk', () {
     final sim = Simulation.sandbox();
     expect(sim.fields.floodRiskCells, 0);

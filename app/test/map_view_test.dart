@@ -130,15 +130,20 @@ void main() {
     final rect = await pumpMap(tester);
     await focusMap(tester, rect);
     final types = c.allowedTypes;
-    expect(types.length, 10);
+    // The sandbox allows everything, so this tracks the tile table rather than
+    // a number that has to be edited whenever a tile type is added.
+    expect(types.length, TileType.values.length);
 
     await tester.sendKeyEvent(LogicalKeyboardKey.digit1);
     expect(c.brush, types.first);
     await tester.sendKeyEvent(LogicalKeyboardKey.digit3);
     expect(c.brush, types[2]);
-    // 0 is the tenth tile.
+    // 0 is the tenth tile, and the last one a digit can reach: there are only
+    // ten keys. Tiles beyond the tenth are mouse- or Tab-only, and the palette
+    // shows no shortcut badge on them.
     await tester.sendKeyEvent(LogicalKeyboardKey.digit0);
     expect(c.brush, types[9]);
+    expect(types.length, greaterThan(10), reason: 'the gap above is real');
 
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     expect(c.brush, isNull);

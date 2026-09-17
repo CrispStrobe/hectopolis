@@ -15,12 +15,18 @@ class TileStyle {
     TileType.cropland: TileStyle(Color(0xFFE6CE8A), Icons.agriculture, Color(0xFF795548)),
     TileType.forest: TileStyle(Color(0xFF388E3C), Icons.forest, Color(0xFF1B5E20)),
     TileType.water: TileStyle(Color(0xFF64B5F6), Icons.water, Color(0xFF0D47A1)),
+    TileType.wetland: TileStyle(Color(0xFF80CBC4), Icons.water_drop, Color(0xFF00695C)),
     TileType.park: TileStyle(Color(0xFF81C784), Icons.park, Color(0xFF1B5E20)),
     TileType.housingLow: TileStyle(Color(0xFFFFE0B2), Icons.house, Color(0xFFE65100)),
     TileType.housingHigh: TileStyle(Color(0xFFFFAB91), Icons.apartment, Color(0xFFBF360C)),
+    TileType.mixedUse: TileStyle(Color(0xFFD1C4E9), Icons.holiday_village, Color(0xFF512DA8)),
     TileType.commercial: TileStyle(Color(0xFFB39DDB), Icons.storefront, Color(0xFF4527A0)),
     TileType.industry: TileStyle(Color(0xFFB0BEC5), Icons.factory, Color(0xFF37474F)),
+    TileType.school: TileStyle(Color(0xFFFFE082), Icons.school, Color(0xFF8D6E00)),
+    TileType.solarField: TileStyle(Color(0xFF546E7A), Icons.solar_power, Color(0xFFFFF176)),
     TileType.road: TileStyle(Color(0xFF757575), Icons.add_road, Color(0xFFEEEEEE)),
+    TileType.tramStop: TileStyle(Color(0xFF90A4AE), Icons.tram, Color(0xFF263238)),
+    TileType.cyclePath: TileStyle(Color(0xFFC5E1A5), Icons.directions_bike, Color(0xFF33691E)),
   };
 
   static TileStyle of(TileType t) => _styles[t]!;

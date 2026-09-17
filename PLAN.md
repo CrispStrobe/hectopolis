@@ -424,8 +424,21 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   follows the meteorological convention so it can be read off a wind rose.
   `docs/model/air.md` documents it as a screening stand-in for a Gaussian plume, not a solution of
   one, and lists what it leaves out: no stability class, no plume rise, no wind rose, no downwash.
-- [ ] **T-502 Wetland, solar field, mixed-use, school, tram stop, cycle path** tile types
+- [~] **T-502 Wetland, solar field, mixed-use, school, tram stop, cycle path** tile types
   with parameters and sources (extends §4.1 to ~16 types; sub-types per level).
+  *Note 2026-09-17:* All six exist: ten tile types to sixteen, each with the full parameter set,
+  a style, a drawing, and DE/EN name and description. Sources follow the file's own convention —
+  a real citation where one exists (BKompV, InVEST, TR-55), an explicit `design:` or
+  `initial estimate` where the value interpolates between already-calibrated tiles.
+  Wetland joins open water in the runoff retention set, closing the gap T-503 left open.
+  **`solar_field.co2PerHaYear` is −266 t/ha/yr**, derived from PV land use, yield and the UBA
+  grid emission factor. That is an order of magnitude larger than anything else in the table and
+  makes solar the strongest climate lever in the game. It was left at the derived value rather
+  than quietly scaled; whether to cap or rescale it is a design decision, noted in
+  `docs/model/tiles.md`. No shipped level allows the tile, so nothing existing changed.
+  **Open:** `tram_stop` and `cycle_path` act only through their land cover. The point of both is
+  the car traffic they replace, which belongs in the commute model — mode share is derived from
+  distance alone today. Sub-types per level are also still open.
 - [~] **T-503 Water and runoff.** SCS curve number method (USDA, public domain) with
   sealing degree; flood risk indicator; wetlands and water as retention.
   *Note 2026-09-17:* `model/water.dart` implements the SCS curve number method in millimetres.

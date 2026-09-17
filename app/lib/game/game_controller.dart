@@ -567,12 +567,17 @@ class GameController extends ChangeNotifier {
 
   static MapOverlay _previewOverlay(TileType tile) => switch (tile) {
     TileType.forest || TileType.meadow => MapOverlay.habitat,
-    TileType.water || TileType.park => MapOverlay.green,
+    TileType.water || TileType.park || TileType.wetland => MapOverlay.green,
+    TileType.cyclePath => MapOverlay.green,
     TileType.cropland => MapOverlay.heat,
     TileType.housingLow || TileType.housingHigh => MapOverlay.attractiveness,
-    TileType.commercial => MapOverlay.retail,
+    TileType.commercial || TileType.mixedUse => MapOverlay.retail,
+    TileType.school => MapOverlay.jobs,
+    // Dark modules are the one thing a solar field does to its surroundings
+    // that the map can show; the CO2 it displaces has no overlay.
+    TileType.solarField => MapOverlay.heat,
     TileType.industry => MapOverlay.air,
-    TileType.road => MapOverlay.noise,
+    TileType.road || TileType.tramStop => MapOverlay.noise,
   };
 
   static double _previewThreshold(MapOverlay overlay) => switch (overlay) {

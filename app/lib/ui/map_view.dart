@@ -1328,6 +1328,21 @@ class _MapPainter extends CustomPainter {
       case TileType.water:
         _drawWater(canvas, index, rect, still: still, moving: moving);
         break;
+      case TileType.wetland:
+        // Shallow water with reeds standing in it: the shoreline and reeds are
+        // still, the ripples move.
+        _drawWater(canvas, index, rect, still: still, moving: moving);
+        if (still) _drawReeds(canvas, index, rect);
+        break;
+      case TileType.solarField:
+        if (still) _drawSolarField(canvas, index, rect);
+        break;
+      case TileType.cyclePath:
+        if (still) _drawCyclePath(canvas, index, rect);
+        break;
+      case TileType.tramStop:
+        if (still) _drawTramStop(canvas, index, rect);
+        break;
       case TileType.park:
         if (still) _drawPark(canvas, index, rect);
         break;
@@ -1336,8 +1351,10 @@ class _MapPainter extends CustomPainter {
         break;
       case TileType.housingLow ||
           TileType.housingHigh ||
+          TileType.mixedUse ||
           TileType.commercial ||
-          TileType.industry:
+          TileType.industry ||
+          TileType.school:
         final body = growing ? moving : still;
         if (body || moving) {
           _withConstruction(
@@ -1588,6 +1605,10 @@ class _MapPainter extends CustomPainter {
         _drawLowHousing(canvas, index, rect, body: body, lights: lights);
       case TileType.housingHigh:
         _drawHighHousing(canvas, index, rect, body: body, lights: lights);
+      case TileType.mixedUse:
+        _drawMixedUse(canvas, index, rect, body: body, lights: lights);
+      case TileType.school:
+        if (body) _drawSchool(canvas, index, rect);
       case TileType.commercial:
         if (body) _drawCommercial(canvas, index, rect);
       case TileType.industry:
@@ -1714,6 +1735,212 @@ class _MapPainter extends CustomPainter {
       base,
       0.35 + 0.65 * _appeal(index),
     )!;
+  }
+
+  /// Reeds standing in shallow water.
+  void _drawReeds(Canvas canvas, int index, Rect rect) {
+    if (rect.width * scale < 12) return;
+    final stem = Paint()
+      ..color = const Color(0xFF6D8C3A)
+      ..strokeWidth = math.max(0.6 / scale, rect.width * 0.016)
+      ..strokeCap = StrokeCap.round;
+    final head = Paint()..color = const Color(0xFF8D6E63);
+    for (var r = 0; r < 7; r++) {
+      final x = rect.left + rect.width * (0.12 + _unit(index * 149 + r) * 0.76);
+      final base =
+          rect.top + rect.height * (0.3 + _unit(index * 151 + r) * 0.6);
+      final h = rect.height * (0.16 + _unit(index * 157 + r) * 0.12);
+      canvas.drawLine(Offset(x, base), Offset(x, base - h), stem);
+      canvas.drawCircle(Offset(x, base - h), rect.width * 0.016, head);
+    }
+  }
+
+  /// Rows of dark modules on posts, with the sward showing between them.
+  void _drawSolarField(Canvas canvas, int index, Rect rect) {
+    if (rect.width * scale < 11) return;
+    final panel = Paint()..color = const Color(0xFF1A2733);
+    final glint = Paint()
+      ..color = const Color(0xFF7EA8C4).withValues(alpha: 0.5);
+    const rows = 3;
+    for (var row = 0; row < rows; row++) {
+      final top = rect.top + rect.height * (0.18 + row * 0.26);
+      final r = Rect.fromLTWH(
+        rect.left + rect.width * 0.1,
+        top,
+        rect.width * 0.8,
+        rect.height * 0.15,
+      );
+      canvas.drawRect(
+        r.shift(Offset(0, r.height * 0.35)),
+        Paint()..color = Colors.black.withValues(alpha: 0.12),
+      );
+      canvas.drawRect(r, panel);
+      // A single highlight per row reads as glass without becoming stripes.
+      canvas.drawRect(
+        Rect.fromLTWH(r.left, r.top, r.width, r.height * 0.22),
+        glint,
+      );
+    }
+  }
+
+  /// A path through a green corridor, with its verge left planted.
+  void _drawCyclePath(Canvas canvas, int index, Rect rect) {
+    if (rect.width * scale < 10) return;
+    final horizontal = _unit(index * 211) > 0.5;
+    final band = horizontal
+        ? Rect.fromLTWH(
+            rect.left,
+            rect.center.dy - rect.height * 0.13,
+            rect.width,
+            rect.height * 0.26,
+          )
+        : Rect.fromLTWH(
+            rect.center.dx - rect.width * 0.13,
+            rect.top,
+            rect.width * 0.26,
+            rect.height,
+          );
+    canvas.drawRect(band, Paint()..color = const Color(0xFF6E6A63));
+    final dash = Paint()
+      ..color = const Color(0xFFF5F0E1).withValues(alpha: 0.75)
+      ..strokeWidth = math.max(0.6 / scale, rect.width * 0.014);
+    for (var d = 0; d < 4; d++) {
+      final t = 0.15 + d * 0.23;
+      canvas.drawLine(
+        horizontal
+            ? Offset(rect.left + rect.width * t, band.center.dy)
+            : Offset(band.center.dx, rect.top + rect.height * t),
+        horizontal
+            ? Offset(rect.left + rect.width * (t + 0.1), band.center.dy)
+            : Offset(band.center.dx, rect.top + rect.height * (t + 0.1)),
+        dash,
+      );
+    }
+  }
+
+  /// Rails with a platform beside them.
+  void _drawTramStop(Canvas canvas, int index, Rect rect) {
+    if (rect.width * scale < 10) return;
+    canvas.drawRect(
+      Rect.fromLTWH(
+        rect.left,
+        rect.center.dy - rect.height * 0.18,
+        rect.width,
+        rect.height * 0.36,
+      ),
+      Paint()..color = const Color(0xFF5B6268),
+    );
+    final rail = Paint()
+      ..color = const Color(0xFFCFD8DC)
+      ..strokeWidth = math.max(0.7 / scale, rect.width * 0.022);
+    for (final dy in [-0.07, 0.07]) {
+      canvas.drawLine(
+        Offset(rect.left, rect.center.dy + rect.height * dy),
+        Offset(rect.right, rect.center.dy + rect.height * dy),
+        rail,
+      );
+    }
+    // The platform, which is what makes it a stop rather than track.
+    canvas.drawRect(
+      Rect.fromLTWH(
+        rect.left + rect.width * 0.2,
+        rect.center.dy + rect.height * 0.2,
+        rect.width * 0.6,
+        rect.height * 0.14,
+      ),
+      Paint()..color = const Color(0xFFE0E0E0),
+    );
+  }
+
+  /// Homes over shops: a block with a lit shopfront along its foot.
+  void _drawMixedUse(
+    Canvas canvas,
+    int index,
+    Rect rect, {
+    required bool body,
+    required bool lights,
+  }) {
+    final block = Rect.fromLTWH(
+      rect.left + rect.width * 0.12,
+      rect.top + rect.height * 0.16,
+      rect.width * 0.76,
+      rect.height * 0.66,
+    );
+    if (body) {
+      _shadowedRect(canvas, block, _facade(index, const Color(0xFFE8DEF8)));
+      canvas.drawRect(
+        Rect.fromLTWH(block.left, block.top, block.width, block.height * 0.1),
+        Paint()..color = const Color(0xFF7E57C2),
+      );
+      // The shopfront band along the ground floor.
+      canvas.drawRect(
+        Rect.fromLTWH(
+          block.left,
+          block.bottom - block.height * 0.26,
+          block.width,
+          block.height * 0.26,
+        ),
+        Paint()..color = const Color(0xFF9575CD),
+      );
+    }
+    if (!lights) return;
+    final occupied = _occupancy(index);
+    for (var row = 0; row < 2; row++) {
+      for (var column = 0; column < 3; column++) {
+        _window(
+          canvas,
+          Offset(
+            block.left + block.width * (0.22 + 0.28 * column),
+            block.top + block.height * (0.3 + 0.24 * row),
+          ),
+          rect.width * 0.035,
+          occupied,
+          index * 23 + row * 3 + column,
+        );
+      }
+    }
+  }
+
+  /// A low building with a yard and a sports field.
+  void _drawSchool(Canvas canvas, int index, Rect rect) {
+    if (rect.width * scale < 11) return;
+    final wing = Rect.fromLTWH(
+      rect.left + rect.width * 0.1,
+      rect.top + rect.height * 0.2,
+      rect.width * 0.52,
+      rect.height * 0.34,
+    );
+    _shadowedRect(canvas, wing, const Color(0xFFFFF8E1));
+    canvas.drawRect(
+      Rect.fromLTWH(wing.left, wing.top, wing.width, wing.height * 0.2),
+      Paint()..color = const Color(0xFFBF8A2E),
+    );
+    for (var w = 0; w < 4; w++) {
+      canvas.drawRect(
+        Rect.fromLTWH(
+          wing.left + wing.width * (0.1 + w * 0.22),
+          wing.center.dy,
+          wing.width * 0.12,
+          wing.height * 0.28,
+        ),
+        Paint()..color = const Color(0xFF90A4AE),
+      );
+    }
+    // The yard: a pitch marking is the clearest sign of a school from above.
+    final yard = Rect.fromLTWH(
+      rect.left + rect.width * 0.14,
+      rect.bottom - rect.height * 0.34,
+      rect.width * 0.72,
+      rect.height * 0.22,
+    );
+    canvas.drawRect(yard, Paint()..color = const Color(0xFF8FB96B));
+    canvas.drawRect(
+      yard.deflate(yard.height * 0.18),
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.7)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(0.6 / scale, rect.width * 0.012),
+    );
   }
 
   void _drawCommercial(Canvas canvas, int index, Rect rect) {

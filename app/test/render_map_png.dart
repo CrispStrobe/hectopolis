@@ -56,6 +56,20 @@ void main() {
       c.place(x, 3, TileType.water);
     }
     c.place(5, 6, TileType.park);
+    // The T-502 tiles, so a render shows them too.
+    for (var x = 1; x < 4; x++) {
+      c.place(x, 6, TileType.wetland);
+    }
+    c.place(13, 2, TileType.mixedUse);
+    c.place(14, 2, TileType.mixedUse);
+    c.place(13, 5, TileType.school);
+    for (var x = 1; x < 5; x++) {
+      c.place(x, 14, TileType.solarField);
+    }
+    c.place(7, 12, TileType.tramStop);
+    for (var y = 0; y < 16; y++) {
+      c.place(10, y, TileType.cyclePath);
+    }
     for (var i = 0; i < 36; i++) {
       c.step();
     }
@@ -63,10 +77,18 @@ void main() {
     await tester.pumpWidget(
       RepaintBoundary(
         key: key,
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: GameScreen(controller: c, onLocaleToggle: () {}),
+        child: MediaQuery(
+          // Reduce-motion stops the map's repeating animation controller. The
+          // render needs that for two reasons: a ticker that never stops makes
+          // `flutter test` hang at shutdown after the PNG is already written,
+          // which looks like a pass followed by a mysterious timeout; and a
+          // frozen clock makes two renders of the same map comparable.
+          data: const MediaQueryData(disableAnimations: true),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: GameScreen(controller: c, onLocaleToggle: () {}),
+          ),
         ),
       ),
     );
