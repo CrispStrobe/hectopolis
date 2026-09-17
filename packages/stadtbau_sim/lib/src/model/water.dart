@@ -85,4 +85,9 @@ void computeWater(WorldState w, SimParams p, Fields f) {
 }
 
 /// Tiles that take water rather than shed it.
-bool _isRetention(TileType t) => t == TileType.water;
+///
+/// Wetland is here for the reason it exists: reed beds and wet soil hold a
+/// storm back where sealed ground passes it straight on. T-503 landed with
+/// only open water in this set because wetland did not exist yet.
+bool _isRetention(TileType t) =>
+    t == TileType.water || t == TileType.wetland;

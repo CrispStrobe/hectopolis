@@ -23,19 +23,28 @@ enum TileCategory {
   bool get isBuilt => this == residential || this == work || this == infrastructure;
 }
 
-/// The ten tile types of model v1. Ids match `data/params/tiles.json` and the
-/// ARB keys `tile_<id>` in the app.
+/// The tile types of the model. Ids match `data/params/tiles.json` and the ARB
+/// keys `tile_<id>` in the app.
+///
+/// Order is palette order, so related tiles sit together: nature, then urban
+/// green, then places people live and work, then the ways they move.
 enum TileType {
   meadow('meadow'),
   cropland('cropland'),
   forest('forest'),
   water('water'),
+  wetland('wetland'),
   park('park'),
   housingLow('housing_low'),
   housingHigh('housing_high'),
+  mixedUse('mixed_use'),
   commercial('commercial'),
   industry('industry'),
-  road('road');
+  school('school'),
+  solarField('solar_field'),
+  road('road'),
+  tramStop('tram_stop'),
+  cyclePath('cycle_path');
 
   const TileType(this.id);
 

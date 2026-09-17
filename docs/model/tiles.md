@@ -76,3 +76,52 @@ fleet average). Initial estimates.
 - BauNVO § 17: https://www.gesetze-im-internet.de/baunvo/__17.html
 - Copernicus Land Monitoring Service, Imperviousness
 - InVEST User Guide, Urban Cooling Model
+
+## The six tiles added by T-502 (2026-09-17)
+
+`wetland`, `solar_field`, `mixed_use`, `school`, `tram_stop`, `cycle_path`,
+taking the table from ten types to sixteen.
+
+Sources follow the convention already in `tiles.json`: a real citation where
+one exists (BKompV Anlage 2, InVEST Urban Cooling, TR-55 Table 2-2), and an
+explicit `design:` or `initial estimate` where the value is an interpolation
+between tiles that are already calibrated. Nothing is presented as sourced
+that is not.
+
+### One value is unlike the others
+
+`solar_field.co2PerHaYear` is **−266 t/ha/yr**, derived rather than estimated:
+German ground-mount PV occupies about 1.4 ha per MWp, so a hectare is roughly
+0.7 MWp; at about 1000 kWh/kWp/yr that is 700 MWh/ha/yr; at the UBA grid
+emission factor of about 380 g CO₂/kWh that displaces 266 t/ha/yr.
+
+That is an order of magnitude larger than any other figure in the table —
+industry emits 400, forest absorbs 10 — and it is an **avoided** emission
+rather than an emitted one, sitting in a column that otherwise holds emissions.
+Both facts are true to the physics, and both have a consequence worth stating
+plainly: **a solar field is by far the strongest climate lever in the game, and
+tiling them would make the climate indicator easy to satisfy.**
+
+It was left at the derived value rather than quietly scaled, because the
+alternative is a number that is wrong about the world in order to be
+convenient. Whether the game wants it capped, rescaled, or balanced by land
+cost is a design decision; a scenario can override it through
+`paramOverrides`. No shipped level allows the tile yet, so nothing existing is
+affected.
+
+### Wetland closes a gap left by T-503
+
+`model/water.dart` treats wetland as retention alongside open water. T-503
+shipped with only water in that set because wetland did not exist; the
+retention list was waiting for this tile.
+
+### What these tiles do not do yet
+
+`tram_stop` and `cycle_path` carry a placeholder negative `co2PerHaYear` and
+otherwise act only through their land cover — their sealing, noise and biotope
+value. **The point of both is the car traffic they replace, and that belongs in
+the commute model**, which currently derives mode share from distance alone
+(`commute.modeShareByDistance`, MiD 2017). Until a stop or a path can shift
+mode share for the cells around it, these two tiles are honest about their
+land cover and silent about their purpose. That is the next piece of work, and
+it needs its own sources.
