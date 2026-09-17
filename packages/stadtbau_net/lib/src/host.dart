@@ -32,6 +32,7 @@ class SessionHost {
     required this.simulation,
     required String hostName,
     this.maxPlayers = 4,
+    this.roundMonths = 12,
     String Function()? idFactory,
     String Function()? tokenFactory,
   })  : _nextId = idFactory ?? _sequentialIds(),
@@ -62,6 +63,11 @@ class SessionHost {
 
   final Simulation simulation;
   final int maxPlayers;
+
+  /// How far time moves when a round closes (T-604). A year by default: long
+  /// enough that a placement has visible consequences by the next turn, short
+  /// enough that nobody waits through a decade of someone else's decisions.
+  final int roundMonths;
   final String Function() _nextId;
   final String Function() _nextToken;
 
@@ -84,6 +90,16 @@ class SessionHost {
 
   /// Resume token -> player id, for seats being held open (T-605).
   final Map<String, String> _tokens = {};
+
+  /// Per-player tile allowances (T-604). The municipal budget is shared --
+  /// that is the subject of the game -- so these are the only private
+  /// resource, and they are what makes a district someone's responsibility
+  /// rather than just their patch of map.
+  final Map<String, TileBudget> _stock = {};
+
+  List<String> _turnOrder = const [];
+  int _turnIndex = 0;
+  int _round = 0;
   bool _started = false;
 
   /// Everyone in the session, host first.
@@ -94,6 +110,52 @@ class SessionHost {
       ];
 
   bool get started => _started;
+
+  /// Whose turn it is, or null before the game starts (T-604).
+  String? get currentPlayerId =>
+      _started && _turnOrder.isNotEmpty ? _turnOrder[_turnIndex] : null;
+
+  /// Which round is being played; 0 before the start.
+  int get round => _round;
+
+  /// Gives a player their own allowance of tiles.
+  void assignTileStock(String playerId, Map<TileType, int?> stock) {
+    if (!_players.containsKey(playerId)) return;
+    _stock[playerId] = TileBudget(stock);
+    _players[playerId] = _players[playerId]!.copyWith(
+      tileStock: {for (final e in stock.entries) e.key.id: e.value},
+    );
+    _broadcastLobby();
+  }
+
+  /// Ends [playerId]'s turn. Ignored when it is not their turn, so a late
+  /// tap after the turn already moved on cannot skip somebody.
+  ///
+  /// When the round closes, time moves by [roundMonths] before the next round
+  /// starts: consequences land between rounds, not in the middle of one, so
+  /// everybody sees the same city while deciding.
+  void endTurn(String playerId) {
+    if (!_started || currentPlayerId != playerId) return;
+    _turnIndex++;
+    if (_turnIndex >= _turnOrder.length) {
+      _turnIndex = 0;
+      _round++;
+      final result = simulation.apply(AdvanceTick(roundMonths));
+      if (result.ok) {
+        _broadcast(Ticked(
+          tick: simulation.state.tick,
+          hash: simulation.state.hash(),
+        ));
+      }
+    }
+    _broadcastTurn();
+  }
+
+  void _broadcastTurn() => _broadcast(TurnChanged(
+        currentPlayerId: currentPlayerId,
+        round: _round,
+        tick: simulation.state.tick,
+      ));
 
   /// Whether every player has ticked ready. The host counts as ready.
   bool get allReady => players
@@ -112,7 +174,13 @@ class SessionHost {
   /// mid-game would need a district carved out of someone else's.
   void start() {
     _started = true;
+    // Turn order is the seating order, host first: it is the order everyone
+    // already sees in the lobby, so nobody has to be told what it is.
+    _turnOrder = [for (final p in players) p.id];
+    _turnIndex = 0;
+    _round = 1;
     _broadcastLobby();
+    _broadcastTurn();
   }
 
   /// Accepts a connection. The [transport] is read until it closes.
@@ -148,6 +216,8 @@ class SessionHost {
     switch (message) {
       case Hello(:final name, :final resumeToken):
         _onHello(transport, name, resumeToken);
+      case EndTurn() when seat != null:
+        endTurn(seat.playerId);
       case ReadyState(:final ready) when seat != null:
         _players[seat.playerId] = _players[seat.playerId]!.copyWith(
           ready: ready,
@@ -160,6 +230,8 @@ class SessionHost {
       // Messages only a host sends, or that arrived before the handshake.
       case Hello() ||
             ReadyState() ||
+            EndTurn() ||
+            TurnChanged() ||
             Intent() ||
             ResyncRequest() ||
             Welcome() ||
@@ -243,11 +315,39 @@ class SessionHost {
           .send(Denied(seq: seq, reason: DenyReason.hostOnly).encode());
       return;
     }
+    if (_started && currentPlayerId != seat.playerId) {
+      seat.transport
+          .send(Denied(seq: seq, reason: DenyReason.notYourTurn).encode());
+      return;
+    }
     final district = _players[seat.playerId]?.district;
     if (district != null && !_withinDistrict(command, district)) {
       seat.transport
           .send(Denied(seq: seq, reason: DenyReason.outsideDistrict).encode());
       return;
+    }
+    // A player's own allowance is checked before the simulation, so running
+    // out of parks is reported as running out of parks rather than as
+    // whatever the shared budget happens to say.
+    final stock = _stock[seat.playerId];
+    if (stock != null && command is PlaceTile) {
+      if (!stock.allowed(command.tile)) {
+        seat.transport.send(Denied(
+          seq: seq,
+          reason: DenyReason.simulation,
+          commandError: CommandError.tileNotAllowed,
+        ).encode());
+        return;
+      }
+      final left = stock.remaining(command.tile);
+      if (left != null && left <= 0) {
+        seat.transport.send(Denied(
+          seq: seq,
+          reason: DenyReason.simulation,
+          commandError: CommandError.tileExhausted,
+        ).encode());
+        return;
+      }
     }
     final result = simulation.apply(command);
     if (!result.ok) {
@@ -257,6 +357,9 @@ class SessionHost {
         commandError: result.error,
       ).encode());
       return;
+    }
+    if (stock != null && command is PlaceTile) {
+      _spend(seat.playerId, command.tile);
     }
     _broadcast(Applied(
       playerId: seat.playerId,
@@ -334,8 +437,28 @@ class SessionHost {
     _broadcastLobby();
   }
 
-  void _broadcastLobby() =>
-      _broadcast(LobbyUpdate(players: players, started: _started));
+  /// Takes one tile off a player's allowance and republishes the list.
+  void _spend(String playerId, TileType tile) {
+    final stock = _stock[playerId];
+    final left = stock?.remaining(tile);
+    if (stock == null || left == null) return; // unlimited, nothing to spend
+    final updated = {
+      for (final t in stock.allowedTypes)
+        t: t == tile ? left - 1 : stock.remaining(t),
+    };
+    _stock[playerId] = TileBudget(updated);
+    _players[playerId] = _players[playerId]!.copyWith(
+      tileStock: {for (final e in updated.entries) e.key.id: e.value},
+    );
+    _broadcastLobby();
+  }
+
+  void _broadcastLobby() => _broadcast(LobbyUpdate(
+        players: players,
+        started: _started,
+        currentPlayerId: currentPlayerId,
+        round: _round,
+      ));
 
   void _broadcast(NetMessage message) {
     final text = message.encode();

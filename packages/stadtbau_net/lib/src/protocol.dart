@@ -107,6 +107,7 @@ class PlayerInfo {
     this.district,
     this.ready = false,
     this.connected = true,
+    this.tileStock = const {},
   });
 
   final String id;
@@ -120,7 +121,21 @@ class PlayerInfo {
   /// build in it, so the others need to see that it is empty on purpose.
   final bool connected;
 
-  PlayerInfo copyWith({District? district, bool? ready, bool? connected}) =>
+  /// What this player may still build, by tile id; a null value is unlimited
+  /// and an absent key is not allowed at all (T-604).
+  ///
+  /// Everyone sees everyone's stock. The money is shared -- it is one
+  /// municipal budget, which is the subject of the game -- so the allowances
+  /// are the only private resource, and hiding them would stop people
+  /// planning together, which is the mode's whole purpose.
+  final Map<String, int?> tileStock;
+
+  PlayerInfo copyWith({
+    District? district,
+    bool? ready,
+    bool? connected,
+    Map<String, int?>? tileStock,
+  }) =>
       PlayerInfo(
         id: id,
         name: name,
@@ -128,6 +143,7 @@ class PlayerInfo {
         district: district ?? this.district,
         ready: ready ?? this.ready,
         connected: connected ?? this.connected,
+        tileStock: tileStock ?? this.tileStock,
       );
 
   Map<String, dynamic> toJson() => {
@@ -137,6 +153,7 @@ class PlayerInfo {
         if (district != null) 'district': district!.toJson(),
         'ready': ready,
         'connected': connected,
+        if (tileStock.isNotEmpty) 'tileStock': tileStock,
       };
 
   static PlayerInfo fromJson(Map<String, dynamic> json) => PlayerInfo(
@@ -148,6 +165,8 @@ class PlayerInfo {
             : District.fromJson(json['district'] as Map<String, dynamic>),
         ready: json['ready'] as bool? ?? false,
         connected: json['connected'] as bool? ?? true,
+        tileStock: (json['tileStock'] as Map<String, dynamic>? ?? const {})
+            .map((k, v) => MapEntry(k, v as int?)),
       );
 }
 
@@ -195,6 +214,8 @@ sealed class NetMessage {
       'rejected' => Rejected.fromJson(raw),
       'lobby' => LobbyUpdate.fromJson(raw),
       'ready' => ReadyState.fromJson(raw),
+      'endTurn' => EndTurn.fromJson(raw),
+      'turn' => TurnChanged.fromJson(raw),
       'intent' => Intent.fromJson(raw),
       'applied' => Applied.fromJson(raw),
       'denied' => Denied.fromJson(raw),
@@ -323,15 +344,28 @@ class Rejected extends NetMessage {
 
 /// host -> all: who is here, with what district, and who is ready.
 class LobbyUpdate extends NetMessage {
-  const LobbyUpdate({required this.players, required this.started});
+  const LobbyUpdate({
+    required this.players,
+    required this.started,
+    this.currentPlayerId,
+    this.round = 0,
+  });
+
   final List<PlayerInfo> players;
   final bool started;
+
+  /// Whose turn it is (T-604), null before the game starts.
+  final String? currentPlayerId;
+  final int round;
+
   @override
   String get type => 'lobby';
   @override
   Map<String, dynamic> get body => {
         'players': [for (final p in players) p.toJson()],
         'started': started,
+        if (currentPlayerId != null) 'currentPlayerId': currentPlayerId,
+        'round': round,
       };
   static LobbyUpdate fromJson(Map<String, dynamic> j) => LobbyUpdate(
         players: [
@@ -339,6 +373,52 @@ class LobbyUpdate extends NetMessage {
             PlayerInfo.fromJson(p as Map<String, dynamic>),
         ],
         started: j['started'] as bool,
+        currentPlayerId: j['currentPlayerId'] as String?,
+        round: j['round'] as int? ?? 0,
+      );
+}
+
+/// client -> host: my turn is over (T-604).
+///
+/// A new message type rather than a new field, and additive either way: an
+/// older host ignores a frame it cannot parse, and an older client never
+/// sends one. Turn order only exists once a game has started, so nothing
+/// before this point changes meaning.
+class EndTurn extends NetMessage {
+  const EndTurn();
+  @override
+  String get type => 'endTurn';
+  @override
+  Map<String, dynamic> get body => const {};
+  static EndTurn fromJson(Map<String, dynamic> j) => const EndTurn();
+}
+
+/// host -> all: whose turn it is now, and which round we are in (T-604).
+class TurnChanged extends NetMessage {
+  const TurnChanged({
+    required this.currentPlayerId,
+    required this.round,
+    required this.tick,
+  });
+
+  /// Null before the game starts and after it ends.
+  final String? currentPlayerId;
+  final int round;
+  final int tick;
+
+  @override
+  String get type => 'turn';
+  @override
+  Map<String, dynamic> get body => {
+        if (currentPlayerId != null) 'currentPlayerId': currentPlayerId,
+        'round': round,
+        'tick': tick,
+      };
+
+  static TurnChanged fromJson(Map<String, dynamic> j) => TurnChanged(
+        currentPlayerId: j['currentPlayerId'] as String?,
+        round: j['round'] as int,
+        tick: j['tick'] as int,
       );
 }
 
