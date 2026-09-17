@@ -582,8 +582,24 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   also now defers a close **only when it is inside a message delivery**, which is the only
   time a broadcast controller cannot be closed; deferring unconditionally meant a session
   closed from a test body never told the other end.
-- [ ] **T-604 Turn-based co-op mode.** Districts, per-player tile budgets, shared
+- [~] **T-604 Turn-based co-op mode.** Districts, per-player tile budgets, shared
   indicators, cross-border effects visible in overlays.
+  *Note 2026-09-17:* Rules and enforcement done in `stadtbau_net` with twelve tests; the
+  game-screen half (district borders drawn, whose-turn banner, per-player stock in the
+  palette) waits for T-602, since refactoring `GameScreen` around a session nobody can open
+  yet would be scaffolding, not progress. Indicators are shared already — there is one
+  simulation — and cross-border effects need no code at all, which is the point of a shared
+  sim and divided build rights. Three decisions. **Time moves between rounds, not inside
+  them**: when the last player ends their turn the host advances a year, so consequences
+  land where everyone can see them and nobody plays against a city that changed under them
+  mid-turn. **The money is shared and the tiles are not** — one municipal budget is the
+  subject of the game, so the per-player allowance is the only private resource, and it is
+  what makes a district a responsibility rather than a patch of map; a player's allowance
+  is checked before the simulation so running out of parks reports as running out of parks.
+  **Everyone sees everyone's stock**, because hiding it would stop people planning
+  together. An end-turn arriving after the turn already moved on is ignored, so a late tap
+  cannot skip the next player. Turn order survives a reconnect: a returning seat comes back
+  where it was, not at the front of the queue, which `session_test.dart` asserts.
 - [~] **T-605 Reconnect and state sync.** Full state on join, diffs afterwards, hash check
   per tick, resync on mismatch.
   *Note 2026-09-17:* Protocol half done with T-601; the remaining half is UI (hold the token

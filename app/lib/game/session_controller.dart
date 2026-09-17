@@ -76,6 +76,44 @@ class SessionController extends ChangeNotifier {
 
   bool get started => _host?.started ?? (_client?.started ?? false);
 
+  /// Whose turn it is, or null before the game starts (T-604).
+  String? get currentPlayerId =>
+      _host?.currentPlayerId ?? _client?.currentPlayerId;
+
+  /// Which round is being played; 0 before the start.
+  int get round => _host?.round ?? (_client?.round ?? 0);
+
+  /// Whether this device may build right now.
+  bool get isMyTurn => playerId != null && playerId == currentPlayerId;
+
+  /// Ends this player's turn. When the last player ends theirs, the host
+  /// moves time on and the next round begins.
+  void endTurn() {
+    final host = _host;
+    if (host != null) {
+      host.endTurn(host.hostPlayerId);
+    } else {
+      _client?.endTurn();
+    }
+  }
+
+  /// What this device may still build, by tile id; null means unlimited and
+  /// an absent key means not allowed (T-604).
+  Map<String, int?> get myTileStock {
+    final id = playerId;
+    if (id == null) return const {};
+    for (final p in players) {
+      if (p.id == id) return p.tileStock;
+    }
+    return const {};
+  }
+
+  /// Host only: give a player their own allowance of tiles.
+  void assignTileStock(String playerId, Map<TileType, int?> stock) {
+    _host?.assignTileStock(playerId, stock);
+    _refreshFromHost();
+  }
+
   /// Whether every guest has ticked ready, so the host may start.
   bool get canStart => isHost && (_host?.allReady ?? false) && players.length > 1;
 

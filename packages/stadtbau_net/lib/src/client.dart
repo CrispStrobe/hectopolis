@@ -86,6 +86,18 @@ class SessionClient {
   void setReady({required bool ready}) =>
       transport.send(ReadyState(ready: ready).encode());
 
+  /// Says this player is finished for the round (T-604).
+  void endTurn() => transport.send(const EndTurn().encode());
+
+  /// Whose turn it is, or null before the game starts.
+  String? currentPlayerId;
+
+  /// Which round is being played; 0 before the start.
+  int round = 0;
+
+  /// Whether it is this player's turn to build.
+  bool get isMyTurn => playerId != null && playerId == currentPlayerId;
+
   void _onMessage(String text) {
     NetMessage message;
     try {
@@ -122,11 +134,27 @@ class SessionClient {
         phase = SessionPhase.rejected;
         rejectReason = reason;
         hostProtocolVersion = hostProtocol;
-      case LobbyUpdate(:final players, :final started):
+      case LobbyUpdate(
+          :final players,
+          :final started,
+          :final currentPlayerId,
+          :final round,
+        ):
         this.players = players;
         this.started = started;
+        this.currentPlayerId = currentPlayerId;
+        this.round = round;
         if (started && phase == SessionPhase.lobby) {
           phase = SessionPhase.playing;
+        }
+      case TurnChanged(:final currentPlayerId, :final round, :final tick):
+        this.currentPlayerId = currentPlayerId;
+        this.round = round;
+        final sim = simulation;
+        // The turn message carries the tick as well, so a client that missed
+        // the Ticked which closed the round still lands on the right month.
+        if (sim != null && tick > sim.state.tick) {
+          sim.apply(AdvanceTick(tick - sim.state.tick));
         }
       case Applied(:final command, :final hash):
         final sim = simulation;
@@ -154,7 +182,7 @@ class SessionClient {
           for (final p in players)
             if (p.id != playerId) p else p.copyWith(connected: false),
         ];
-      case Hello() || ReadyState() || Intent() || ResyncRequest():
+      case Hello() || ReadyState() || EndTurn() || Intent() || ResyncRequest():
         return; // client-to-host messages; not ours to handle
     }
     _notify();

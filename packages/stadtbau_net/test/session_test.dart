@@ -210,6 +210,118 @@ void main() {
     });
   });
 
+  group('turns and allowances (T-604)', () {
+    test('only the player whose turn it is may build', () async {
+      final s = await _session(2);
+      s.host.start();
+      await InMemoryTransport.settle();
+      // Turn order is the seating order, host first.
+      expect(s.host.currentPlayerId, s.host.hostPlayerId);
+      expect(s.host.round, 1);
+      for (final c in s.clients) {
+        expect(c.isMyTurn, isFalse);
+        expect(c.round, 1);
+      }
+      final early = s.clients[0].request(const PlaceTile(1, 1, TileType.park));
+      await InMemoryTransport.settle();
+      expect(s.clients[0].denials[early]?.reason, DenyReason.notYourTurn);
+
+      s.host.endTurn(s.host.hostPlayerId);
+      await InMemoryTransport.settle();
+      expect(s.clients[0].isMyTurn, isTrue);
+      expect(s.clients[1].isMyTurn, isFalse);
+      final now = s.clients[0].request(const PlaceTile(1, 1, TileType.park));
+      await InMemoryTransport.settle();
+      expect(s.clients[0].denials[now], isNull);
+    });
+
+    test('a late end-turn cannot skip the next player', () async {
+      final s = await _session(2);
+      s.host.start();
+      await InMemoryTransport.settle();
+      s.host.endTurn(s.host.hostPlayerId);
+      await InMemoryTransport.settle();
+      final current = s.host.currentPlayerId;
+      // The host taps "end turn" again, a moment too late.
+      s.host.endTurn(s.host.hostPlayerId);
+      await InMemoryTransport.settle();
+      expect(s.host.currentPlayerId, current,
+          reason: 'a stale end-turn must not move the turn on');
+    });
+
+    test('closing the round moves time, once, for everyone', () async {
+      final s = await _session(2);
+      s.host.start();
+      await InMemoryTransport.settle();
+      expect(s.host.simulation.state.tick, 0);
+      s.host.endTurn(s.host.hostPlayerId);
+      s.clients[0].endTurn();
+      await InMemoryTransport.settle();
+      expect(s.host.simulation.state.tick, 0, reason: 'round is not over yet');
+      s.clients[1].endTurn();
+      await InMemoryTransport.settle();
+      expect(s.host.simulation.state.tick, 12, reason: 'a year per round');
+      expect(s.host.round, 2);
+      for (final c in s.clients) {
+        expect(c.simulation!.state.tick, 12);
+        expect(c.simulation!.state.hash(), s.host.simulation.state.hash());
+        expect(c.round, 2);
+        expect(c.resyncCount, 0);
+      }
+      expect(s.host.currentPlayerId, s.host.hostPlayerId,
+          reason: 'the new round starts with the first player again');
+    });
+
+    test('a player spends their own allowance, not everyone else\'s',
+        () async {
+      final s = await _session(2);
+      final a = s.clients[0].playerId!;
+      final b = s.clients[1].playerId!;
+      s.host.assignTileStock(a, const {TileType.park: 2, TileType.meadow: null});
+      s.host.assignTileStock(b, const {TileType.park: 2, TileType.meadow: null});
+      s.host.start();
+      await InMemoryTransport.settle();
+      s.host.endTurn(s.host.hostPlayerId);
+      await InMemoryTransport.settle();
+
+      s.clients[0].request(const PlaceTile(1, 1, TileType.park));
+      s.clients[0].request(const PlaceTile(2, 1, TileType.park));
+      await InMemoryTransport.settle();
+      final third = s.clients[0].request(const PlaceTile(3, 1, TileType.park));
+      await InMemoryTransport.settle();
+      expect(s.clients[0].denials[third]?.commandError,
+          CommandError.tileExhausted);
+
+      PlayerInfo of(SessionClient c, String id) =>
+          c.players.firstWhere((p) => p.id == id);
+      expect(of(s.clients[0], a).tileStock['park'], 0);
+      expect(of(s.clients[0], b).tileStock['park'], 2,
+          reason: "one player's spending must not drain another's");
+
+      // And the other player can still build their own two.
+      s.clients[0].endTurn();
+      await InMemoryTransport.settle();
+      final ok = s.clients[1].request(const PlaceTile(9, 1, TileType.park));
+      await InMemoryTransport.settle();
+      expect(s.clients[1].denials[ok], isNull);
+      expect(of(s.clients[1], b).tileStock['park'], 1);
+    });
+
+    test('a tile nobody was given is refused as not allowed', () async {
+      final s = await _session(1);
+      final a = s.clients[0].playerId!;
+      s.host.assignTileStock(a, const {TileType.park: 1});
+      s.host.start();
+      await InMemoryTransport.settle();
+      s.host.endTurn(s.host.hostPlayerId);
+      await InMemoryTransport.settle();
+      final seq = s.clients[0].request(const PlaceTile(1, 1, TileType.industry));
+      await InMemoryTransport.settle();
+      expect(s.clients[0].denials[seq]?.commandError,
+          CommandError.tileNotAllowed);
+    });
+  });
+
   group('reconnect (T-605)', () {
     test('a dropped player keeps their seat and district and comes back', () async {
       final s = await _session(2);
@@ -263,7 +375,16 @@ void main() {
         isNotNull,
         reason: 'the district came back with the seat',
       );
-      // And they can build in it again.
+      // And they can build in it again -- once it is their turn. Turn order
+      // (T-604) outlives a reconnect: the seat came back where it was, not at
+      // the front of the queue.
+      final early = back.request(const PlaceTile(7, 1, TileType.park));
+      await InMemoryTransport.settle();
+      expect(back.denials[early]?.reason, DenyReason.notYourTurn);
+      s.host.endTurn(s.host.hostPlayerId);
+      s.host.endTurn(s.clients[0].playerId!);
+      await InMemoryTransport.settle();
+      expect(back.isMyTurn, isTrue);
       final seq = back.request(const PlaceTile(7, 1, TileType.park));
       await InMemoryTransport.settle();
       expect(back.denials[seq], isNull);

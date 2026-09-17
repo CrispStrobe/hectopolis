@@ -111,6 +111,32 @@ that way, and a protocol that only works over a synchronous transport is not a
 protocol. `InMemoryTransport.settle()` completes when nothing is in flight, so
 tests wait on a condition instead of guessing at a number of pumps.
 
+## Turns and allowances (T-604)
+
+Play is turn-based. Turn order is the seating order, host first — the order
+everyone already sees in the lobby, so nobody has to be told what it is. An
+intent from anyone else is denied with `notYourTurn`.
+
+**Time moves between rounds, not inside them.** When the last player ends
+their turn the host advances `roundMonths` (a year by default) and the next
+round begins. A year is long enough that a placement has visible consequences
+by the time your next turn comes round, and short enough that nobody sits
+through a decade of someone else's decisions. Consequences landing between
+rounds also means everybody is looking at the same city while they decide.
+
+An end-turn that arrives when it is no longer that player's turn is ignored,
+so a tap that lands a moment late cannot skip the person after them.
+
+**The money is shared; the tiles are not.** There is one municipal budget —
+that is the subject of the game — so a player's own allowance of tiles is the
+only private resource, and it is what makes a district a responsibility rather
+than just a patch of map. A player's allowance is checked *before* the
+simulation, so running out of parks is reported as running out of parks rather
+than as whatever the shared budget happens to say.
+
+Everyone sees everyone's stock. Hiding it would stop people planning together,
+which is the mode's entire purpose.
+
 ## Reconnect (T-605)
 
 A dropped connection mid-game is the ordinary case on a phone, not an
@@ -195,7 +221,11 @@ Two rules, learned the hard way, both about `flutter_test`'s faked clock:
 
 ## What is not here yet
 
-T-602 discovery (mDNS, room code, QR, manual IP), T-603 the lobby UI, T-604
-the district rules and per-player tile budgets in the game itself, and T-606
-an internet relay. T-605's remaining half is the UI that holds a token across
-a reconnect and decides when to give a seat up.
+T-602 discovery (mDNS, room code, QR, manual IP) and T-606 an internet relay.
+
+T-604's remaining half is the game screen itself: drawing district borders,
+showing whose turn it is, and offering the per-player stock in the palette.
+That waits for the session to be reachable at all — which is T-602 — rather
+than half-refactoring the game screen behind something nobody can open.
+T-605's remaining half is likewise UI: holding a token across a reconnect and
+deciding when a seat is given up.
