@@ -1,0 +1,64 @@
+{
+  "id": "tuebingen",
+  "order": 6,
+  "budgetKEur": 34000,
+  "turnLimitMonths": 120,
+  "attribution": "© BKG (2026) CC BY 4.0 — Landbedeckungsmodell LBM-DE2021, sampled onto a 1 ha grid and reduced to 16 tile types by Hectopolis. Datenquellen: https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_lbm-de2021.pdf",
+  "tiles": {
+    "meadow": null,
+    "park": 40,
+    "forest": 40,
+    "wetland": 15,
+    "mixed_use": 20,
+    "school": 3,
+    "tram_stop": 6,
+    "cycle_path": 30,
+    "housing_low": 20,
+    "housing_high": 20,
+    "road": null
+  },
+  "goals": [
+    {
+      "indicator": "biodiversity",
+      "min": 38
+    },
+    {
+      "indicator": "recreation",
+      "min": 88
+    },
+    {
+      "indicator": "climate",
+      "min": 84
+    },
+    {
+      "indicator": "housing",
+      "min": 88
+    }
+  ],
+  "map": [
+    "rrcchhhhhhhhhCChhhhrhhhh",
+    "CrcChchhhhhhhhChhhCrhhhh",
+    "CfrChhhhhhhhhhhhhrrrrrrr",
+    "CfrrChcchhhhhChCrrhhhCCC",
+    "CChrrhhhhhhhhHHrrCI....C",
+    "ChhhrCChhhchhHHrCIh.....",
+    "hhhhhrCCCpppCHHCCh.....f",
+    "hhhhhrCCCCCCCCCCCh......",
+    "HHHHhhrCCCCCCCCChf......",
+    "HHHHHhHrCCCppCCChf.h..ff",
+    "HHIIHHHHHHHppHhfffChfchh",
+    "rHHCHHHHHHHHHChhhhhhhhhh",
+    "hrICHHHHHHHHHChhhhhhhhff",
+    "IrHHHrHHHHHChhhhhfffffHh",
+    "IrHHffCCCHwwwwhhfhhhhhpp",
+    "chhhffHwwwwwwwwwrwrrwrpw",
+    "hffhwwwwwwprHHrrrrrrwwwI",
+    "fhhwwwwwwrrrrHrrrrrrrrrr",
+    "hhwwCCprrrrrrrrrrIIIHHII",
+    "hwwrrrrrrrrrhhHHHrrrIIII",
+    "wwprrrrrHhCCphHHHHHIrrrI",
+    "wpprrrHHHHhhhhHpHHhhIHHr",
+    "ppprIICIHHhhhhHhhHHhIrrr",
+    "rrrrCCHIHHhhhhHrrHrrrHIH"
+  ]
+}

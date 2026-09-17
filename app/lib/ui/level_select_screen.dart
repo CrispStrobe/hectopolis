@@ -152,7 +152,10 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                     subtitle: Text(
                       '${l10n.levelDescription(l.id)}\n'
                       '${l10n.goalsSummary(l.goals.length, l.turnLimitMonths ?? 0)}'
-                      '${l.learning == null ? '' : ' · ${l10n.learningModeName(l.learning!.tier.name)}'}',
+                      '${l.learning == null ? '' : ' · ${l10n.learningModeName(l.learning!.tier.name)}'}'
+                      // A level built from open data carries the source notice
+                      // its licence requires (T-303).
+                      '${l.attribution == null ? '' : '\n${l10n.levelDataSource(l.attribution!)}'}',
                     ),
                     isThreeLine: true,
                     onTap: () => _level(l),

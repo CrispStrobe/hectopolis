@@ -1,37 +1,86 @@
 {
   "@@locale": "en",
   "appTitle": "Hectopolis",
-  "@appTitle": {"description": "Application name shown in the title bar"},
-
+  "@appTitle": {
+    "description": "Application name shown in the title bar"
+  },
   "tileName": "{id, select, meadow{Meadow} cropland{Cropland} forest{Forest} water{Water} park{Park} housing_low{Detached housing} housing_high{Apartment blocks} commercial{Commercial & retail} industry{Industry} road{Main road} wetland{Wetland}solar_field{Solar field}mixed_use{Mixed quarter}school{School}tram_stop{Tram stop}cycle_path{Cycle path}other{Unknown}}",
-  "@tileName": {"description": "Display name of a tile type", "placeholders": {"id": {"type": "String"}}},
-
+  "@tileName": {
+    "description": "Display name of a tile type",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "tileDescription": "{id, select, meadow{Extensive grassland. Cheap, decent habitat, cools a little.} cropland{Farmland. Low habitat value, small CO₂ source.} forest{Deciduous forest. Best habitat, absorbs CO₂, dampens noise and dust. Matures over decades.} water{Pond or lake. Good habitat, cools its surroundings.} park{Urban park. Recreation within 300 m, cooling, some habitat.} housing_low{Single-family homes, about 45 residents per hectare.} housing_high{Apartment blocks, about 180 residents per hectare with ground-floor services.} commercial{Offices and shops. Jobs, shopping within walking distance, delivery noise.} industry{Manufacturing. Many jobs, noise, emissions.} road{Main road. Connects housing to jobs; traffic causes noise and pollution.} wetland{Reeds and shallow water. The richest habitat here, cools strongly, and soaks up runoff from its surroundings.}solar_field{Ground-mounted panels on open grassland. Displaces a great deal of power-station CO2; dark, fenced and not a place people go.}mixed_use{Homes above shops and workshops. Fewer flats than apartment blocks, but work and shopping are already downstairs.}school{Classrooms, a yard and a sports field. Expensive to build and to run, brings jobs, and is empty at night.}tram_stop{A stop with its track. Quieter than the road traffic it stands in for, and electric, so nothing is burnt here.}cycle_path{A surfaced path through a planted verge. Cheap, nearly silent, and keeps most of the ground open.}other{}}",
-  "@tileDescription": {"description": "One-line description of a tile type", "placeholders": {"id": {"type": "String"}}},
-
+  "@tileDescription": {
+    "description": "One-line description of a tile type",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "categoryName": "{id, select, nature{Landscape} green_urban{Urban green} residential{Housing} work{Work} infrastructure{Infrastructure} other{Other}}",
-  "@categoryName": {"placeholders": {"id": {"type": "String"}}},
-
+  "@categoryName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "indicatorName": "{id, select, biodiversity{Biodiversity} air{Air quality} noise{Quiet} housing{Housing} economy{Economy} shopping{Shopping} recreation{Recreation} commuting{Commuting} climate{Climate} budget{Budget} other{Unknown}}",
-  "@indicatorName": {"placeholders": {"id": {"type": "String"}}},
-
+  "@indicatorName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "indicatorHint": "{id, select, biodiversity{Habitat quality and connectivity of green patches (BKompV biotope values, InVEST habitat quality).} air{Population-weighted pollution index from traffic, industry and heating; vegetation removes part of it.} noise{Share of residents below the 55 dB(A) daytime limit for residential areas (TA Lärm).} housing{Housing capacity relative to local jobs, and how full it is.} economy{Jobs available for residents and the budget trend.} shopping{Retail within walking distance (Huff model, 700 m).} recreation{Green space within 300 m (WHO) and summer cooling.} commuting{Mean commute distance and car share (MiD 2017 mode shares).} climate{CO₂ balance of land use and traffic, plus urban heat.} budget{Municipal budget relative to the starting budget.} other{}}",
-  "@indicatorHint": {"placeholders": {"id": {"type": "String"}}},
+  "@indicatorHint": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "indicatorSimpleHint": "{id, select, biodiversity{Do plants and animals have good connected homes?} air{Can everyone breathe clean air?} noise{Are homes peaceful?} housing{Is there enough room for people?} economy{Can people find work and does the town earn enough?} shopping{Can people reach shops easily?} recreation{Can everyone enjoy nature nearby?} commuting{Can people get where they need to go easily?} climate{Does the town stay cool and protect the climate?} budget{Does the town have enough money?} other{How is the town doing?}}",
-  "@indicatorSimpleHint": {"placeholders": {"id": {"type": "String"}}},
-
+  "@indicatorSimpleHint": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "indicatorFormula": "{id, select, biodiversity{Biotope values (BKompV) times maturity, reduced by threats from roads, industry and buildings and by fragmentation, then scaled with a species-area curve.} air{Emissions from traffic, industry and buildings spread with an exp(-d/300 m) kernel, vegetation removes part, and the resident-weighted mean becomes the score.} noise{Every source loses 20 dB per distance decade and forest or buildings attenuate further; each resident scores (65 dB - L) / 10, clamped to 0-1.} housing{100 x min(1, capacity / (jobs / 0.52)) x (0.5 + 0.5 x occupancy); zero without housing.} economy{100 x (0.6 x min(1, jobs / workers) + 0.4 x budget trend), the trend taken from the budget change in the last month.} shopping{Huff model with lambda = 2 over shops within 700 m walking distance, averaged over the residents.} recreation{Resident-weighted 0.7 x green space within 300 m plus 0.3 x (1 - delta T / maximum urban heat).} commuting{100 x (0.5 x (1 - mean distance / 20 km) + 0.5 x (1 - car share)) from the gravity commute model.} climate{100 x (0.7 x (1 - CO₂ per person / 2.5 t) + 0.3 x (1 - mean delta T / maximum urban heat)).} budget{The municipal budget divided by the starting budget, clamped to 0-100.} other{}}",
-  "@indicatorFormula": {"description": "One-line description of how an indicator score is computed", "placeholders": {"id": {"type": "String"}}},
-
+  "@indicatorFormula": {
+    "description": "One-line description of how an indicator score is computed",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "indicatorFormulaLabel": "How it is computed",
   "indicatorSourceLink": "Model documentation",
-
   "overlayName": "{id, select, none{No overlay} noise{Noise} air{Air quality} heat{Heat} green{Green access} retail{Shopping access} jobs{Job access} habitat{Habitat quality} traffic{Traffic} attractiveness{Attractiveness} other{}}",
-  "@overlayName": {"placeholders": {"id": {"type": "String"}}},
-
+  "@overlayName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "overlayUnit": "{id, select, noise{dB(A)} air{index} heat{°C above rural} green{0–1} retail{0–1} jobs{0–1} habitat{0–1} traffic{vehicles/day} attractiveness{0–1} other{}}",
-  "@overlayUnit": {"placeholders": {"id": {"type": "String"}}},
-
+  "@overlayUnit": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "overlayLabel": "Overlay",
   "overlayDirectionHarmful": "High values are harmful",
   "overlayDirectionHelpful": "High values are helpful",
@@ -40,16 +89,49 @@
   "paletteTitle": "Tiles",
   "paletteHint": "Drag a tile onto the map, or select it and tap cells. Long-press a cell to clear it.",
   "placementPreviewTitle": "Place {tile}",
-  "@placementPreviewTitle": {"placeholders": {"tile": {"type": "String"}}},
+  "@placementPreviewTitle": {
+    "placeholders": {
+      "tile": {
+        "type": "String"
+      }
+    }
+  },
   "placementPreviewCost": "Cost {cost}",
-  "@placementPreviewCost": {"placeholders": {"cost": {"type": "String"}}},
+  "@placementPreviewCost": {
+    "placeholders": {
+      "cost": {
+        "type": "String"
+      }
+    }
+  },
   "placementPreviewNoScoreChange": "No immediate score change",
   "placementPreviewAffected": "{count} cells · {overlay}",
-  "@placementPreviewAffected": {"placeholders": {"count": {"type": "int"}, "overlay": {"type": "String"}}},
+  "@placementPreviewAffected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "overlay": {
+        "type": "String"
+      }
+    }
+  },
   "impactBuilt": "Built {tile}",
-  "@impactBuilt": {"placeholders": {"tile": {"type": "String"}}},
+  "@impactBuilt": {
+    "placeholders": {
+      "tile": {
+        "type": "String"
+      }
+    }
+  },
   "impactRemoved": "Removed {tile}",
-  "@impactRemoved": {"placeholders": {"tile": {"type": "String"}}},
+  "@impactRemoved": {
+    "placeholders": {
+      "tile": {
+        "type": "String"
+      }
+    }
+  },
   "impactSimpleBetter": "😊 This helps the city.",
   "impactSimpleMixed": "🤔 This helps some things and hurts others.",
   "impactSimpleSteady": "🙂 No big change yet.",
@@ -58,91 +140,242 @@
   "indicatorModeSimple": "Simple mode",
   "indicatorModeExpert": "Expert mode",
   "simpleGoal": "{id, select, biodiversity{Help nature thrive} air{Keep the air clean} noise{Keep homes peaceful} housing{Make room for everyone} economy{Help the town prosper} shopping{Keep shops nearby} recreation{Give everyone green space} commuting{Make journeys easier} climate{Protect the climate} budget{Keep enough money} population{Welcome more residents} jobs{Create enough jobs} budgetKEur{Keep enough money} other{Help the town}}",
-  "@simpleGoal": {"placeholders": {"id": {"type": "String"}}},
+  "@simpleGoal": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "goalMetricName": "{id, select, population{Residents} jobs{Jobs} budgetKEur{Budget} other{Town goal}}",
-  "@goalMetricName": {"placeholders": {"id": {"type": "String"}}},
+  "@goalMetricName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "guidanceNeedsAttention": "Let’s work on {goal}",
-  "@guidanceNeedsAttention": {"placeholders": {"goal": {"type": "String"}}},
+  "@guidanceNeedsAttention": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
   "guidanceQuestion": "Where on the map is {goal} struggling? Tap for one clue.",
-  "@guidanceQuestion": {"placeholders": {"goal": {"type": "String"}}},
+  "@guidanceQuestion": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
   "guidanceSeeOverlay": "The useful map layer is open. Look for the strongest and weakest places.",
   "guidanceThinkCause": "What nearby source, barrier or missing destination could explain that pattern?",
   "guidanceTryTile": "Try placing {tile}. Other choices can work too.",
-  "@guidanceTryTile": {"placeholders": {"tile": {"type": "String"}}},
+  "@guidanceTryTile": {
+    "placeholders": {
+      "tile": {
+        "type": "String"
+      }
+    }
+  },
   "guidanceExplore": "Explore the map and try a different balance.",
   "inspectorTitle": "Cell {x}, {y}",
-  "@inspectorTitle": {"placeholders": {"x": {"type": "int"}, "y": {"type": "int"}}},
+  "@inspectorTitle": {
+    "placeholders": {
+      "x": {
+        "type": "int"
+      },
+      "y": {
+        "type": "int"
+      }
+    }
+  },
   "inspectorEmpty": "Tap a cell to inspect it.",
-
   "costLabel": "Cost {amount}",
-  "@costLabel": {"placeholders": {"amount": {"type": "String"}}},
+  "@costLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "remainingLabel": "{count} left",
-  "@remainingLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@remainingLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "unlimited": "unlimited",
-
   "budgetLabel": "Budget",
   "populationLabel": "Residents",
   "townMood": "How the town feels",
   "jobsLabel": "Jobs",
   "monthLabel": "Month {tick}",
-  "@monthLabel": {"placeholders": {"tick": {"type": "int"}}},
+  "@monthLabel": {
+    "placeholders": {
+      "tick": {
+        "type": "int"
+      }
+    }
+  },
   "yearMonthLabel": "Year {year}, month {month}",
-  "@yearMonthLabel": {"placeholders": {"year": {"type": "int"}, "month": {"type": "int"}}},
-
+  "@yearMonthLabel": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      }
+    }
+  },
   "kEur": "{amount} k€",
-  "@kEur": {"placeholders": {"amount": {"type": "String"}}},
+  "@kEur": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "perMonth": "{amount} / month",
-  "@perMonth": {"placeholders": {"amount": {"type": "String"}}},
-
+  "@perMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "actionPlay": "Play",
   "actionPause": "Pause",
   "actionStep": "Next month",
   "actionSpeed": "Speed {factor}×",
-  "@actionSpeed": {"placeholders": {"factor": {"type": "int"}}},
+  "@actionSpeed": {
+    "placeholders": {
+      "factor": {
+        "type": "int"
+      }
+    }
+  },
   "actionNewGame": "New game",
   "actionClear": "Clear cell",
   "actionLanguage": "Language",
   "actionAbout": "About",
   "actionExperienceSettings": "Experience settings",
-
   "learningModeLabel": "Learning mode",
   "learningModeName": "{id, select, starter{Starter} guided{Guided} explorer{Explorer} other{Guided}}",
-  "@learningModeName": {"placeholders": {"id": {"type": "String"}}},
+  "@learningModeName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "learningModeDescription": "{id, select, starter{Faces, plain language and only the essentials.} guided{Helpful prompts and optional explanations while you play.} explorer{Exact values, comparisons and complete model detail.} other{}}",
-  "@learningModeDescription": {"placeholders": {"id": {"type": "String"}}},
+  "@learningModeDescription": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "learningCenterTitle": "Mission notebook",
   "learningFocusTitle": "What this mission explores",
   "learningOptionalDetail": "Play first. Open any idea only when you want to know more.",
   "learningConceptName": "{id, select, access{Nearby places} tradeoffs{Trade-offs} noise_distance{Distance and noise} noise_shielding{Noise shielding} exposure{People's exposure} connectivity{Connected habitats} fragmentation{Fragmentation} maturity{Nature takes time} budget_loop{The town budget loop} delay{Delayed effects} feedback{Feedback loops} mixed_city{A balanced neighbourhood} resilience{Resilience} other{City systems}}",
-  "@learningConceptName": {"placeholders": {"id": {"type": "String"}}},
+  "@learningConceptName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "learningConceptCause": "{id, select, access{Homes work better when everyday destinations and green space are close enough to reach.} tradeoffs{One decision can help one goal and make another harder. Good planning balances both.} noise_distance{Sound becomes quieter as it travels away from a road or another source.} noise_shielding{Buildings and vegetation between a source and a home can reduce some sound.} exposure{Noise only harms the quiet score where people actually live; both level and number of residents matter.} connectivity{Plants and animals benefit when suitable habitat forms a connected patch.} fragmentation{Roads and development split habitat into smaller, more disturbed pieces.} maturity{A newly planted forest cannot provide the full value of an old forest immediately.} budget_loop{Residents and jobs bring revenue; construction and maintenance spend it; the remaining budget limits later choices.} delay{Population, forests and finances respond over months or years rather than instantly.} feedback{A change can circle through the system and eventually strengthen or balance itself.} mixed_city{Homes, jobs, shops and green space work together when distances remain short.} resilience{A resilient city keeps working when conditions change and does not rely on one fragile solution.} other{Land use changes several connected parts of the city.}}",
-  "@learningConceptCause": {"placeholders": {"id": {"type": "String"}}},
+  "@learningConceptCause": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "learningConceptModel": "{id, select, noise_distance{The simulation adds sound energy from each source and reduces point sources by 20 dB for every tenfold increase in distance. Road segments combine into line-like behaviour.} noise_shielding{The straight path from source to receiver is checked cell by cell. Forest, parks and dense buildings add simplified attenuation.} exposure{Each home's residents weight its local sound level. The indicator combines those resident-weighted results.} connectivity{Eight neighbouring directions join habitat cells into patches; effective mesh size represents connectivity.} fragmentation{Threat fields from roads and buildings reduce habitat quality with distance, while smaller patches reduce effective habitat.} maturity{Tile age moves habitat stock toward its potential with land-type-specific recovery times.} budget_loop{Monthly tax and job revenue is balanced against maintenance and construction costs. Population and filled jobs update the next month's revenue.} delay{The model advances in fixed monthly steps, with stocks moving only partway toward their potential each step.} access{Distance kernels and walking radii estimate how easily residents reach shops, work and green space.} tradeoffs{All indicators are calculated from the same map and stocks, so one placement can create several positive and negative deltas.} feedback{Attractiveness affects population; population affects traffic and revenue; traffic affects noise and air, which feed back into attractiveness.} mixed_city{A gravity model links residents to jobs, while walking radii estimate retail and green access.} resilience{Several indicators and the remaining budget are considered together instead of optimizing a single score.} other{The simulation combines spatial fields with stocks that change once per month.}}",
-  "@learningConceptModel": {"placeholders": {"id": {"type": "String"}}},
+  "@learningConceptModel": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "learningConceptLaw": "{id, select, noise_distance{Based on the CNOSSOS-EU propagation method and ISO-style distance attenuation.} noise_shielding{CNOSSOS-EU includes ground, foliage and screening effects; Hectopolis uses a transparent simplification.} exposure{The 55 dB(A) daytime reference for homes comes from Germany's TA Lärm. This game is not a site assessment.} connectivity{Biotope values follow Germany's BKompV; habitat quality and threats follow the open InVEST approach.} fragmentation{The representation combines BKompV values, InVEST threats and the ecological species–area relationship.} maturity{Recovery times are educational estimates documented with the model parameters.} access{Green access uses the WHO 300 m recommendation; retail access uses an established Huff choice model.} budget_loop{Revenue magnitudes use official German municipal-finance statistics and simplified averages.} delay{Time constants are documented assumptions, not predictions for a particular real city.} tradeoffs{There is no single governing threshold: this represents the planning principle of weighing public interests.} feedback{The loop is a system-dynamics representation, not a legal rule.} mixed_city{Walking and mobility assumptions use BBSR accessibility research and Germany's MiD travel survey.} resilience{Resilience is represented as balanced goal performance, not as a statutory standard.} other{Every numerical parameter has a source in the model documentation.}}",
-  "@learningConceptLaw": {"placeholders": {"id": {"type": "String"}}},
+  "@learningConceptLaw": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "learningCauseTab": "Cause and effect",
   "learningModelTab": "Representation",
   "learningLawTab": "Evidence and rules",
   "learningMoreDetail": "Open model, evidence and rules",
-  "causalViewTitle": "What is driving the city now",
+  "causalViewTitle": "How the town pushes back",
   "causalPath": "{id, select, village{Homes → people → access and traffic → quality of life} noise{Road and industry → sound at homes → quiet → attractiveness} habitat{Development → fragmentation → connected habitat → biodiversity} budget{Homes and jobs → revenue → budget → choices} quarter{Land-use mix → journeys and environment → attractiveness → population} other{Choices → effects → new choices}}",
-  "@causalPath": {"placeholders": {"id": {"type": "String"}}},
+  "@causalPath": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "causalNeedsAttention": "The weakest current outcome is {name}.",
-  "@causalNeedsAttention": {"placeholders": {"name": {"type": "String"}}},
+  "@causalNeedsAttention": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "actionLearnWhy": "Learn why",
   "actionMissionNotebook": "Open mission notebook",
   "missionBriefingTitle": "Your mission",
   "missionBriefingBody": "Try your own idea first. You can open explanations or a safe experiment whenever you want.",
   "missionPredictionTitle": "What do you predict?",
   "missionPredictionPrompt": "{id, select, village_access{Where should homes go so people can reach what they need without losing every quiet natural place?} noise_homes{Which choice will usually keep new homes quietest?} habitat_corridor{What will help the two forest areas act most like one habitat?} budget_recovery{What is most likely to create a lasting budget recovery?} other{What change do you expect to help most?}}",
-  "@missionPredictionPrompt": {"placeholders": {"id": {"type": "String"}}},
+  "@missionPredictionPrompt": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "missionPredictionChoice": "{id, select, near{Build very close to existing destinations} far{Use distance from the strongest source} shield{Put something between source and homes} connect{Create a continuous habitat corridor} scatter{Scatter small patches around the map} cut{Add another road through the habitat} income{Combine useful homes and jobs with affordable upkeep} decorate{Build only expensive parks} roads{Build many roads first} balance{Balance several needs} other{Try this idea}}",
-  "@missionPredictionChoice": {"placeholders": {"id": {"type": "String"}}},
+  "@missionPredictionChoice": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "missionBeatTitle": "{id, select, village_first_homes{Your first homes}village_quiet_left{What the town kept}noise_first_homes{Listen to the map}noise_shield{Something in between}habitat_two_patches{Two woods or one}habitat_maturity{Give it time}budget_monthly{Watch the month, not the total}budget_delay{Effects arrive late}quarter_first_block{A quarter, not a row}quarter_balance{The last third is the hard part}other{Next step}}",
-  "@missionBeatTitle": {"placeholders": {"id": {"type": "String"}}},
+  "@missionBeatTitle": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "missionBeatBody": "{id, select, village_first_homes{People live here now. Turn on the shopping overlay to see which homes can reach a shop on foot, and which cannot.}village_quiet_left{Look at what is still meadow and forest. A village that reaches everything but keeps nothing quiet has only solved half the task.}noise_first_homes{Open the noise overlay. The band along the road is loud whatever you build there—distance is doing most of the work.}noise_shield{Quiet is slipping. Try putting forest or a park between the road and the homes, and watch the overlay rather than the score.}habitat_two_patches{Both forests count as habitat, but biodiversity also asks whether animals can move between them. Check the connectivity figure.}habitat_maturity{New forest is not yet old forest. Let months pass and watch biodiversity climb without you placing anything.}budget_monthly{The balance still looks healthy because it started high. The monthly figure is the one that decides whether this lasts.}budget_delay{What you built months ago is only now showing up in the budget. Expect the same lag from what you build today.}quarter_first_block{Homes, work and shopping in the same walkable area are what keep commutes short. Check the commuting indicator as you go.}quarter_balance{Some goals are met. The remaining ones usually cost something the met ones gave you—decide what you are willing to trade.}other{Look at what changed on the map before you build again.}}",
-  "@missionBeatBody": {"placeholders": {"id": {"type": "String"}}},
+  "@missionBeatBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "missionPredictionSaved": "Prediction saved—now test it on the map.",
   "experimentTitle": "What-if experiment",
   "experimentDescription": "Pin the city, try any changes, then keep them or return to the pinned version.",
@@ -152,17 +385,40 @@
   "experimentActive": "Experiment running",
   "experimentNoChange": "No indicator has changed yet.",
   "experimentChanged": "{count} indicators changed from the pinned city.",
-  "@experimentChanged": {"placeholders": {"count": {"type": "int"}}},
+  "@experimentChanged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "debriefTitle": "Look back",
   "debriefPrompt": "What changed most—and did it match what you expected?",
   "debriefPrediction": "Your prediction: {prediction}",
-  "@debriefPrediction": {"placeholders": {"prediction": {"type": "String"}}},
+  "@debriefPrediction": {
+    "placeholders": {
+      "prediction": {
+        "type": "String"
+      }
+    }
+  },
   "challengesTitle": "Optional challenges",
   "challengeName": "{id, select, village_quiet{Keep the village especially quiet} village_nature{Preserve a nature refuge} noise_no_roads{Solve it without a new road} noise_fast{Reach every goal within four years} habitat_no_water{Connect habitat without adding water} habitat_fast{Reach the goal before half the time is gone} budget_reserve{Finish with a strong reserve} budget_clean_air{Recover without sacrificing clean air} quarter_no_new_roads{Use the existing access road only} quarter_balanced{Exceed every environmental target} other{Find another solution}}",
-  "@challengeName": {"placeholders": {"id": {"type": "String"}}},
+  "@challengeName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "medalsEarned": "{count} challenge medals earned",
-  "@medalsEarned": {"placeholders": {"count": {"type": "int"}}},
-
+  "@medalsEarned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "experienceTitle": "Make it your game",
   "experienceDescription": "Choose a calm, simple map or add detail and movement. These settings never change the simulation or score.",
   "settingSimpleDescription": "Friendly faces and plain language instead of management values.",
@@ -181,19 +437,25 @@
   "settingCausalHighlightsDescription": "Highlight the places that explain a selected result.",
   "settingSoundEffects": "Sound effects",
   "settingHaptics": "Touch feedback",
-
   "newGameTitle": "New game",
   "newGameSize": "Map size {w} × {h}",
-  "@newGameSize": {"placeholders": {"w": {"type": "int"}, "h": {"type": "int"}}},
+  "@newGameSize": {
+    "placeholders": {
+      "w": {
+        "type": "int"
+      },
+      "h": {
+        "type": "int"
+      }
+    }
+  },
   "cancel": "Cancel",
   "ok": "OK",
-
   "errorOutOfBounds": "Outside the map.",
   "errorSameTile": "This cell already has that tile.",
   "errorInsufficientBudget": "Not enough budget.",
   "errorTileNotAllowed": "This tile is not available in this level.",
   "errorTileExhausted": "No more tiles of this type.",
-
   "fieldNoise": "Noise",
   "fieldAir": "Air quality",
   "fieldHeat": "Heat excess",
@@ -211,37 +473,134 @@
   "yes": "yes",
   "no": "no",
   "months": "{count} months",
-  "@months": {"placeholders": {"count": {"type": "int"}}},
+  "@months": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dbValue": "{value} dB(A)",
-  "@dbValue": {"placeholders": {"value": {"type": "String"}}},
+  "@dbValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "degreesValue": "+{value} °C",
-  "@degreesValue": {"placeholders": {"value": {"type": "String"}}},
+  "@degreesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "kmValue": "{value} km",
-  "@kmValue": {"placeholders": {"value": {"type": "String"}}},
+  "@kmValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "percentValue": "{value} %",
-  "@percentValue": {"placeholders": {"value": {"type": "String"}}},
+  "@percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "vehiclesValue": "{value} vehicles/day",
-  "@vehiclesValue": {"placeholders": {"value": {"type": "String"}}},
+  "@vehiclesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "tonsPerYear": "{value} t CO₂/year",
-  "@tonsPerYear": {"placeholders": {"value": {"type": "String"}}},
-
+  "@tonsPerYear": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "statsPopulation": "{count} residents",
-  "@statsPopulation": {"placeholders": {"count": {"type": "String"}}},
+  "@statsPopulation": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "statsJobs": "{filled} of {capacity} jobs filled",
-  "@statsJobs": {"placeholders": {"filled": {"type": "String"}, "capacity": {"type": "String"}}},
+  "@statsJobs": {
+    "placeholders": {
+      "filled": {
+        "type": "String"
+      },
+      "capacity": {
+        "type": "String"
+      }
+    }
+  },
   "statsNoise": "Mean exposure {value}",
-  "@statsNoise": {"placeholders": {"value": {"type": "String"}}},
+  "@statsNoise": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "statsCommute": "{km}, {car} by car",
-  "@statsCommute": {"placeholders": {"km": {"type": "String"}, "car": {"type": "String"}}},
+  "@statsCommute": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      },
+      "car": {
+        "type": "String"
+      }
+    }
+  },
   "statsHeat": "Mean heat excess {value}",
-  "@statsHeat": {"placeholders": {"value": {"type": "String"}}},
+  "@statsHeat": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "statsCo2": "{value}",
-  "@statsCo2": {"placeholders": {"value": {"type": "String"}}},
+  "@statsCo2": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "statsHabitat": "Effective habitat {area} ha, connectivity {conn}",
-  "@statsHabitat": {"placeholders": {"area": {"type": "String"}, "conn": {"type": "String"}}},
+  "@statsHabitat": {
+    "placeholders": {
+      "area": {
+        "type": "String"
+      },
+      "conn": {
+        "type": "String"
+      }
+    }
+  },
   "statsBudgetDelta": "Last month {value}",
-  "@statsBudgetDelta": {"placeholders": {"value": {"type": "String"}}},
-
+  "@statsBudgetDelta": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "legendLow": "low",
   "legendHigh": "high",
   "legendLess": "less",
@@ -250,39 +609,117 @@
   "legendWorse": "worse",
   "legendComparedWorse": "worse than pinned",
   "legendComparedBetter": "better than pinned",
-
   "levelSelectTitle": "Choose a scenario",
   "actionContinue": "Continue last game",
-  "levelTitle": "{id, select, sandbox{Sandbox} village{The village} noise{Living by the road} habitat{Habitat corridor} budget{Balance the books} quarter{A new quarter} other{Level}}",
-  "@levelTitle": {"placeholders": {"id": {"type": "String"}}},
-  "levelDescription": "{id, select, sandbox{Free play on a 16 × 16 map with every tile and a generous budget.} village{Farmland, a road and a pond. Build a village that has homes, a shop, quiet streets and room for nature.} noise{A regional road with 14 000 vehicles a day and an industrial estate. House 1 200 people without exposing them to noise.} habitat{Two forests cut off by fields and a road. Connect them into one habitat while keeping the existing homes attractive.} budget{A sprawling town of roads and parks with almost no residents is losing money. Bring in homes and jobs without ruining the air.} quarter{An empty meadow with one access road. Plan a quarter for 3 000 people that is clean, quiet, green and walkable.} other{}}",
-  "@levelDescription": {"placeholders": {"id": {"type": "String"}}},
+  "levelTitle": "{id, select, sandbox{Sandbox} village{The village} noise{Living by the road} habitat{Habitat corridor} budget{Balance the books} quarter{A new quarter} tuebingen{A real town} other{Level}}",
+  "@levelTitle": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "levelDescription": "{id, select, sandbox{Free play on a 16 × 16 map with every tile and a generous budget.} village{Farmland, a road and a pond. Build a village that has homes, a shop, quiet streets and room for nature.} noise{A regional road with 14 000 vehicles a day and an industrial estate. House 1 200 people without exposing them to noise.} habitat{Two forests cut off by fields and a road. Connect them into one habitat while keeping the existing homes attractive.} budget{A sprawling town of roads and parks with almost no residents is losing money. Bring in homes and jobs without ruining the air.} quarter{An empty meadow with one access road. Plan a quarter for 3 000 people that is clean, quiet, green and walkable.} tuebingen{Tübingen as the federal land-cover model records it: 21 700 residents, the Neckar, and hardly any room left for nature. Make space for habitat and recreation without losing the homes.} other{}}",
+  "levelDataSource": "Data source: {text}",
+  "@levelDataSource": {
+    "description": "Source notice of a level built from open data; the text is prescribed by the data licence and is not translated",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "@levelDescription": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "goalsSummary": "{count} goals · {months} months",
-  "@goalsSummary": {"placeholders": {"count": {"type": "int"}, "months": {"type": "int"}}},
+  "@goalsSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
   "goalsTitle": "Goals",
   "goalIndicator": "{name} ≥ {value}",
-  "@goalIndicator": {"placeholders": {"name": {"type": "String"}, "value": {"type": "String"}}},
+  "@goalIndicator": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "goalMetric": "{metric, select, population{Residents} jobs{Jobs} budgetKEur{Budget (k€)} other{Value}} ≥ {value}",
-  "@goalMetric": {"placeholders": {"metric": {"type": "String"}, "value": {"type": "String"}}},
+  "@goalMetric": {
+    "placeholders": {
+      "metric": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "monthsLeft": "{count} months left",
-  "@monthsLeft": {"placeholders": {"count": {"type": "int"}}},
+  "@monthsLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "endTitleSuccess": "All goals reached",
   "endTitleTimeUp": "Time is up",
   "endGoalsMet": "{met} of {total} goals met",
-  "@endGoalsMet": {"placeholders": {"met": {"type": "int"}, "total": {"type": "int"}}},
+  "@endGoalsMet": {
+    "placeholders": {
+      "met": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "actionKeepPlaying": "Keep playing",
   "actionBackToLevels": "Back to scenarios",
-
   "breakdownNoise": "Noise sources",
   "breakdownAir": "Pollution sources",
   "breakdownRow": "{tile} · {count} tiles, nearest {distance} m",
-  "@breakdownRow": {"placeholders": {"tile": {"type": "String"}, "count": {"type": "int"}, "distance": {"type": "String"}}},
+  "@breakdownRow": {
+    "placeholders": {
+      "tile": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
   "breakdownNone": "No sources in range.",
-
   "aboutTitle": "About Hectopolis",
   "aboutTagline": "A simulation of how a city, its landscape and its economy shape each other.",
   "aboutVersionLabel": "Version {version}",
-  "@aboutVersionLabel": {"placeholders": {"version": {"type": "String"}}},
+  "@aboutVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "aboutProvider": "Provider",
   "aboutContact": "Contact",
   "aboutPrivacy": "Privacy",
@@ -296,23 +733,54 @@
   "aboutDataSourcesText": "Every parameter of the simulation cites a public source: German and EU law, official statistics and open scientific models. Only values, formulas and law texts are used; no protected texts, artwork or data tables are copied. Ökolopoly, SimCity and similar games served as inspiration for ideas only.",
   "aboutOpenSourceLicenses": "Open-source licenses",
   "appLegalese": "© {year} Christian Ströbele · AGPL-3.0-or-later",
-  "@appLegalese": {"placeholders": {"year": {"type": "int"}}},
-
+  "@appLegalese": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "actionClose": "Close",
   "actionHelp": "How to play",
   "onboardingTitle": "How Hectopolis works",
   "onboardingStepTitle": "{id, select, tiles{Place tiles} overlays{Overlays and the inspector} loop{One feedback loop} other{}}",
-  "@onboardingStepTitle": {"placeholders": {"id": {"type": "String"}}},
+  "@onboardingStepTitle": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingStepBody": "{id, select, tiles{Drag a tile from the palette onto the map, or select it and tap cells. Every cell is one hectare, 100 by 100 metres.} overlays{The layers button paints noise, air, heat and access onto the map as colour. Tap a cell to read the numbers behind it and where they come from.} loop{More homes bring residents and taxes, but also traffic, noise and worse air, which makes homes less attractive again. Forests and parks dampen it.} other{}}",
-  "@onboardingStepBody": {"placeholders": {"id": {"type": "String"}}},
+  "@onboardingStepBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingLoopNode": "{id, select, homes{Homes} residents{Residents and taxes} traffic{Traffic} noise{Noise and air} attractiveness{Attractiveness} green{Forest and park} other{}}",
-  "@onboardingLoopNode": {"placeholders": {"id": {"type": "String"}}},
+  "@onboardingLoopNode": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingStepCounter": "Step {current} of {total}",
-  "@onboardingStepCounter": {"placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}},
+  "@onboardingStepCounter": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "onboardingSkip": "Skip",
   "onboardingNext": "Next",
   "onboardingDone": "Done",
-
   "actionZoomIn": "Zoom in",
   "actionZoomOut": "Zoom out",
   "actionZoomReset": "Reset view",
@@ -320,31 +788,114 @@
   "actionRedo": "Redo build",
   "actionCancelPlacement": "Cancel placement mode",
   "placementMode": "Placing {tile}",
-  "@placementMode": {"placeholders": {"tile": {"type": "String"}}},
-  "causalViewTitle": "How the town pushes back",
+  "@placementMode": {
+    "placeholders": {
+      "tile": {
+        "type": "String"
+      }
+    }
+  },
   "causalViewIntro": "Five loops run at once. The bars show which is loudest right now — they measure different things, so read the order, not the numbers.",
   "causalDominant": "Loudest now",
   "causalPolarity": "{id, select, reinforcing{Reinforcing — it feeds itself}balancing{Balancing — it pushes back}other{Loop}}",
-  "@causalPolarity": {"placeholders": {"id": {"type": "String"}}},
+  "@causalPolarity": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "causalLoopName": "{id, select, crowding{Crowding}taxBase{Paying for the town}inCommuting{Jobs without homes}fragmentation{Cut-up nature}regrowth{Nature takes time}other{A loop}}",
-  "@causalLoopName": {"placeholders": {"id": {"type": "String"}}},
+  "@causalLoopName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "causalLoopStory": "{id, select, crowding{People move in, drive, and make the place they moved to noisier and dirtier — until fewer want to move in.}taxBase{Residents and jobs pay the taxes that pay for building more homes and jobs. It runs the other way once upkeep outgrows income.}inCommuting{Jobs nobody local can fill are taken by people driving in from outside, so you get the traffic without the residents.}fragmentation{Roads and buildings cut habitat into pieces. The pieces add up to the same area but support less life than one whole.}regrowth{A forest planted today pays its biodiversity and cooling over years. The bar shows how much is still owed.}other{One of the town's feedback loops.}}",
-  "@causalLoopStory": {"placeholders": {"id": {"type": "String"}}},
+  "@causalLoopStory": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "causalNodeName": "{id, select, population{People}traffic{Traffic}pollution{Noise and air}attractiveness{Appeal}revenue{Tax income}budget{Budget}building{Building}jobs{Jobs}inCommuters{Commuters from outside}fragmentation{Fragmentation}habitatThreat{Pressure on habitat}biodiversity{Biodiversity}nature{Nature}maturity{Maturity}other{Part of the town}}",
-  "@causalNodeName": {"placeholders": {"id": {"type": "String"}}},
+  "@causalNodeName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "a11yMapLabel": "Town map",
   "a11yMapCursor": "Cell {x}, {y}. {tile}. Noise {noise} decibels, air quality {air}.",
-  "@a11yMapCursor": {"placeholders": {"x": {"type": "int"}, "y": {"type": "int"}, "tile": {"type": "String"}, "noise": {"type": "String"}, "air": {"type": "String"}}},
+  "@a11yMapCursor": {
+    "placeholders": {
+      "x": {
+        "type": "int"
+      },
+      "y": {
+        "type": "int"
+      },
+      "tile": {
+        "type": "String"
+      },
+      "noise": {
+        "type": "String"
+      },
+      "air": {
+        "type": "String"
+      }
+    }
+  },
   "a11yMapNoCursor": "No cell selected. Use the arrow keys to move the cursor.",
   "a11yIndicatorValue": "{name}: {value} of 100. {detail}",
-  "@a11yIndicatorValue": {"placeholders": {"name": {"type": "String"}, "value": {"type": "String"}, "detail": {"type": "String"}}},
+  "@a11yIndicatorValue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "a11yTileCard": "{name}, costs {cost}, {remaining}",
-  "@a11yTileCard": {"placeholders": {"name": {"type": "String"}, "cost": {"type": "String"}, "remaining": {"type": "String"}}},
+  "@a11yTileCard": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "cost": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "a11yTileSelected": "{name}, selected",
-  "@a11yTileSelected": {"placeholders": {"name": {"type": "String"}}},
+  "@a11yTileSelected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "a11yRemainingUnlimited": "unlimited",
   "a11yRemainingCount": "{count} left",
-  "@a11yRemainingCount": {"placeholders": {"count": {"type": "int"}}},
+  "@a11yRemainingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "keyboardShortcutsTitle": "Keyboard shortcuts",
   "keyboardHint": "Arrow keys move the cursor, Enter places the selected tile, Delete or Backspace clears the cell, 1–9 and 0 pick a tile, Escape drops the brush. Control or Command Z undoes a build.",
   "actionMore": "More"

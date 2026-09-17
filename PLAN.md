@@ -340,10 +340,37 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   "Lärmschutz" (existing road, place housing); "Biotopverbund" (connect two forests);
   "Haushalt" (balance the budget). Goal texts in ARB.
   *Note 2026-09-05 (3):* Five levels: village, noise, habitat, budget, quarter. `test/level_solutions_test.dart` proves each is solvable with three stars.
-- [ ] **T-303 Level generator from open data (optional).** Script under `tools/` that
+- [x] **T-303 Level generator from open data (optional).** Script under `tools/` that
   converts a Copernicus Urban Atlas or ATKIS extract (stored in
   `/mnt/storage/code/stadtbau/data`, never committed) into a level JSON. Document the data
   license and attribution text required in-game.
+  *Note 2026-09-17:* `tools/level_from_landcover.py`, documented in
+  `docs/level-generator.md`, plus the `tuebingen` level it produced. Urban Atlas needs a
+  CLMS login, so the dataset is LBM-DE2021 (BKG) instead — CC BY 4.0, whose terms ship with
+  the data and require a visible source notice *and* a notice of modification; `Level`
+  gained an `attribution` field that the level select screen shows and a test asserts,
+  because dropping it still loads the level and silently breaks the obligation. The reader
+  is stdlib-only: a GeoPackage is a SQLite database with WKB geometry behind a short
+  header, so `sqlite3` reads it and no GDAL, fiona or geopandas has to be installed
+  (`shapely` is used when present). Four things worth recording. (1) `ZUS_AKT` holds a
+  comma-separated list with a trailing comma (`"O,"`, `"F,O,"`), not one flag, so an
+  equality test against `"S"` matched none of the 7 277 solar sites — a rule that failed
+  silently and would have shipped every solar farm as industry. (2) A main road is ~20 m
+  wide and a river ~30 m, so neither ever wins a hectare on area; without a share
+  threshold the Neckar came out as disconnected specks (1.3 % of cells against 5.0 % with
+  it), and connectivity is exactly what the traffic and runoff models read. (3) Six tile
+  types had no character in `levelMapLegend`, so no level could contain them — invisible,
+  since everything compiles and runs; a test now asserts the legend covers every
+  `TileType`. (4) The simulation is superlinear in cells (3.3 ms per tick at 16×16, 10–12
+  at 24×24, 22–26 at 32×32), so the shipped level is 24×24: at 10× speed a tick has about
+  100 ms. Also: the first goal set asked for biodiversity 50 and the whole green allowance
+  reaches 39, so the level was unwinnable and only `level_solutions_test.dart` said so. The
+  goals now sit at values one written plan demonstrably reaches. Measuring three plans
+  showed what the model actually rewards: replacing the industrial estate beats growing one
+  large connected wood (biodiversity 39 with recreation 93, against 49 with recreation 75),
+  because habitat quality responds most to the threat that is *removed*, while recreation
+  and heat want green *near people* — and the corridor compromise is worse at both than
+  either specialist.
 - [x] **T-304 Scoring and end screen.** Level goals evaluation, star rating, replay
   summary of indicator curves.
   *Note 2026-09-05 (3):* Goals panel with live progress, end dialog with 0–3 stars, best stars stored per level; level select screen with continue.
@@ -603,6 +630,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 | Recreation | WHO Urban green spaces (2016/2017); 3-30-300 rule (Konijnendijk 2021) | Public / paper | Access thresholds |
 | Runoff | USDA SCS curve number (NRCS TR-55) | US public domain | Water module |
 | Land use maps | Copernicus Urban Atlas, CORINE, ATKIS (open Länder) | Copernicus free; dl-de/by-2.0 | Level generator |
+| Land cover, Germany | Landbedeckungsmodell LBM-DE2021 (BKG) | CC BY 4.0, prescribed Quellenvermerk and modification notice | Level generator (T-303); the `tuebingen` level |
 | Game model references | Micropolis (GPL-3), Citybound (AGPL-3), Forrester Urban Dynamics | Read only | Design inspiration |
 
 Anything not in this table must be added here with its license before it is used.

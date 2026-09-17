@@ -1,27 +1,17 @@
 {
   "@@locale": "de",
   "appTitle": "Hectopolis",
-
   "tileName": "{id, select, meadow{Wiese} cropland{Acker} forest{Wald} water{Gewässer} park{Park} housing_low{Einfamilienhäuser} housing_high{Mehrfamilienhäuser} commercial{Gewerbe & Einzelhandel} industry{Industrie} road{Hauptstraße} wetland{Feuchtgebiet}solar_field{Solarfeld}mixed_use{Gemischtes Viertel}school{Schule}tram_stop{Straßenbahnhaltestelle}cycle_path{Radweg}other{Unbekannt}}",
-
   "tileDescription": "{id, select, meadow{Extensives Grünland. Günstig, ordentlicher Lebensraum, kühlt etwas.} cropland{Ackerland. Geringer Biotopwert, kleine CO₂-Quelle.} forest{Laubwald. Bester Lebensraum, bindet CO₂, dämpft Lärm und Staub. Reift über Jahrzehnte.} water{Teich oder See. Guter Lebensraum, kühlt die Umgebung.} park{Stadtpark. Erholung im 300-m-Umkreis, Kühlung, etwas Lebensraum.} housing_low{Einfamilienhäuser, etwa 45 Einwohner je Hektar.} housing_high{Mehrfamilienhäuser, etwa 180 Einwohner je Hektar mit Erdgeschossnutzung.} commercial{Büros und Läden. Arbeitsplätze, Einkaufen zu Fuß, Lieferverkehr.} industry{Produzierendes Gewerbe. Viele Arbeitsplätze, Lärm, Emissionen.} road{Hauptstraße. Verbindet Wohnen und Arbeit; Verkehr erzeugt Lärm und Abgase.} wetland{Röhricht und flaches Wasser. Der wertvollste Lebensraum hier, kühlt stark und nimmt Regenwasser aus der Umgebung auf.}solar_field{Freiflächen-Photovoltaik auf offenem Grünland. Vermeidet sehr viel Kraftwerks-CO2; dunkel, eingezäunt und kein Ort für Menschen.}mixed_use{Wohnungen über Läden und Werkstätten. Weniger Wohnungen als Wohnblocks, aber Arbeit und Einkauf sind schon im Erdgeschoss.}school{Klassenräume, Hof und Sportplatz. Teuer zu bauen und zu betreiben, schafft Arbeitsplätze und ist nachts leer.}tram_stop{Eine Haltestelle mit Gleis. Leiser als der Autoverkehr, für den sie einsteht, und elektrisch — hier wird nichts verbrannt.}cycle_path{Ein befestigter Weg durch einen begrünten Saum. Günstig, fast lautlos und lässt den Boden größtenteils offen.}other{}}",
-
   "categoryName": "{id, select, nature{Landschaft} green_urban{Stadtgrün} residential{Wohnen} work{Arbeit} infrastructure{Infrastruktur} other{Sonstiges}}",
-
   "indicatorName": "{id, select, biodiversity{Biodiversität} air{Luftqualität} noise{Ruhe} housing{Wohnraum} economy{Wirtschaft} shopping{Einkaufen} recreation{Erholung} commuting{Pendeln} climate{Klima} budget{Haushalt} other{Unbekannt}}",
-
   "indicatorHint": "{id, select, biodiversity{Habitatqualität und Vernetzung der Grünflächen (Biotopwerte der BKompV, InVEST Habitat Quality).} air{Einwohnergewichteter Schadstoffindex aus Verkehr, Industrie und Heizung; Vegetation baut einen Teil ab.} noise{Anteil der Einwohner unter dem Tagesrichtwert von 55 dB(A) für Wohngebiete (TA Lärm).} housing{Wohnkapazität im Verhältnis zu den Arbeitsplätzen vor Ort und ihre Auslastung.} economy{Arbeitsplätze für die Einwohner und die Entwicklung des Haushalts.} shopping{Einzelhandel in Gehweite (Huff-Modell, 700 m).} recreation{Grünflächen im 300-m-Umkreis (WHO) und sommerliche Kühlung.} commuting{Mittlere Pendeldistanz und Pkw-Anteil (Verkehrsmittelwahl nach MiD 2017).} climate{CO₂-Bilanz aus Flächennutzung und Verkehr sowie städtische Überwärmung.} budget{Gemeindehaushalt im Verhältnis zum Startbudget.} other{}}",
   "indicatorSimpleHint": "{id, select, biodiversity{Haben Pflanzen und Tiere gute, verbundene Lebensräume?} air{Können alle saubere Luft atmen?} noise{Ist es bei den Wohnungen ruhig?} housing{Gibt es genug Platz für Menschen?} economy{Finden Menschen Arbeit und verdient die Stadt genug?} shopping{Kommen Menschen leicht zu Geschäften?} recreation{Können alle Natur in der Nähe genießen?} commuting{Kommen Menschen leicht an ihr Ziel?} climate{Bleibt die Stadt kühl und schützt das Klima?} budget{Hat die Stadt genug Geld?} other{Wie geht es der Stadt?}}",
-
   "indicatorFormula": "{id, select, biodiversity{Biotopwerte (BKompV) mal Reifegrad, gemindert durch Störwirkungen von Straße, Industrie und Bebauung sowie durch Zerschneidung, dann über eine Arten-Areal-Kurve skaliert.} air{Emissionen aus Verkehr, Industrie und Gebäuden verteilen sich mit einem exp(-d/300 m)-Kern, Vegetation baut einen Teil ab, und der einwohnergewichtete Mittelwert ergibt den Wert.} noise{Jede Quelle verliert 20 dB je Entfernungsdekade, Wald und Bebauung dämpfen zusätzlich; je Einwohner zählt (65 dB - L) / 10, begrenzt auf 0-1.} housing{100 x min(1, Kapazität / (Arbeitsplätze / 0,52)) x (0,5 + 0,5 x Auslastung); ohne Wohnraum null.} economy{100 x (0,6 x min(1, Arbeitsplätze / Erwerbstätige) + 0,4 x Haushaltstrend), der Trend aus der Haushaltsänderung des letzten Monats.} shopping{Huff-Modell mit Lambda = 2 über Geschäfte in 700 m Gehweite, gemittelt über die Einwohner.} recreation{Einwohnergewichtet 0,7 x Grün im 300-m-Umkreis plus 0,3 x (1 - Delta T / maximale Überwärmung).} commuting{100 x (0,5 x (1 - mittlere Distanz / 20 km) + 0,5 x (1 - Pkw-Anteil)) aus dem Gravitationsmodell des Pendelns.} climate{100 x (0,7 x (1 - CO₂ je Person / 2,5 t) + 0,3 x (1 - mittleres Delta T / maximale Überwärmung)).} budget{Der Gemeindehaushalt geteilt durch das Startbudget, begrenzt auf 0-100.} other{}}",
-
   "indicatorFormulaLabel": "So wird gerechnet",
   "indicatorSourceLink": "Modelldokumentation",
-
   "overlayName": "{id, select, none{Kein Overlay} noise{Lärm} air{Luftqualität} heat{Hitze} green{Grünzugang} retail{Einkaufszugang} jobs{Arbeitsplatzzugang} habitat{Habitatqualität} traffic{Verkehr} attractiveness{Attraktivität} other{}}",
-
   "overlayUnit": "{id, select, noise{dB(A)} air{Index} heat{°C über Umland} green{0–1} retail{0–1} jobs{0–1} habitat{0–1} traffic{Kfz/Tag} attractiveness{0–1} other{}}",
-
   "overlayLabel": "Overlay",
   "overlayDirectionHarmful": "Hohe Werte sind schädlich",
   "overlayDirectionHelpful": "Hohe Werte sind hilfreich",
@@ -30,12 +20,33 @@
   "paletteTitle": "Felder",
   "paletteHint": "Feld auf die Karte ziehen oder auswählen und Zellen antippen. Lange drücken leert eine Zelle.",
   "placementPreviewTitle": "{tile} platzieren",
-  "@placementPreviewTitle": {"placeholders": {"tile": {"type": "String"}}},
+  "@placementPreviewTitle": {
+    "placeholders": {
+      "tile": {
+        "type": "String"
+      }
+    }
+  },
   "placementPreviewCost": "Kosten {cost}",
-  "@placementPreviewCost": {"placeholders": {"cost": {"type": "String"}}},
+  "@placementPreviewCost": {
+    "placeholders": {
+      "cost": {
+        "type": "String"
+      }
+    }
+  },
   "placementPreviewNoScoreChange": "Keine sofortige Wertungsänderung",
   "placementPreviewAffected": "{count} Felder · {overlay}",
-  "@placementPreviewAffected": {"placeholders": {"count": {"type": "int"}, "overlay": {"type": "String"}}},
+  "@placementPreviewAffected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "overlay": {
+        "type": "String"
+      }
+    }
+  },
   "impactBuilt": "{tile} gebaut",
   "impactRemoved": "{tile} entfernt",
   "impactSimpleBetter": "😊 Das hilft der Stadt.",
@@ -55,21 +66,17 @@
   "guidanceExplore": "Erkunde die Karte und probiere eine andere Mischung.",
   "inspectorTitle": "Zelle {x}, {y}",
   "inspectorEmpty": "Zelle antippen, um Details zu sehen.",
-
   "costLabel": "Kosten {amount}",
   "remainingLabel": "{count} übrig",
   "unlimited": "unbegrenzt",
-
   "budgetLabel": "Haushalt",
   "populationLabel": "Einwohner",
   "townMood": "So fühlt sich die Stadt",
   "jobsLabel": "Arbeitsplätze",
   "monthLabel": "Monat {tick}",
   "yearMonthLabel": "Jahr {year}, Monat {month}",
-
   "kEur": "{amount} T€",
   "perMonth": "{amount} / Monat",
-
   "actionPlay": "Start",
   "actionPause": "Pause",
   "actionStep": "Nächster Monat",
@@ -79,7 +86,6 @@
   "actionLanguage": "Sprache",
   "actionAbout": "Über",
   "actionExperienceSettings": "Darstellung einstellen",
-
   "learningModeLabel": "Lernmodus",
   "learningModeName": "{id, select, starter{Einstieg} guided{Begleitet} explorer{Entdecken} other{Begleitet}}",
   "learningModeDescription": "{id, select, starter{Gesichter, klare Sprache und nur das Wesentliche.} guided{Hilfreiche Fragen und freiwillige Erklärungen beim Spielen.} explorer{Genaue Werte, Vergleiche und vollständige Modelldetails.} other{}}",
@@ -94,7 +100,7 @@
   "learningModelTab": "Darstellung im Modell",
   "learningLawTab": "Wissen und Regeln",
   "learningMoreDetail": "Modell, Wissen und Regeln öffnen",
-  "causalViewTitle": "Was die Stadt gerade antreibt",
+  "causalViewTitle": "Wie die Stadt zurückwirkt",
   "causalPath": "{id, select, village{Wohnungen → Menschen → Erreichbarkeit und Verkehr → Lebensqualität} noise{Straße und Industrie → Schall an Wohnungen → Ruhe → Attraktivität} habitat{Bebauung → Zerschneidung → Biotopverbund → Biodiversität} budget{Wohnungen und Arbeit → Einnahmen → Haushalt → Möglichkeiten} quarter{Nutzungsmischung → Wege und Umwelt → Attraktivität → Einwohner} other{Entscheidungen → Wirkungen → neue Entscheidungen}}",
   "causalNeedsAttention": "Das derzeit schwächste Ergebnis ist {name}.",
   "actionLearnWhy": "Warum?",
@@ -105,9 +111,21 @@
   "missionPredictionPrompt": "{id, select, village_access{Wo sollten Häuser stehen, damit Menschen Wichtiges erreichen und trotzdem ruhige Natur bleibt?} noise_homes{Welche Wahl hält neue Wohnungen meistens am ruhigsten?} habitat_corridor{Was lässt die beiden Waldflächen am ehesten wie einen Lebensraum wirken?} budget_recovery{Was führt am ehesten zu einer dauerhaften Erholung des Haushalts?} other{Welche Veränderung wird wohl am meisten helfen?}}",
   "missionPredictionChoice": "{id, select, near{Sehr nah an vorhandenen Zielen bauen} far{Abstand von der stärksten Quelle nutzen} shield{Etwas zwischen Quelle und Wohnungen setzen} connect{Einen durchgehenden Biotopkorridor schaffen} scatter{Kleine Flächen über die Karte verteilen} cut{Eine weitere Straße durch den Lebensraum bauen} income{Nützliche Wohnungen und Arbeit mit bezahlbarem Unterhalt verbinden} decorate{Nur teure Parks bauen} roads{Zuerst viele Straßen bauen} balance{Mehrere Bedürfnisse ausgleichen} other{Diese Idee ausprobieren}}",
   "missionBeatTitle": "{id, select, village_first_homes{Die ersten Häuser}village_quiet_left{Was das Dorf behalten hat}noise_first_homes{Hör auf die Karte}noise_shield{Etwas dazwischen}habitat_two_patches{Zwei Wälder oder einer}habitat_maturity{Gib ihm Zeit}budget_monthly{Achte auf den Monat, nicht auf die Summe}budget_delay{Wirkungen kommen später}quarter_first_block{Ein Viertel, keine Reihe}quarter_balance{Das letzte Drittel ist das schwerste}other{Nächster Schritt}}",
-  "@missionBeatTitle": {"placeholders": {"id": {"type": "String"}}},
+  "@missionBeatTitle": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "missionBeatBody": "{id, select, village_first_homes{Hier wohnen jetzt Menschen. Schalte die Einkaufs-Ansicht ein und sieh, welche Häuser einen Laden zu Fuß erreichen – und welche nicht.}village_quiet_left{Schau, was noch Wiese und Wald ist. Ein Dorf, das alles erreicht, aber nichts Ruhiges behält, hat die Aufgabe nur halb gelöst.}noise_first_homes{Öffne die Lärm-Ansicht. Der Streifen an der Straße ist laut, egal was du dort baust – den größten Teil macht der Abstand.}noise_shield{Die Ruhe nimmt ab. Setz Wald oder einen Park zwischen Straße und Wohnungen und achte auf die Ansicht, nicht auf die Punktzahl.}habitat_two_patches{Beide Wälder zählen als Lebensraum. Die Artenvielfalt fragt aber auch, ob Tiere dazwischen wechseln können. Sieh dir den Verbund an.}habitat_maturity{Junger Wald ist noch kein alter Wald. Lass Monate vergehen und sieh zu, wie die Artenvielfalt steigt, ohne dass du etwas baust.}budget_monthly{Der Kontostand sieht noch gut aus, weil er hoch begonnen hat. Der Monatswert entscheidet, ob das so bleibt.}budget_delay{Was du vor Monaten gebaut hast, zeigt sich erst jetzt im Haushalt. Mit dem, was du heute baust, ist es genauso.}quarter_first_block{Wohnen, Arbeiten und Einkaufen im selben fußläufigen Bereich halten die Wege kurz. Beobachte dabei den Pendel-Indikator.}quarter_balance{Einige Ziele sind erreicht. Die übrigen kosten meist etwas, das dir die erreichten gebracht haben – entscheide, was du eintauschst.}other{Sieh dir an, was sich auf der Karte verändert hat, bevor du weiterbaust.}}",
-  "@missionBeatBody": {"placeholders": {"id": {"type": "String"}}},
+  "@missionBeatBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "missionPredictionSaved": "Vermutung gespeichert – teste sie jetzt auf der Karte.",
   "experimentTitle": "Was-wäre-wenn-Experiment",
   "experimentDescription": "Merke dir die Stadt, probiere Änderungen und behalte sie oder kehre zur gemerkten Version zurück.",
@@ -123,7 +141,6 @@
   "challengesTitle": "Freiwillige Herausforderungen",
   "challengeName": "{id, select, village_quiet{Halte das Dorf besonders ruhig} village_nature{Bewahre einen Rückzugsort für die Natur} noise_no_roads{Löse es ohne neue Straße} noise_fast{Erreiche alle Ziele in vier Jahren} habitat_no_water{Verbinde Lebensräume ohne neues Gewässer} habitat_fast{Erreiche das Ziel vor Ablauf der halben Zeit} budget_reserve{Schließe mit einer starken Rücklage ab} budget_clean_air{Erhole den Haushalt ohne schlechte Luft} quarter_no_new_roads{Nutze nur die vorhandene Zufahrtsstraße} quarter_balanced{Übertriff alle Umweltziele} other{Finde eine andere Lösung}}",
   "medalsEarned": "{count} Herausforderungsmedaillen verdient",
-
   "experienceTitle": "Mach es zu deinem Spiel",
   "experienceDescription": "Wähle eine ruhige, einfache Karte oder füge Details und Bewegung hinzu. Diese Einstellungen ändern weder Simulation noch Wertung.",
   "settingSimpleDescription": "Freundliche Gesichter und klare Sprache statt Verwaltungszahlen.",
@@ -142,19 +159,25 @@
   "settingCausalHighlightsDescription": "Hebt Orte hervor, die ein ausgewähltes Ergebnis erklären.",
   "settingSoundEffects": "Toneffekte",
   "settingHaptics": "Berührungsfeedback",
-
   "newGameTitle": "Neues Spiel",
   "newGameSize": "Kartengröße {w} × {h}",
-  "@newGameSize": {"placeholders": {"w": {"type": "int"}, "h": {"type": "int"}}},
+  "@newGameSize": {
+    "placeholders": {
+      "w": {
+        "type": "int"
+      },
+      "h": {
+        "type": "int"
+      }
+    }
+  },
   "cancel": "Abbrechen",
   "ok": "OK",
-
   "errorOutOfBounds": "Außerhalb der Karte.",
   "errorSameTile": "Diese Zelle hat dieses Feld bereits.",
   "errorInsufficientBudget": "Nicht genug Budget.",
   "errorTileNotAllowed": "Dieses Feld ist in diesem Level nicht verfügbar.",
   "errorTileExhausted": "Keine Felder dieses Typs mehr übrig.",
-
   "fieldNoise": "Lärm",
   "fieldAir": "Luftqualität",
   "fieldHeat": "Überwärmung",
@@ -178,7 +201,6 @@
   "percentValue": "{value} %",
   "vehiclesValue": "{value} Kfz/Tag",
   "tonsPerYear": "{value} t CO₂/Jahr",
-
   "statsPopulation": "{count} Einwohner",
   "statsJobs": "{filled} von {capacity} Arbeitsplätzen besetzt",
   "statsNoise": "Mittlere Belastung {value}",
@@ -187,7 +209,6 @@
   "statsCo2": "{value}",
   "statsHabitat": "Wirksames Habitat {area} ha, Vernetzung {conn}",
   "statsBudgetDelta": "Letzter Monat {value}",
-
   "legendLow": "niedrig",
   "legendHigh": "hoch",
   "legendLess": "weniger",
@@ -196,11 +217,11 @@
   "legendWorse": "schlechter",
   "legendComparedWorse": "schlechter als gemerkt",
   "legendComparedBetter": "besser als gemerkt",
-
   "levelSelectTitle": "Szenario wählen",
   "actionContinue": "Letztes Spiel fortsetzen",
-  "levelTitle": "{id, select, sandbox{Sandkasten} village{Das Dorf} noise{Wohnen an der Straße} habitat{Biotopverbund} budget{Haushalt sanieren} quarter{Ein neues Quartier} other{Level}}",
-  "levelDescription": "{id, select, sandbox{Freies Spiel auf einer 16 × 16-Karte mit allen Feldern und großzügigem Budget.} village{Ackerland, eine Straße und ein Teich. Baue ein Dorf mit Wohnungen, einem Laden, ruhigen Straßen und Platz für die Natur.} noise{Eine Regionalstraße mit 14 000 Fahrzeugen am Tag und ein Industriegebiet. Bringe 1 200 Menschen unter, ohne sie dem Lärm auszusetzen.} habitat{Zwei Wälder, getrennt durch Felder und eine Straße. Verbinde sie zu einem Lebensraum und halte die bestehenden Häuser attraktiv.} budget{Eine zersiedelte Stadt aus Straßen und Parks fast ohne Einwohner verliert Geld. Hole Wohnungen und Arbeitsplätze, ohne die Luft zu ruinieren.} quarter{Eine leere Wiese mit einer Zufahrtsstraße. Plane ein Quartier für 3 000 Menschen, das sauber, leise, grün und fußläufig ist.} other{}}",
+  "levelTitle": "{id, select, sandbox{Sandkasten} village{Das Dorf} noise{Wohnen an der Straße} habitat{Biotopverbund} budget{Haushalt sanieren} quarter{Ein neues Quartier} tuebingen{Eine echte Stadt} other{Level}}",
+  "levelDescription": "{id, select, sandbox{Freies Spiel auf einer 16 × 16-Karte mit allen Feldern und großzügigem Budget.} village{Ackerland, eine Straße und ein Teich. Baue ein Dorf mit Wohnungen, einem Laden, ruhigen Straßen und Platz für die Natur.} noise{Eine Regionalstraße mit 14 000 Fahrzeugen am Tag und ein Industriegebiet. Bringe 1 200 Menschen unter, ohne sie dem Lärm auszusetzen.} habitat{Zwei Wälder, getrennt durch Felder und eine Straße. Verbinde sie zu einem Lebensraum und halte die bestehenden Häuser attraktiv.} budget{Eine zersiedelte Stadt aus Straßen und Parks fast ohne Einwohner verliert Geld. Hole Wohnungen und Arbeitsplätze, ohne die Luft zu ruinieren.} quarter{Eine leere Wiese mit einer Zufahrtsstraße. Plane ein Quartier für 3 000 Menschen, das sauber, leise, grün und fußläufig ist.} tuebingen{Tübingen, wie es im Landbedeckungsmodell des Bundes steht: 21 700 Einwohner, der Neckar und kaum noch Platz für Natur. Schaffen Sie Raum für Lebensräume und Erholung, ohne die Wohnungen zu verlieren.} other{}}",
+  "levelDataSource": "Datenquelle: {text}",
   "goalsSummary": "{count} Ziele · {months} Monate",
   "goalsTitle": "Ziele",
   "goalIndicator": "{name} ≥ {value}",
@@ -211,12 +232,10 @@
   "endGoalsMet": "{met} von {total} Zielen erreicht",
   "actionKeepPlaying": "Weiterspielen",
   "actionBackToLevels": "Zurück zur Auswahl",
-
   "breakdownNoise": "Lärmquellen",
   "breakdownAir": "Schadstoffquellen",
   "breakdownRow": "{tile} · {count} Felder, nächstes {distance} m",
   "breakdownNone": "Keine Quellen in Reichweite.",
-
   "aboutTitle": "Über Hectopolis",
   "aboutTagline": "Eine Simulation davon, wie Stadt, Landschaft und Wirtschaft einander prägen.",
   "aboutVersionLabel": "Version {version}",
@@ -233,7 +252,6 @@
   "aboutDataSourcesText": "Jeder Parameter der Simulation nennt eine öffentliche Quelle: deutsches und EU-Recht, amtliche Statistik und offene wissenschaftliche Modelle. Verwendet werden nur Werte, Formeln und Gesetzestexte; keine geschützten Texte, Grafiken oder Datentabellen werden übernommen. Ökolopoly, SimCity und ähnliche Spiele dienten nur als Ideengeber.",
   "aboutOpenSourceLicenses": "Open-Source-Lizenzen",
   "appLegalese": "© {year} Christian Ströbele · AGPL-3.0-or-later",
-
   "actionClose": "Schließen",
   "actionHelp": "Spielanleitung",
   "onboardingTitle": "So funktioniert Hectopolis",
@@ -244,7 +262,6 @@
   "onboardingSkip": "Überspringen",
   "onboardingNext": "Weiter",
   "onboardingDone": "Fertig",
-
   "actionZoomIn": "Vergrößern",
   "actionZoomOut": "Verkleinern",
   "actionZoomReset": "Ansicht zurücksetzen",
@@ -252,30 +269,107 @@
   "actionRedo": "Bau wiederholen",
   "actionCancelPlacement": "Platzierungsmodus beenden",
   "placementMode": "Setzen: {tile}",
-  "causalViewTitle": "Wie die Stadt zurückwirkt",
   "causalViewIntro": "Fünf Kreisläufe laufen gleichzeitig. Die Balken zeigen, welcher gerade am lautesten ist – sie messen Verschiedenes, achte auf die Reihenfolge, nicht auf die Zahlen.",
   "causalDominant": "Gerade am lautesten",
   "causalPolarity": "{id, select, reinforcing{Verstärkend – er nährt sich selbst}balancing{Ausgleichend – er wirkt dagegen}other{Kreislauf}}",
-  "@causalPolarity": {"placeholders": {"id": {"type": "String"}}},
+  "@causalPolarity": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "causalLoopName": "{id, select, crowding{Enge}taxBase{Wer die Stadt bezahlt}inCommuting{Arbeit ohne Wohnungen}fragmentation{Zerschnittene Natur}regrowth{Natur braucht Zeit}other{Ein Kreislauf}}",
-  "@causalLoopName": {"placeholders": {"id": {"type": "String"}}},
+  "@causalLoopName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "causalLoopStory": "{id, select, crowding{Menschen ziehen zu, fahren Auto und machen den Ort lauter und schmutziger – bis weniger zuziehen wollen.}taxBase{Bewohner und Arbeitsplätze zahlen die Steuern, die neue Wohnungen und Arbeitsplätze bezahlen. Umgekehrt, sobald der Unterhalt die Einnahmen übersteigt.}inCommuting{Arbeitsplätze, die vor Ort niemand besetzt, übernehmen Einpendler mit dem Auto – der Verkehr kommt, die Bewohner nicht.}fragmentation{Straßen und Gebäude zerschneiden den Lebensraum. Die Teile ergeben dieselbe Fläche, tragen aber weniger Leben als ein Ganzes.}regrowth{Ein heute gepflanzter Wald zahlt Artenvielfalt und Kühlung über Jahre aus. Der Balken zeigt, wie viel noch aussteht.}other{Einer der Rückkopplungskreise der Stadt.}}",
-  "@causalLoopStory": {"placeholders": {"id": {"type": "String"}}},
+  "@causalLoopStory": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "causalNodeName": "{id, select, population{Menschen}traffic{Verkehr}pollution{Lärm und Luft}attractiveness{Attraktivität}revenue{Steuereinnahmen}budget{Haushalt}building{Bauen}jobs{Arbeitsplätze}inCommuters{Einpendler}fragmentation{Zerschneidung}habitatThreat{Druck auf den Lebensraum}biodiversity{Artenvielfalt}nature{Natur}maturity{Reife}other{Teil der Stadt}}",
-  "@causalNodeName": {"placeholders": {"id": {"type": "String"}}},
+  "@causalNodeName": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "a11yMapLabel": "Stadtkarte",
   "a11yMapCursor": "Zelle {x}, {y}. {tile}. Lärm {noise} Dezibel, Luftqualität {air}.",
-  "@a11yMapCursor": {"placeholders": {"x": {"type": "int"}, "y": {"type": "int"}, "tile": {"type": "String"}, "noise": {"type": "String"}, "air": {"type": "String"}}},
+  "@a11yMapCursor": {
+    "placeholders": {
+      "x": {
+        "type": "int"
+      },
+      "y": {
+        "type": "int"
+      },
+      "tile": {
+        "type": "String"
+      },
+      "noise": {
+        "type": "String"
+      },
+      "air": {
+        "type": "String"
+      }
+    }
+  },
   "a11yMapNoCursor": "Keine Zelle gewählt. Bewege den Cursor mit den Pfeiltasten.",
   "a11yIndicatorValue": "{name}: {value} von 100. {detail}",
-  "@a11yIndicatorValue": {"placeholders": {"name": {"type": "String"}, "value": {"type": "String"}, "detail": {"type": "String"}}},
+  "@a11yIndicatorValue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "a11yTileCard": "{name}, kostet {cost}, {remaining}",
-  "@a11yTileCard": {"placeholders": {"name": {"type": "String"}, "cost": {"type": "String"}, "remaining": {"type": "String"}}},
+  "@a11yTileCard": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "cost": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "a11yTileSelected": "{name}, ausgewählt",
-  "@a11yTileSelected": {"placeholders": {"name": {"type": "String"}}},
+  "@a11yTileSelected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "a11yRemainingUnlimited": "unbegrenzt",
   "a11yRemainingCount": "{count} übrig",
-  "@a11yRemainingCount": {"placeholders": {"count": {"type": "int"}}},
+  "@a11yRemainingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "keyboardShortcutsTitle": "Tastaturkürzel",
   "keyboardHint": "Pfeiltasten bewegen den Cursor, Enter setzt das gewählte Feld, Entf oder Rücktaste leert die Zelle, 1–9 und 0 wählen ein Feld, Esc legt den Pinsel ab. Strg oder Command Z macht einen Bau rückgängig.",
   "actionMore": "Mehr"
