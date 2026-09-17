@@ -152,13 +152,31 @@ class AirParams {
         radiusTiles = _p(m, 'radiusTiles', 'air').value.round(),
         sinkRadiusTiles = _p(m, 'sinkRadiusTiles', 'air').value.round(),
         indexScale = _p(m, 'indexScale', 'air').value,
-        trafficReferenceVehiclesPerDay = _p(m, 'trafficReferenceVehiclesPerDay', 'air').value;
+        trafficReferenceVehiclesPerDay = _p(m, 'trafficReferenceVehiclesPerDay', 'air').value,
+        windFromDegrees = _p(m, 'windFromDegrees', 'air').value,
+        windSpeedMs = _p(m, 'windSpeedMs', 'air').value,
+        windStretchPerMs = _p(m, 'windStretchPerMs', 'air').value;
 
   final double decayLengthM;
   final int radiusTiles;
   final int sinkRadiusTiles;
   final double indexScale;
   final double trafficReferenceVehiclesPerDay;
+
+  /// Where the wind comes from, meteorological convention: 0 = north,
+  /// 90 = east. Only matters when [windSpeedMs] is above zero.
+  final double windFromDegrees;
+
+  /// Mean wind speed. Zero is calm, and calm is exactly the isotropic model.
+  final double windSpeedMs;
+
+  /// How much a metre per second stretches the plume downwind.
+  final double windStretchPerMs;
+
+  /// How far the plume reaches downwind relative to calm: 1 is calm.
+  double get windStretch => 1 + windSpeedMs * windStretchPerMs;
+
+  bool get hasWind => windSpeedMs > 0 && windStretch > 1;
 }
 
 class HeatParams {

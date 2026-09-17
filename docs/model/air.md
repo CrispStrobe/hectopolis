@@ -16,8 +16,52 @@ Concentration at cell `i`:
 6-tile neighbourhood including the centre.
 
 The normalisation `K` makes a uniform field of emitters produce `C = E`, and a
-single emitter dilute with distance. The kernel is an isotropic near-field
-simplification of a Gaussian plume; wind is task T-501.
+single emitter dilute with distance.
+
+## Wind (T-501)
+
+With `air.windSpeedMs = 0` the kernel is isotropic and everything above holds
+unchanged. That is the shipped default, so a scenario opts into wind through
+`paramOverrides` — the way `04_budget` does, with the prevailing
+south-westerly of the German lowlands.
+
+With wind, the same exponential is applied to a distance measured in a
+stretched frame. For an offset `d` from source to receiver, with unit vector
+`ŵ` pointing the way the wind blows:
+
+- along-wind `a = d · ŵ`, crosswind `c = |d × ŵ|`
+- `s = 1 + windSpeedMs · windStretchPerMs` (the downwind stretch)
+- `a' = a / s` downwind (`a ≥ 0`), `a' = a · s` upwind
+- `c' = c · √s`
+- `k = exp(−√(a'² + c'²) / L)`
+
+So the plume reaches further downwind, dies quickly upwind, and narrows
+across. `K` is recomputed for the same kernel, so the wind redistributes the
+emission rather than adding or removing any: a uniform field of emitters still
+gives `C = E`, and the total over a single plume changes only by what the
+stretch pushes past the 6-tile radius.
+
+**This is a stand-in for a Gaussian plume, not a solution of one.** A real
+Gaussian plume has σ_y and σ_z growing with downwind distance under a Pasquill
+stability class, a release height, and a ground-reflection term; concentration
+falls as `1/(u·σ_y·σ_z)` rather than exponentially. What is kept here is the
+part that changes decisions on a 100 m grid: put the dirty thing downwind of
+the homes and the homes stay cleaner. `windStretchPerMs = 0.35` puts a 3 m/s
+wind at roughly twice the downwind reach of calm, which is the order of
+magnitude a screening plume gives over a few hundred metres.
+
+Direction follows the meteorological convention — `windFromDegrees` is where
+the wind comes **from**, 0 = north, 90 = east — so the value can be read
+straight off a wind rose. The plume travels the opposite way.
+
+### Limits
+
+- One direction, constant. No wind rose with a frequency distribution, no
+  calm-hours fraction, no seasonal variation.
+- No stability class, no plume rise, no building downwash: a tall stack and a
+  ground-level road disperse identically.
+- The 6-tile cut-off is unchanged, so a strong wind loses a little material
+  off the downwind edge of the kernel.
 
 Deposition: `C_i ← C_i · (1 − mean sink of the 3-tile neighbourhood)`, with sink
 coefficients forest 0.20, park 0.10, meadow 0.05 (magnitudes after Nowak et al.
@@ -43,3 +87,5 @@ Index: `AQI_i = 100 · exp(−C_i / 1.0)`.
 - Nowak, Crane, Stevens (2006): Air pollution removal by urban trees and shrubs
   in the United States. Urban Forestry & Urban Greening 4, 115–123.
 - Umweltbundesamt, Luftschadstoff-Emissionen in Deutschland
+- Pasquill (1961); Gifford (1961): plume dispersion coefficients by stability class
+- Stockie (2011), *The mathematics of atmospheric dispersion modeling*, SIAM Review 53(2)
