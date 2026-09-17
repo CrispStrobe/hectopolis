@@ -169,6 +169,85 @@ class NoiseParams {
   final double nightHighRiskDb;
 }
 
+/// Rainfall and runoff (docs/model/water.md).
+class WaterParams {
+  WaterParams(Map<String, dynamic> m)
+    : designStormMm = _p(m, 'designStormMm', 'water').value,
+      imperviousCurveNumber = _p(m, 'imperviousCurveNumber', 'water').value,
+      initialAbstractionRatio = _p(m, 'initialAbstractionRatio', 'water').value,
+      retentionRadiusTiles = _p(
+        m,
+        'retentionRadiusTiles',
+        'water',
+      ).value.round(),
+      retentionMmPerCell = _p(m, 'retentionMmPerCell', 'water').value,
+      floodRiskMm = _p(m, 'floodRiskMm', 'water').value;
+
+  /// Rain depth of the design storm, mm.
+  final double designStormMm;
+
+  /// Curve number of connected impervious area.
+  final double imperviousCurveNumber;
+
+  /// Initial abstraction as a fraction of the maximum retention S.
+  final double initialAbstractionRatio;
+
+  final int retentionRadiusTiles;
+
+  /// Depth one water cell can take from its neighbourhood, mm.
+  final double retentionMmPerCell;
+
+  /// Runoff depth above which a cell is reported as at risk, mm.
+  final double floodRiskMm;
+}
+
+/// The yearly cycle (docs/model/seasons.md).
+///
+/// Both factor series average exactly 1.0 over the twelve months, so a season
+/// redistributes within a year rather than shifting the annual total: a run
+/// measured over whole years lands where it did before seasons existed.
+class SeasonParams {
+  SeasonParams(Map<String, dynamic> m)
+    : amplitude = _p(m, 'amplitude', 'seasons').value,
+      growth = _monthly(m, 'growth'),
+      heat = _monthly(m, 'heat');
+
+  static List<double> _monthly(Map<String, dynamic> m, String key) {
+    final section = _map(m[key], 'seasons.$key');
+    final values = (section['monthly'] as List<dynamic>? ?? const [])
+        .map((v) => (v as num).toDouble())
+        .toList();
+    if (values.length != 12) {
+      throw FormatException('seasons.$key.monthly needs 12 values');
+    }
+    return List.unmodifiable(values);
+  }
+
+  /// 0 disables the cycle and reproduces the season-free model exactly.
+  final double amplitude;
+
+  /// Vegetation activity by month, index 0 = January.
+  final List<double> growth;
+
+  /// Urban heat island intensity by month.
+  final List<double> heat;
+
+  bool get active => amplitude > 0;
+
+  double _at(List<double> monthly, int tick) {
+    final factor = monthly[((tick % 12) + 12) % 12];
+    // Amplitude scales the departure from the annual mean, so turning it down
+    // flattens the year towards 1.0 rather than towards zero.
+    return 1 + (factor - 1) * amplitude;
+  }
+
+  /// Vegetation activity for the month at [tick], where tick 0 is January.
+  double growthAt(int tick) => _at(growth, tick);
+
+  /// Heat island intensity for the month at [tick].
+  double heatAt(int tick) => _at(heat, tick);
+}
+
 class AirParams {
   AirParams(Map<String, dynamic> m)
       : decayLengthM = _p(m, 'decayLengthM', 'air').value,
@@ -333,38 +412,6 @@ class AttractivenessWeights {
   double get sum => noise + air + green + retail + jobs + heat;
 }
 
-/// Rainfall and runoff (docs/model/water.md).
-class WaterParams {
-  WaterParams(Map<String, dynamic> m)
-    : designStormMm = _p(m, 'designStormMm', 'water').value,
-      imperviousCurveNumber = _p(m, 'imperviousCurveNumber', 'water').value,
-      initialAbstractionRatio = _p(m, 'initialAbstractionRatio', 'water').value,
-      retentionRadiusTiles = _p(
-        m,
-        'retentionRadiusTiles',
-        'water',
-      ).value.round(),
-      retentionMmPerCell = _p(m, 'retentionMmPerCell', 'water').value,
-      floodRiskMm = _p(m, 'floodRiskMm', 'water').value;
-
-  /// Rain depth of the design storm, mm.
-  final double designStormMm;
-
-  /// Curve number of connected impervious area.
-  final double imperviousCurveNumber;
-
-  /// Initial abstraction as a fraction of the maximum retention S.
-  final double initialAbstractionRatio;
-
-  final int retentionRadiusTiles;
-
-  /// Depth one water cell can take from its neighbourhood, mm.
-  final double retentionMmPerCell;
-
-  /// Runoff depth above which a cell is reported as at risk, mm.
-  final double floodRiskMm;
-}
-
 class EconomyParams {
   EconomyParams(Map<String, dynamic> m)
       : incomeTaxPerResidentYear = _p(m, 'incomeTaxPerResidentYear', 'economy').value,
@@ -410,6 +457,7 @@ class SimParams {
     required this.habitat,
     required this.commute,
     required this.economy,
+    required this.seasons,
     required this.water,
   });
 
@@ -423,6 +471,7 @@ class SimParams {
   final HabitatParams habitat;
   final CommuteParams commute;
   final EconomyParams economy;
+  final SeasonParams seasons;
   final WaterParams water;
 
   TileParams tile(TileType t) => tiles[t]!;
@@ -456,8 +505,9 @@ class SimParams {
       access: AccessParams(_map(root['access'], 'access')),
       habitat: HabitatParams(_map(root['habitat'], 'habitat')),
       commute: CommuteParams(_map(root['commute'], 'commute')),
-      economy: EconomyParams(_map(root['economy'], 'economy')),
+      seasons: SeasonParams(_map(root['seasons'], 'seasons')),
       water: WaterParams(_map(root['water'], 'water')),
+      economy: EconomyParams(_map(root['economy'], 'economy')),
     );
   }
 }

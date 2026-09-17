@@ -1102,6 +1102,46 @@ const String defaultParamsJson = r'''
       "heat": 0.1
     }
   },
+  "seasons": {
+    "amplitude": {
+      "value": 1.0,
+      "source": "design: 0 disables the yearly cycle entirely and reproduces the season-free model; a scenario can turn it down through paramOverrides"
+    },
+    "growth": {
+      "source": "DWD: the vegetation period in Germany runs roughly April to October, and evapotranspiration follows it. Monthly factors are scaled to average 1.0 over the year, so only the distribution within a year changes, not the annual total.",
+      "monthly": [
+        0.278,
+        0.333,
+        0.667,
+        1.111,
+        1.5,
+        1.722,
+        1.778,
+        1.667,
+        1.333,
+        0.889,
+        0.444,
+        0.278
+      ]
+    },
+    "heat": {
+      "source": "Urban heat island intensity peaks in summer and is weak in winter (DWD Klimareport / UHI literature). Scaled to average 1.0 over the year.",
+      "monthly": [
+        0.275,
+        0.33,
+        0.606,
+        0.991,
+        1.431,
+        1.761,
+        1.927,
+        1.872,
+        1.321,
+        0.771,
+        0.44,
+        0.275
+      ]
+    }
+  },
   "water": {
     "designStormMm": {
       "value": 22.1,

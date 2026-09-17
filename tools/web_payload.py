@@ -20,14 +20,22 @@ ENGINE_VARIANTS = [
     ("skwasm", "canvaskit/skwasm.js", "canvaskit/skwasm.wasm"),
     ("skwasm_heavy", "canvaskit/skwasm_heavy.js", "canvaskit/skwasm_heavy.wasm"),
 ]
-APP_FILES = [
+SHELL_FILES = [
     "index.html", "flutter_bootstrap.js", "manifest.json",
-    "main.dart.js", "main.dart.wasm", "main.dart.mjs",
     "assets/FontManifest.json", "assets/AssetManifest.bin.json",
     "assets/fonts/MaterialIcons-Regular.otf",
     "assets/assets/fonts/Roboto-Regular.ttf",
     "assets/assets/fonts/Roboto-Medium.ttf",
     "assets/assets/fonts/Roboto-Bold.ttf",
+]
+
+# A --wasm build ships BOTH entry points and each browser fetches exactly one:
+# WasmGC browsers take main.dart.wasm, the rest fall back to main.dart.js.
+# Summing them overstates the payload by a whole compiled program -- it put the
+# wasm build at 2084 KB when no browser ever downloads more than about 1190.
+ENTRY_POINTS = [
+    ("dart2wasm", ["main.dart.wasm", "main.dart.mjs"]),
+    ("dart2js", ["main.dart.js"]),
 ]
 
 
@@ -40,14 +48,26 @@ def gz(path):
 
 
 def main(root):
-    app = sum(gz(os.path.join(root, f)) for f in APP_FILES)
-    print(f"  app and fonts            {app / 1024:8.0f} KB gz")
+    shell = sum(gz(os.path.join(root, f)) for f in SHELL_FILES)
+    print(f"  shell and fonts          {shell / 1024:8.0f} KB gz")
+    entries = []
+    for name, files in ENTRY_POINTS:
+        size = sum(gz(os.path.join(root, f)) for f in files)
+        if size:
+            entries.append((name, size))
+            print(f"  program via {name:<11} {size / 1024:8.0f} KB gz")
+    engines = []
     for name, js, wasm in ENGINE_VARIANTS:
         engine = gz(os.path.join(root, js)) + gz(os.path.join(root, wasm))
-        if engine == 0:
-            continue
-        print(f"  + engine {name:<14} {engine / 1024:8.0f} KB gz"
-              f"   -> first load {(app + engine) / 1024:8.0f} KB gz")
+        if engine:
+            engines.append((name, engine))
+            print(f"  engine {name:<16} {engine / 1024:8.0f} KB gz")
+    print("  first load = shell + one program + one engine:")
+    for entry_name, entry in entries:
+        for engine_name, engine in engines:
+            total = shell + entry + engine
+            print(f"    {entry_name:<9} + {engine_name:<22}"
+                  f" {total / 1024:8.0f} KB gz")
 
 
 if __name__ == "__main__":

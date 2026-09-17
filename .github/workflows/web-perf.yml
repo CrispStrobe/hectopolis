@@ -106,6 +106,14 @@ jobs:
                     f"(below 1.00 means wasm is faster)")
           PY
             echo '```'
+            echo "Read a median sitting on a round number as a FLOOR. Headless"
+            echo "Chrome paces requestAnimationFrame at a fixed rate with no"
+            echo "display attached - 100.0 ms on this runner. Builds that keep"
+            echo "up with that cadence all report exactly 100.0 and cannot be"
+            echo "told apart; only a build that misses it reports more. So equal"
+            echo "medians at the floor mean both fit the budget, not that both"
+            echo "cost the same, and a larger median is a real overrun."
+            echo
             echo "Screenshots are attached. A run only means something if its"
             echo "screenshot shows the populated map, and for play runs also the"
             echo "10x button highlighted and the pause icon showing."
