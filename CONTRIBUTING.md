@@ -16,6 +16,14 @@ Thank you for helping. Before you start, read `PLAN.md` (scope, model, roadmap) 
    matching `docs/model/*.md` explains the formula and cites it.
 5. Run `tools/check.sh` before opening a pull request.
 
+## Guides
+
+- **[Adding a tile type](docs/adding-a-tile-type.md)** — the six files involved, the
+  sourcing convention for parameters, and the four things the analyzer will *not*
+  catch (one of them a runtime crash).
+- **[The model](docs/model/)** — one file per component, each with its formulas,
+  its calibration and an explicit list of what it leaves out.
+
 ## Developer Certificate of Origin 1.1
 
 By making a contribution to this project, I certify that:
