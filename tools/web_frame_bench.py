@@ -89,12 +89,13 @@ class CDP:
 # Palette row and grid geometry of the 1200x800 layout this drives.
 GRID_LEFT, GRID_TOP, CELL = 281, 65, 36.2
 SANDBOX_ROW = (600, 152)
+SPEED_10X = (979, 27)
 PLAN = [((129, 283), [(x, y) for x in range(2, 14) for y in (2, 3)]),
         ((129, 531), [(x, y) for x in range(2, 14) for y in (6, 7, 8)]),
         ((129, 593), [(x, y) for x in range(2, 14) for y in (10, 11)])]
 
 
-async def measure(chrome, url, port, seconds, shot):
+async def measure(chrome, url, port, seconds, shot, play=False):
     profile = tempfile.mkdtemp(prefix="frame-bench-")
     proc = subprocess.Popen(
         [chrome, "--headless=new", "--no-sandbox", "--disable-dev-shm-usage",
@@ -136,6 +137,10 @@ async def measure(chrome, url, port, seconds, shot):
                 await asyncio.sleep(0.4)
                 for cx, cy in cells:
                     await c.click(GRID_LEFT + CELL * (cx + 0.5), GRID_TOP + CELL * (cy + 0.5))
+            if play:
+                # 10x speed: a tick, and so a still-layer repaint, every 100 ms.
+                await c.click(*SPEED_10X)
+                await asyncio.sleep(2)
             await asyncio.sleep(3)
             png = await c.send("Page.captureScreenshot")
             with open(shot, "wb") as f:
@@ -165,6 +170,9 @@ async def main():
     p.add_argument("--seconds", type=float, default=12)
     p.add_argument("--port", type=int, default=8899)
     p.add_argument("--shots", default=tempfile.gettempdir())
+    p.add_argument("--play", action="store_true",
+                   help="run the game clock at 10x while measuring, so the still "
+                        "layer repaints every tick instead of never")
     args = p.parse_args()
 
     chrome = find_chrome(args.chrome)
@@ -174,7 +182,8 @@ async def main():
         for run in range(1, args.runs + 1):
             shot = os.path.join(args.shots, f"frame-bench-{run}.png")
             frames = await measure(chrome, f"http://127.0.0.1:{args.port}/",
-                                   args.port + 1000, args.seconds, shot)
+                                   args.port + 1000, args.seconds, shot,
+                                   play=args.play)
             if not frames or len(frames) < 10:
                 print(f"  run {run}: only {len(frames or [])} frames; check {shot}")
                 continue
