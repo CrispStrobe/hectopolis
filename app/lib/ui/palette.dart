@@ -157,42 +157,64 @@ class _TileCard extends StatelessWidget {
             ),
     );
 
+    // A card is an icon, a name, a cost and a badge. One label carries all of
+    // it plus the selected state, which the coloured border shows and nothing
+    // else conveys.
+    final spoken = selected
+        ? l10n.a11yTileSelected(l10n.tileName(type.id))
+        : l10n.a11yTileCard(
+            l10n.tileName(type.id),
+            cost,
+            remaining == null
+                ? l10n.a11yRemainingUnlimited
+                : l10n.a11yRemainingCount(remaining),
+          );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 3),
-      child: Tooltip(
-        message: l10n.tileDescription(type.id),
-        waitDuration: const Duration(milliseconds: 600),
-        child: Draggable<TileType>(
-          data: type,
-          dragAnchorStrategy: pointerDragAnchorStrategy,
-          onDragStarted: () => controller.select(null),
-          feedback: Transform.translate(
-            offset: const Offset(-24, -24),
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: style.color,
-                  borderRadius: BorderRadius.circular(6),
-                  boxShadow: const [
-                    BoxShadow(blurRadius: 6, color: Colors.black38),
-                  ],
+      child: Semantics(
+        label: spoken,
+        hint: l10n.tileDescription(type.id),
+        button: true,
+        selected: selected,
+        container: true,
+        excludeSemantics: true,
+        onTap: () => controller.setBrush(type),
+        child: Tooltip(
+          message: l10n.tileDescription(type.id),
+          waitDuration: const Duration(milliseconds: 600),
+          child: Draggable<TileType>(
+            data: type,
+            dragAnchorStrategy: pointerDragAnchorStrategy,
+            onDragStarted: () => controller.select(null),
+            feedback: Transform.translate(
+              offset: const Offset(-24, -24),
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: style.color,
+                    borderRadius: BorderRadius.circular(6),
+                    boxShadow: const [
+                      BoxShadow(blurRadius: 6, color: Colors.black38),
+                    ],
+                  ),
+                  child: Icon(style.icon, color: style.iconColor),
                 ),
-                child: Icon(style.icon, color: style.iconColor),
               ),
             ),
-          ),
-          child: InkWell(
-            onTap: () => controller.setBrush(type),
-            borderRadius: BorderRadius.circular(8),
-            // Selection is the coloured border; focus is this wash. They are
-            // different states — the card Tab lands on is not yet the brush.
-            focusColor: Theme.of(
-              context,
-            ).colorScheme.primary.withValues(alpha: 0.22),
-            child: content,
+            child: InkWell(
+              onTap: () => controller.setBrush(type),
+              borderRadius: BorderRadius.circular(8),
+              // Selection is the coloured border; focus is this wash. They are
+              // different states — the card Tab lands on is not yet the brush.
+              focusColor: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.22),
+              child: content,
+            ),
           ),
         ),
       ),

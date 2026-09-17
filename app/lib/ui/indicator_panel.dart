@@ -230,118 +230,146 @@ class _Gauge extends StatelessWidget {
     final theme = Theme.of(context);
     final v = value.clamp(0, 100) / 100;
     final rounded = value.clamp(0, 100).round();
+    // The gauge is a bar, a number and, in simple mode, a smiley: none of
+    // which a screen reader can read. One label carries the reading, and
+    // mergeSemantics stops the parts being announced separately.
+    final l10n = AppLocalizations.of(context);
+    final spoken = l10n.a11yIndicatorValue(
+      label,
+      rounded.toString(),
+      simpleMode ? hint : detail,
+    );
 
     if (compact) {
-      return Tooltip(
-        message: simpleMode ? hint : '$hint\n$detail',
-        child: InkWell(
-          onTap: () {
-            onTap();
-            if (!simpleMode) _open(context);
-          },
-          onLongPress: () => _open(context),
-          borderRadius: BorderRadius.circular(6),
-          child: Container(
-            width: 96,
-            margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: theme.dividerColor),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelSmall,
-                ),
-                simpleMode
-                    ? Text(
-                        _smiley(v),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: _smileyColor(v),
+      return Semantics(
+        label: spoken,
+        button: true,
+        container: true,
+        excludeSemantics: true,
+        onTap: onTap,
+        child: Tooltip(
+          message: simpleMode ? hint : '$hint\n$detail',
+          child: InkWell(
+            onTap: () {
+              onTap();
+              if (!simpleMode) _open(context);
+            },
+            onLongPress: () => _open(context),
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              width: 96,
+              margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              decoration: BoxDecoration(
+                border: Border.all(color: theme.dividerColor),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall,
+                  ),
+                  simpleMode
+                      ? Text(
+                          _smiley(v),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: _smileyColor(v),
+                          ),
+                        )
+                      : Text(
+                          '$rounded',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: _color(context),
+                          ),
                         ),
-                      )
-                    : Text(
-                        '$rounded',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: _color(context),
-                        ),
-                      ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       );
     }
 
-    return Tooltip(
-      message: hint,
-      waitDuration: const Duration(milliseconds: 600),
-      child: InkWell(
-        onTap: () {
-          onTap();
-          if (!simpleMode) _open(context);
-        },
-        borderRadius: BorderRadius.circular(6),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(label, style: theme.textTheme.bodyMedium),
-                  ),
-                  if (simpleMode)
-                    Text(
-                      _smiley(v),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: _smileyColor(v),
-                      ),
-                    )
-                  else ...[
-                    Text(
-                      '$rounded',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: _color(context),
-                      ),
+    return Semantics(
+      label: spoken,
+      button: true,
+      container: true,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Tooltip(
+        message: hint,
+        waitDuration: const Duration(milliseconds: 600),
+        child: InkWell(
+          onTap: () {
+            onTap();
+            if (!simpleMode) _open(context);
+          },
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(label, style: theme.textTheme.bodyMedium),
                     ),
-                    const SizedBox(width: 2),
-                    Icon(Icons.info_outline, size: 14, color: theme.hintColor),
+                    if (simpleMode)
+                      Text(
+                        _smiley(v),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: _smileyColor(v),
+                        ),
+                      )
+                    else ...[
+                      Text(
+                        '$rounded',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: _color(context),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.info_outline,
+                        size: 14,
+                        color: theme.hintColor,
+                      ),
+                    ],
                   ],
-                ],
-              ),
-              if (!simpleMode) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: v,
-                    minHeight: 8,
-                    color: _color(context),
-                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  ),
                 ),
-                Text(detail, style: theme.textTheme.bodySmall),
-                if (history.length > 1)
-                  SizedBox(
-                    height: 22,
-                    width: double.infinity,
-                    child: CustomPaint(
-                      painter: _SparklinePainter(
-                        samples: history,
-                        indicator: indicator,
-                        color: _color(context),
-                        eventColor: theme.colorScheme.secondary,
-                      ),
+                if (!simpleMode) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: v,
+                      minHeight: 8,
+                      color: _color(context),
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
                     ),
                   ),
+                  Text(detail, style: theme.textTheme.bodySmall),
+                  if (history.length > 1)
+                    SizedBox(
+                      height: 22,
+                      width: double.infinity,
+                      child: CustomPaint(
+                        painter: _SparklinePainter(
+                          samples: history,
+                          indicator: indicator,
+                          color: _color(context),
+                          eventColor: theme.colorScheme.secondary,
+                        ),
+                      ),
+                    ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
