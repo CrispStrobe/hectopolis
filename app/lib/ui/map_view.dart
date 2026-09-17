@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1043,8 +1044,12 @@ class _MapPainter extends CustomPainter {
     final cell = size.width / c.width;
     final hair = 1 / scale;
     final now = DateTime.now().millisecondsSinceEpoch;
+    // Once the ground has texture, a hard grid fights it. Kept faint, and
+    // faintest when zoomed in far enough that cells are obvious anyway.
     final grid = Paint()
-      ..color = Colors.black.withValues(alpha: 0.10)
+      ..color = Colors.black.withValues(
+        alpha: _lowDetail ? 0.10 : (scale > 2 ? 0.045 : 0.07),
+      )
       ..style = PaintingStyle.stroke
       ..strokeWidth = hair;
 
@@ -1258,12 +1263,29 @@ class _MapPainter extends CustomPainter {
     final growing = animateEffects && construction < 0.98;
 
     if (still) {
-      canvas.drawRect(rect, Paint()..color = _groundColor(tile));
-      if (!_lowDetail) {
+      final ground = _groundColor(tile);
+      if (_lowDetail) {
+        canvas.drawRect(rect, Paint()..color = ground);
+      } else {
+        // Ground is the largest thing on screen and was a single flat fill,
+        // which is most of why the map read as coloured squares rather than
+        // as land. A light-to-dark gradient plus a few seeded blobs give it a
+        // surface. Both are still-layer work, so they are paid once.
         canvas.drawRect(
-          Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height * 0.08),
-          Paint()..color = Colors.white.withValues(alpha: 0.08),
+          rect,
+          Paint()
+            ..shader = ui.Gradient.linear(
+              rect.topLeft,
+              rect.bottomRight,
+              [
+                Color.lerp(ground, Colors.white, 0.10)!,
+                ground,
+                Color.lerp(ground, Colors.black, 0.07)!,
+              ],
+              const [0.0, 0.55, 1.0],
+            ),
         );
+        _mottle(canvas, index, rect, ground);
       }
       if (!whole && _modelTinting) {
         // Heat and dirty air are fields the player could only see by turning
@@ -1390,23 +1412,43 @@ class _MapPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = math.max(0.55 / scale, rect.width * 0.018)
       ..strokeCap = StrokeCap.round;
-    final tufts = 5 - (pressure * 2).round();
+    final tufts = (_lowDetail ? 5 : 9) - (pressure * 3).round();
     for (var tuft = 0; tuft < tufts; tuft++) {
       final x =
-          rect.left + rect.width * (0.12 + _unit(index * 41 + tuft) * 0.76);
+          rect.left + rect.width * (0.08 + _unit(index * 41 + tuft) * 0.84);
       final y =
-          rect.top + rect.height * (0.28 + _unit(index * 59 + tuft) * 0.58);
-      final h = rect.height * (0.07 + _unit(index * 73 + tuft) * 0.05);
-      canvas.drawLine(Offset(x, y), Offset(x - h * 0.28, y - h), grass);
-      canvas.drawLine(Offset(x, y), Offset(x + h * 0.30, y - h * 0.82), grass);
+          rect.top + rect.height * (0.20 + _unit(index * 59 + tuft) * 0.72);
+      final h = rect.height * (0.06 + _unit(index * 73 + tuft) * 0.08);
+      // A third blade and a per-tuft lean stop the meadow looking stamped.
+      final lean = (_unit(index * 89 + tuft) - 0.5) * 0.5;
+      canvas.drawLine(
+        Offset(x, y),
+        Offset(x - h * (0.28 - lean), y - h),
+        grass,
+      );
+      canvas.drawLine(
+        Offset(x, y),
+        Offset(x + h * (0.30 + lean), y - h * 0.82),
+        grass,
+      );
+      if (!_lowDetail && tuft.isEven) {
+        canvas.drawLine(Offset(x, y), Offset(x + lean * h, y - h * 1.1), grass);
+      }
     }
     // Flowers thin out where the meadow is under pressure.
-    if (_unit(index * 101) > 0.48 && pressure < 0.4) {
-      canvas.drawCircle(
-        Offset(rect.left + rect.width * 0.68, rect.top + rect.height * 0.40),
-        math.max(0.7 / scale, rect.width * 0.022),
-        Paint()..color = const Color(0xFFFFF59D),
-      );
+    if (pressure < 0.4 && !_lowDetail) {
+      const petals = [Color(0xFFFFF59D), Color(0xFFF8BBD0), Color(0xFFE1F5FE)];
+      for (var f = 0; f < 3; f++) {
+        if (_unit(index * 101 + f * 19) < 0.45) continue;
+        canvas.drawCircle(
+          Offset(
+            rect.left + rect.width * (0.15 + _unit(index * 103 + f) * 0.7),
+            rect.top + rect.height * (0.25 + _unit(index * 107 + f) * 0.6),
+          ),
+          math.max(0.7 / scale, rect.width * 0.021),
+          Paint()..color = petals[f % petals.length],
+        );
+      }
     }
   }
 
@@ -1507,12 +1549,14 @@ class _MapPainter extends CustomPainter {
       Offset(rect.left + rect.width * 0.28, rect.top + rect.height * 0.30),
       rect.width * 0.12,
       0.82,
+      seed: index * 71,
     );
     _drawTree(
       canvas,
       Offset(rect.left + rect.width * 0.70, rect.top + rect.height * 0.66),
       rect.width * 0.10,
       0.72,
+      seed: index * 71 + 5,
     );
     if (!_lowDetail && rect.width * scale >= 24) {
       final bench = Paint()
@@ -2010,49 +2054,61 @@ class _MapPainter extends CustomPainter {
           rect.width *
           (0.075 + 0.075 * maturity) *
           (0.88 + _unit(index * 13 + tree) * 0.22);
-      canvas.drawCircle(
-        centre + Offset(radius * 0.12, radius * 0.20),
-        radius,
-        Paint()..color = Colors.black.withValues(alpha: 0.12),
-      );
-      canvas.drawCircle(
-        centre,
-        radius,
-        Paint()
-          ..color = Color.lerp(
-            const Color(0xFF81C784),
-            const Color(0xFF1B5E20),
-            maturity,
-          )!,
-      );
-      canvas.drawCircle(
-        centre - Offset(radius * 0.25, radius * 0.25),
-        radius * 0.48,
-        Paint()..color = Colors.white.withValues(alpha: 0.13),
-      );
+      _drawTree(canvas, centre, radius, maturity, seed: index * 53 + tree);
     }
   }
 
-  void _drawTree(Canvas canvas, Offset centre, double radius, double vitality) {
-    canvas.drawCircle(
-      centre + Offset(radius * 0.14, radius * 0.20),
-      radius,
+  /// A tree as a cluster rather than a disc: three overlapping lobes, a trunk,
+  /// and light from the top left. [seed] varies the lobes so a wood is not a
+  /// field of identical dots.
+  void _drawTree(
+    Canvas canvas,
+    Offset centre,
+    double radius,
+    double vitality, {
+    int seed = 0,
+  }) {
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: centre + Offset(radius * 0.18, radius * 0.34),
+        width: radius * 2.0,
+        height: radius * 1.1,
+      ),
       Paint()..color = Colors.black.withValues(alpha: 0.13),
     );
+    if (radius * scale > 3.2) {
+      canvas.drawRect(
+        Rect.fromCenter(
+          center: centre + Offset(0, radius * 0.72),
+          width: radius * 0.26,
+          height: radius * 0.8,
+        ),
+        Paint()..color = const Color(0xFF6D4C41),
+      );
+    }
+    final dark = Color.lerp(
+      const Color(0xFF66BB6A),
+      const Color(0xFF1B5E20),
+      vitality,
+    )!;
+    final lit = Color.lerp(dark, const Color(0xFFC5E1A5), 0.34)!;
+    // Three lobes, jittered per tree, drawn dark first so the lit one reads
+    // as the sunlit side.
+    for (var lobe = 0; lobe < 3; lobe++) {
+      final jitter = Offset(
+        (_unit(seed * 17 + lobe) - 0.5) * radius * 0.7,
+        (_unit(seed * 29 + lobe) - 0.5) * radius * 0.5,
+      );
+      canvas.drawCircle(
+        centre + jitter,
+        radius * (0.62 + _unit(seed * 37 + lobe) * 0.3),
+        Paint()..color = dark,
+      );
+    }
     canvas.drawCircle(
-      centre,
-      radius,
-      Paint()
-        ..color = Color.lerp(
-          const Color(0xFF66BB6A),
-          const Color(0xFF1B5E20),
-          vitality,
-        )!,
-    );
-    canvas.drawCircle(
-      centre - Offset(radius * 0.24, radius * 0.25),
-      radius * 0.43,
-      Paint()..color = Colors.white.withValues(alpha: 0.14),
+      centre - Offset(radius * 0.28, radius * 0.3),
+      radius * 0.46,
+      Paint()..color = lit,
     );
   }
 
@@ -2087,6 +2143,33 @@ class _MapPainter extends CustomPainter {
       tile == TileType.housingLow || tile == TileType.housingHigh,
     MapOverlay.none => false,
   };
+
+  /// Fine speckle in the ground colour, seeded by the cell, so that no two
+  /// tiles of a type are identical and none of them is flat.
+  ///
+  /// Deliberately near-invisible per mark. An earlier version used three large
+  /// blobs at about 45% alpha and every tile ended up wearing the same pair of
+  /// dark and light bubbles -- at tile scale a few big marks read as a
+  /// repeating pattern, never as texture. Many small faint ones read as a
+  /// surface.
+  void _mottle(Canvas canvas, int index, Rect rect, Color ground) {
+    if (rect.width * scale < 14) return;
+    final dark = Paint()
+      ..color = Color.lerp(ground, Colors.black, 0.18)!.withValues(alpha: 0.13);
+    final light = Paint()
+      ..color = Color.lerp(ground, Colors.white, 0.22)!.withValues(alpha: 0.11);
+    for (var blob = 0; blob < 7; blob++) {
+      final seed = index * 197 + blob * 31;
+      canvas.drawCircle(
+        Offset(
+          rect.left + rect.width * (0.08 + _unit(seed) * 0.84),
+          rect.top + rect.height * (0.08 + _unit(seed + 7) * 0.84),
+        ),
+        rect.width * (0.05 + _unit(seed + 13) * 0.09),
+        blob.isEven ? dark : light,
+      );
+    }
+  }
 
   double _unit(int value) {
     var hash = value ^ c.sim.state.seed;
