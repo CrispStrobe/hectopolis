@@ -10,6 +10,7 @@ import 'model/habitat.dart';
 import 'model/heat.dart';
 import 'model/noise.dart' as noise_model;
 import 'model/stocks.dart';
+import 'model/water.dart';
 import 'params.dart';
 import 'tile_type.dart';
 import 'world.dart';
@@ -126,6 +127,7 @@ class Simulation {
     computeHeat(state, params, fields);
     computeAccess(state, params, fields);
     computeHabitat(state, params, fields);
+    computeWater(state, params, fields);
     computeAttractiveness(state, params, fields);
   }
 

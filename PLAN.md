@@ -426,8 +426,24 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   one, and lists what it leaves out: no stability class, no plume rise, no wind rose, no downwash.
 - [ ] **T-502 Wetland, solar field, mixed-use, school, tram stop, cycle path** tile types
   with parameters and sources (extends §4.1 to ~16 types; sub-types per level).
-- [ ] **T-503 Water and runoff.** SCS curve number method (USDA, public domain) with
+- [~] **T-503 Water and runoff.** SCS curve number method (USDA, public domain) with
   sealing degree; flood risk indicator; wetlands and water as retention.
+  *Note 2026-09-17:* `model/water.dart` implements the SCS curve number method in millimetres.
+  The sealed and unsealed parts of a cell compose by TR-55's connected-impervious formula, so the
+  existing `sealing` parameter finally has a consequence. Every number was read from a published
+  table and checked against a second source, not recalled: pervious curve numbers from TR-55
+  Table 2-2 for hydrologic soil group B (forest 55, meadow 58, park 61, cropland 78, built 61,
+  impervious 98), verified against the USACE HEC-HMS tabulation; the design storm is 22.1 mm from
+  KOSTRA-DWD-2020 grid field 081118 at 60 min / 5 a, extracted from the published table rather
+  than estimated. A test re-derives the runoff equation independently so the code cannot drift
+  from the method.
+  Water retains: each water cell shares `retentionMmPerCell` among the runoff-producing cells in
+  reach. That is **storage, not routing** — nothing knows which way the ground slopes, so a pond
+  helps neighbours above it as much as below. `docs/model/water.md` is explicit about that.
+  **Open:** the 0–100 flood-risk indicator. `meanRunoffMm` and `floodRiskCells` are reported, but
+  an eleventh indicator changes every level's goal set, which should be a deliberate decision
+  rather than a side effect (the same call as night noise). Wetland belongs with water in the
+  retention set once T-502 adds it.
 - [x] **T-504 Causal loop view.** Diagram of §4.6 loops with live dominance highlighting.
   *Note 2026-09-16:* `packages/stadtbau_sim/lib/src/loops.dart` names the five loops and reads a
   strength for each off quantities the model already computes — the share of attractiveness that
