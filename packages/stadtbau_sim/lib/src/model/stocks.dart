@@ -84,6 +84,8 @@ StockDelta advanceStocks(WorldState w, SimParams p, Fields f) {
       jobsFilled * ep.businessTaxPerJobYear;
   final revenueKEur = revenueYear / 12 / 1000;
   final maintenanceKEur = maintenance / 12;
+  f.revenueKEur = revenueKEur;
+  f.maintenanceKEur = maintenanceKEur;
   w.budgetKEur += revenueKEur - maintenanceKEur;
   w.tick += 1;
 

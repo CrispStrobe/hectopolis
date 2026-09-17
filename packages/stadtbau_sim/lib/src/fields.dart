@@ -89,6 +89,8 @@ class Fields {
     attractiveness.setAll(0, other.attractiveness);
     connected.setAll(0, other.connected);
     totalCarKmPerDay = other.totalCarKmPerDay;
+    revenueKEur = other.revenueKEur;
+    maintenanceKEur = other.maintenanceKEur;
     workers = other.workers;
     jobsCapacity = other.jobsCapacity;
     inCommuters = other.inCommuters;
@@ -100,6 +102,11 @@ class Fields {
 
   /// Aggregates produced while computing the fields.
   double totalCarKmPerDay = 0;
+
+  /// Monthly municipal income and upkeep from the most recent tick. Flows, not
+  /// stocks: they stay put while tiles are placed and refresh on the next tick.
+  double revenueKEur = 0;
+  double maintenanceKEur = 0;
   double workers = 0;
   double jobsCapacity = 0;
   double inCommuters = 0;

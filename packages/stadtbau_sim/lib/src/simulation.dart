@@ -2,6 +2,7 @@
 import 'commands.dart';
 import 'fields.dart';
 import 'indicators.dart';
+import 'loops.dart';
 import 'model/access.dart';
 import 'model/air.dart' as air_model;
 import 'model/commute.dart';
@@ -127,6 +128,9 @@ class Simulation {
     computeHabitat(state, params, fields);
     computeAttractiveness(state, params, fields);
   }
+
+  /// The feedback loops of the model, strongest first (docs/model/loops.md).
+  List<LoopActivity> get loops => computeLoops(state, params, fields, indicators);
 
   /// Noise sources reaching (x, y), by tile type, loudest first.
   List<noise_model.Contribution> explainNoise(int x, int y) =>

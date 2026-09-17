@@ -8,6 +8,7 @@ import '../game/experience_settings.dart';
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'about_screen.dart';
+import 'causal_view.dart';
 import 'goals_panel.dart';
 import 'indicator_panel.dart';
 import 'learning_center.dart';
@@ -205,6 +206,15 @@ class _GameScreenState extends State<GameScreen> {
 
   void _learning() => showLearningCenter(context, c);
 
+  void _causalView() => showCausalView(context, c);
+
+  /// Missions opt into the loop view individually (MissionFeature.causalView);
+  /// the sandbox, which teaches nothing in particular, always offers it.
+  bool get _causalViewAvailable {
+    final learning = c.level?.learning;
+    return learning == null || learning.has(MissionFeature.causalView);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -296,6 +306,7 @@ class _GameScreenState extends State<GameScreen> {
                         onLocaleToggle: widget.onLocaleToggle,
                         onAbout: _about,
                         onKeyboardHelp: _showKeyboardHelp,
+                        onCausalView: _causalViewAvailable ? _causalView : null,
                       ),
                     ],
             ),
@@ -712,6 +723,7 @@ class _MoreMenu extends StatelessWidget {
     required this.onLocaleToggle,
     required this.onAbout,
     required this.onKeyboardHelp,
+    required this.onCausalView,
   });
 
   final GameController controller;
@@ -721,6 +733,7 @@ class _MoreMenu extends StatelessWidget {
   final VoidCallback onLocaleToggle;
   final VoidCallback onAbout;
   final VoidCallback onKeyboardHelp;
+  final VoidCallback? onCausalView;
 
   @override
   Widget build(BuildContext context) {
@@ -732,6 +745,14 @@ class _MoreMenu extends StatelessWidget {
         icon: const Icon(Icons.more_vert),
         onSelected: (action) => action(),
         itemBuilder: (context) => [
+          if (onCausalView case final open?)
+            PopupMenuItem(
+              value: open,
+              child: ListTile(
+                leading: const Icon(Icons.hub_outlined),
+                title: Text(l10n.causalViewTitle),
+              ),
+            ),
           PopupMenuItem(
             value: onKeyboardHelp,
             child: ListTile(

@@ -8,6 +8,7 @@ export 'src/commands.dart';
 export 'src/fields.dart';
 export 'src/indicators.dart';
 export 'src/level.dart';
+export 'src/loops.dart';
 export 'src/model/noise.dart' show Contribution;
 export 'src/params.dart';
 export 'src/simulation.dart';
