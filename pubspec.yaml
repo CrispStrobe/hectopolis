@@ -8,3 +8,4 @@ environment:
 workspace:
   - app
   - packages/stadtbau_sim
+  - packages/stadtbau_net
