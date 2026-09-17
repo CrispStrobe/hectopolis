@@ -412,8 +412,18 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 
 ### Phase 5 — Model depth
 
-- [ ] **T-501 Wind and dispersion.** Directional kernel for air pollution with a per-level
+- [x] **T-501 Wind and dispersion.** Directional kernel for air pollution with a per-level
   prevailing wind; document with a Gaussian-plume reference.
+  *Note 2026-09-17:* `air.windFromDegrees`, `windSpeedMs` and `windStretchPerMs` in
+  `data/params/tiles.json`. The kernel applies the existing exponential to a distance measured in
+  a wind-stretched frame — divided by the stretch downwind, multiplied upwind, and the crosswind
+  component widened by its square root — and renormalises, so wind redistributes the emission
+  rather than creating it. `windSpeedMs` is 0 by default, which is bit-for-bit the isotropic model,
+  so scenarios opt in through the existing `paramOverrides` and no shipped level changed except
+  `04_budget`, which gets the prevailing south-westerly its own brief already implies. Direction
+  follows the meteorological convention so it can be read off a wind rose.
+  `docs/model/air.md` documents it as a screening stand-in for a Gaussian plume, not a solution of
+  one, and lists what it leaves out: no stability class, no plume rise, no wind rose, no downwash.
 - [ ] **T-502 Wetland, solar field, mixed-use, school, tram stop, cycle path** tile types
   with parameters and sources (extends §4.1 to ~16 types; sub-types per level).
 - [ ] **T-503 Water and runoff.** SCS curve number method (USDA, public domain) with

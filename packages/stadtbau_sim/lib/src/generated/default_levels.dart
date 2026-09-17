@@ -347,6 +347,18 @@ const List<String> defaultLevelsJson = [
       "min": 60
     }
   ],
+  "paramOverrides": {
+    "air": {
+      "windFromDegrees": {
+        "value": 225,
+        "source": "level: prevailing south-westerly, DWD long-term means for German lowlands"
+      },
+      "windSpeedMs": {
+        "value": 3.5,
+        "source": "level: DWD annual mean wind speed at 10 m over open lowland, 3-4 m/s"
+      }
+    }
+  },
   "map": [
     "................",
     ".rrrrrrrrrrrrrr.",

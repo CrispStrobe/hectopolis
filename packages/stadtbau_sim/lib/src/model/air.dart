@@ -19,21 +19,86 @@ import 'noise.dart' show Contribution;
 /// traffic. Vegetation in the receiver's 300 m neighbourhood removes a share
 /// of the local concentration (deposition, magnitudes after Nowak et al.).
 /// The index is 100 · exp(−C / scale).
+
+/// The dispersion kernel: how much of a source's emission reaches each offset.
+///
+/// Calm is the isotropic exp(−d / L) the model has always used. With wind the
+/// same exponential is applied to a distance measured in a stretched frame:
+/// the along-wind component is divided by the stretch downwind and multiplied
+/// by it upwind, and the crosswind component is multiplied by its square root.
+/// That is a screening-level stand-in for a Gaussian plume — advection carries
+/// material downwind and the same material occupies a narrower cross-section —
+/// not a solution of one (docs/model/air.md).
+///
+/// Shared by [computeAir] and [explainAir] so that the two cannot drift, and
+/// cached per parameter set because it depends on nothing else.
+class AirKernel {
+  AirKernel._(this.params, this.offsets, this.weights, this.sum);
+
+  final SimParams params;
+  final Offsets offsets;
+
+  /// Weight per offset, before normalisation by [sum].
+  final Float64List weights;
+
+  /// The centre cell (1.0) plus every offset weight. Dividing an emission by
+  /// this keeps a uniform field of emitters at a concentration equal to the
+  /// emission rate, whatever the wind is doing.
+  final double sum;
+
+  static AirKernel? _cached;
+
+  static AirKernel of(SimParams p) {
+    final cached = _cached;
+    if (cached != null && identical(cached.params, p)) return cached;
+    return _cached = _build(p);
+  }
+
+  static AirKernel _build(SimParams p) {
+    final ap = p.air;
+    final offsets = Offsets.radius(ap.radiusTiles);
+    final weights = Float64List(offsets.length);
+    // Meteorological degrees say where the wind comes FROM; the plume travels
+    // the opposite way, and screen y grows southward.
+    final towards = (ap.windFromDegrees + 180) * math.pi / 180;
+    final wx = math.sin(towards);
+    final wy = -math.cos(towards);
+    final stretch = ap.windStretch;
+    final spread = math.sqrt(stretch);
+    var sum = 1.0;
+    for (var k = 0; k < offsets.length; k++) {
+      final dxM = offsets.dx[k] * p.cellSizeM;
+      final dyM = offsets.dy[k] * p.cellSizeM;
+      double distance;
+      if (!ap.hasWind) {
+        distance = offsets.dist[k] * p.cellSizeM;
+      } else {
+        final along = dxM * wx + dyM * wy;
+        final cross = (dxM * wy - dyM * wx).abs();
+        final scaledAlong = along >= 0 ? along / stretch : along * stretch;
+        final scaledCross = cross * spread;
+        distance = math.sqrt(
+          scaledAlong * scaledAlong + scaledCross * scaledCross,
+        );
+      }
+      weights[k] = math.exp(-distance / ap.decayLengthM);
+      sum += weights[k];
+    }
+    return AirKernel._(p, offsets, weights, sum);
+  }
+}
+
 void computeAir(WorldState w, SimParams p, Fields f) {
   final n = w.cellCount;
   final width = w.width;
   final ap = p.air;
-  final offsets = Offsets.radius(ap.radiusTiles);
+  final airKernel = AirKernel.of(p);
+  final offsets = airKernel.offsets;
+  final kernel = airKernel.weights;
+  final kernelSum = airKernel.sum;
   final conc = f.airConcentration;
   for (var i = 0; i < n; i++) {
     conc[i] = 0;
-  }
-  // Kernel normalisation: self (1.0) plus all offsets within the radius.
-  var kernelSum = 1.0;
-  final kernel = Float64List(offsets.length);
-  for (var k = 0; k < offsets.length; k++) {
-    kernel[k] = math.exp(-offsets.dist[k] * p.cellSizeM / ap.decayLengthM);
-    kernelSum += kernel[k];
   }
 
   for (var s = 0; s < n; s++) {
@@ -80,11 +145,9 @@ void computeAir(WorldState w, SimParams p, Fields f) {
 List<Contribution> explainAir(WorldState w, SimParams p, Fields f, int cell) {
   final width = w.width;
   final ap = p.air;
-  final offsets = Offsets.radius(ap.radiusTiles);
-  var kernelSum = 1.0;
-  for (var k = 0; k < offsets.length; k++) {
-    kernelSum += math.exp(-offsets.dist[k] * p.cellSizeM / ap.decayLengthM);
-  }
+  final airKernel = AirKernel.of(p);
+  final offsets = airKernel.offsets;
+  final kernelSum = airKernel.sum;
   final total = <TileType, double>{};
   final count = <TileType, int>{};
   final nearest = <TileType, double>{};
@@ -114,7 +177,9 @@ List<Contribution> explainAir(WorldState w, SimParams p, Fields f, int cell) {
     final s = sy * width + sx;
     final e = emissionOf(s);
     if (e <= 0) continue;
-    add(w.tiles[s], e * math.exp(-offsets.dist[k] * p.cellSizeM / ap.decayLengthM), offsets.dist[k]);
+    // The receiver sits at +offset from the source, which is the direction
+    // the kernel is indexed by, so the same weight applies here.
+    add(w.tiles[s], e * airKernel.weights[k], offsets.dist[k]);
   }
   // Scale to the deposited concentration actually stored in the field.
   var raw = 0.0;

@@ -769,6 +769,18 @@ const String defaultParamsJson = r'''
     "trafficReferenceVehiclesPerDay": {
       "value": 10000,
       "source": "EMEP/EEA road transport emission ∝ vehicle-km"
+    },
+    "windFromDegrees": {
+      "value": 225,
+      "source": "DWD: prevailing wind in Germany is from the south-west; meteorological convention, the direction the wind blows FROM. Only acts when windSpeedMs > 0."
+    },
+    "windSpeedMs": {
+      "value": 0,
+      "source": "design: calm by default so a scenario opts into wind through paramOverrides; DWD annual means for German lowlands are 3-4 m/s at 10 m"
+    },
+    "windStretchPerMs": {
+      "value": 0.35,
+      "source": "Gaussian plume (Pasquill-Gifford): advection lengthens the plume downwind roughly in proportion to wind speed; 0.35 per m/s puts a 3 m/s wind at about twice the downwind reach"
     }
   },
   "heat": {
@@ -998,4 +1010,5 @@ const String defaultParamsJson = r'''
       "heat": 0.1
     }
   }
-}''';
+}
+''';
