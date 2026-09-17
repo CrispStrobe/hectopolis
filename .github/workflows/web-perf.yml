@@ -1,0 +1,118 @@
+name: web-perf
+
+# Compares the dart2js + CanvasKit build against the dart2wasm + skwasm build,
+# for the decision recorded in PLAN.md under T-401.
+#
+# Deliberately manual: it builds the app twice and then drives a browser for
+# several minutes. It also exists because the development VPS cannot measure
+# this - a baseline there swung 117 to 316 ms between consecutive runs of the
+# same build, so no 10% difference is visible through that noise. A CI runner
+# has its own cores and nobody else's work on them.
+on:
+  workflow_dispatch:
+    inputs:
+      runs:
+        description: How many measured runs per build, alternating between them
+        default: "4"
+      seconds:
+        description: Seconds of frames per run
+        default: "12"
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.1
+          cache: true
+
+      - run: flutter pub get
+      - run: cd app && flutter gen-l10n
+
+      # Same engine hosting as the deploy, so the comparison is between the
+      # two compilers rather than between two delivery setups.
+      - name: Build dart2js + CanvasKit
+        run: cd app && flutter build web --release --no-web-resources-cdn --output=$GITHUB_WORKSPACE/build-js
+
+      - name: Build dart2wasm + skwasm
+        run: cd app && flutter build web --wasm --release --no-web-resources-cdn --output=$GITHUB_WORKSPACE/build-wasm
+
+      - name: First-load payload
+        run: |
+          {
+            echo "## First-load payload"
+            echo '```'
+            echo "dart2js + CanvasKit"; tools/web_payload.py build-js
+            echo; echo "dart2wasm + skwasm"; tools/web_payload.py build-wasm
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Install the browser driver
+        run: |
+          python3 -m pip install --quiet websockets
+          # The runner image ships Chrome; fail loudly rather than silently
+          # measuring nothing if that ever stops being true.
+          test -x /usr/bin/google-chrome || { echo "no Chrome on the runner"; exit 1; }
+          /usr/bin/google-chrome --version
+
+      # Alternating, because a runner is quieter than the VPS but not silent:
+      # taking all of one build then all of the other lets drift masquerade as
+      # a difference.
+      - name: Measure, alternating
+        env:
+          CHROME: /usr/bin/google-chrome
+        run: |
+          mkdir -p shots
+          for i in $(seq 1 ${{ inputs.runs }}); do
+            for mode in idle play; do
+              flag=""; [ "$mode" = play ] && flag="--play"
+              for build in js wasm; do
+                out=$(tools/web_frame_bench.py --build build-$build $flag \
+                        --runs 1 --seconds ${{ inputs.seconds }} \
+                        --port $((8800 + i * 10)) --shots shots 2>&1 | tail -2)
+                med=$(echo "$out" | grep -oP 'median\s+\K[0-9.]+' || echo NA)
+                mv shots/frame-bench-1.png "shots/$build-$mode-$i.png" 2>/dev/null || true
+                echo "$build $mode $i $med" >> results.txt
+                echo "  $build $mode run $i: $med ms"
+              done
+            done
+          done
+
+      - name: Summarise
+        run: |
+          {
+            echo "## Frame times (median per run, ms)"
+            echo '```'
+            python3 - <<'PY'
+          import statistics, collections
+          rows = [l.split() for l in open("results.txt") if l.strip()]
+          by = collections.defaultdict(list)
+          for build, mode, _, med in rows:
+              if med != "NA":
+                  by[(mode, build)].append(float(med))
+          for mode in ("idle", "play"):
+              js, wasm = by.get((mode, "js"), []), by.get((mode, "wasm"), [])
+              if not js or not wasm:
+                  continue
+              print(f"{mode}:")
+              print(f"  dart2js   n={len(js):2d}  mean {statistics.mean(js):7.1f}  min {min(js):7.1f}")
+              print(f"  dart2wasm n={len(wasm):2d}  mean {statistics.mean(wasm):7.1f}  min {min(wasm):7.1f}")
+              print(f"  wasm/js   {statistics.mean(wasm) / statistics.mean(js):.2f}x  "
+                    f"(below 1.00 means wasm is faster)")
+          PY
+            echo '```'
+            echo "Screenshots are attached. A run only means something if its"
+            echo "screenshot shows the populated map, and for play runs also the"
+            echo "10x button highlighted and the pause icon showing."
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-perf-screenshots
+          path: shots/
+          retention-days: 14
