@@ -522,7 +522,18 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 
 - [ ] **T-701 Accessibility pass.** Screen-reader labels for tiles and gauges, contrast,
   reduced motion, font scaling.
-  *Note 2026-09-16:* First slice done — keyboard navigation, not screen readers. Every shortcut used to live on the map's focus node, so tabbing to a palette card or an app-bar button silently killed the digits, undo and Escape with nothing on screen to say why. Digits, undo/redo, Escape and a `?`/F1 help dialog are now global to the game screen (the app has no text input anywhere, so bare digits are unambiguous); cursor keys stay with the map, since making them global would fight focus traversal. Selecting a brush hands the keyboard back to the map, so a mouse pick or a Tab-and-Enter on a card no longer leaves the arrows dead. The cursor is drawn at full strength only while the map holds focus, and palette cards show a focus wash distinct from the selection border. The binding list — which already existed in DE and EN as a screen-reader label only — is now reachable from the overflow menu. Verified keyboard-only in a browser: digit picks a tile, arrows move, Enter places, Tab moves focus away and a digit still works and pulls focus back. **Screen-reader support is deliberately deferred**: the app has one `Semantics` widget and no labels on the painted map or the ten gauges, so that remains the bulk of T-701.
+  *Note 2026-09-16:* First slice done — keyboard navigation, not screen readers. Every shortcut used to live on the map's focus node, so tabbing to a palette card or an app-bar button silently killed the digits, undo and Escape with nothing on screen to say why. Digits, undo/redo, Escape and a `?`/F1 help dialog are now global to the game screen (the app has no text input anywhere, so bare digits are unambiguous); cursor keys stay with the map, since making them global would fight focus traversal. Selecting a brush hands the keyboard back to the map, so a mouse pick or a Tab-and-Enter on a card no longer leaves the arrows dead. The cursor is drawn at full strength only while the map holds focus, and palette cards show a focus wash distinct from the selection border. The binding list — which already existed in DE and EN as a screen-reader label only — is now reachable from the overflow menu. Verified keyboard-only in a browser: digit picks a tile, arrows move, Enter places, Tab moves focus away and a digit still works and pulls focus back. Screen readers were deferred at that point to a later slice.
+  *Note 2026-09-17:* Screen-reader support added, which was the bulk of this task. **Design
+  decision:** the map is one labelled region whose `value` is the cursor cell, marked as a live
+  region so a cursor move is announced. A semantics node per cell would be 256–576 nodes rebuilt
+  on every placement, describing a grid a screen reader cannot usefully wander — and the app
+  already navigates cell by cell with the arrow keys, so the region announces what that cursor
+  stands on, read from the same fields the tile inspector shows. The ten gauges and the palette
+  cards each carry one merged label with their reading, cost and stock, since a bar, a number, a
+  smiley and a coloured border convey nothing without one. `app/test/semantics_test.dart` asserts
+  the actual semantics tree, including the live-region flag.
+  **Open:** a contrast and focus-order audit against BITV 2.0 / EN 301 549, and testing with a
+  real screen reader — neither of which can be done from here.
 - [ ] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
 - [ ] **T-703 Model documentation site.** `docs/model` rendered as a static site with
   formulas; "Quellen" page listing every dataset and law used.

@@ -309,6 +309,23 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     _lastOverlay = c.overlay;
   }
 
+  /// What the cursor is standing on, for a screen reader.
+  ///
+  /// Read from the same fields the tile inspector shows, so the spoken
+  /// description and the visible panel cannot disagree.
+  String _cursorDescription(AppLocalizations l10n) {
+    final cell = c.cursorCell ?? c.selectedCell;
+    if (cell == null) return l10n.a11yMapNoCursor;
+    final f = c.sim.fields;
+    return l10n.a11yMapCursor(
+      cell % c.width,
+      cell ~/ c.width,
+      l10n.tileName(c.sim.state.tiles[cell].id),
+      f.noiseDb[cell].round().toString(),
+      f.airIndex[cell].round().toString(),
+    );
+  }
+
   _MapPainter _layerPainter(
     BuildContext context,
     _MapLayer layer,
@@ -590,8 +607,19 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                               // controller is deliberately not among them --
                               // and a RepaintBoundary keeps the moving layer
                               // above it from dragging it into every frame.
+                              // One region for the whole map, whose value is
+                              // the cursor cell. A semantics node per cell
+                              // would be 256 to 576 nodes rebuilt on every
+                              // placement, describing a grid a screen reader
+                              // cannot usefully wander. The app already moves
+                              // cell by cell with the arrow keys, so this
+                              // announces what that cursor is standing on.
                               child: Semantics(
-                                label: l10n.keyboardHint,
+                                container: true,
+                                label: l10n.a11yMapLabel,
+                                value: _cursorDescription(l10n),
+                                hint: l10n.keyboardHint,
+                                liveRegion: true,
                                 child: Stack(
                                   children: [
                                     RepaintBoundary(
