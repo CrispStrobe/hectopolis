@@ -363,6 +363,20 @@ class CommuteParams {
         carKgCo2PerKm = _p(m, 'carKgCo2PerKm', 'commute').value,
         workingDaysPerMonth = _p(m, 'workingDaysPerMonth', 'commute').value,
         referenceCommuteKm = _p(m, 'referenceCommuteKm', 'commute', 20).value,
+        transitWalkRadiusTiles = _p(
+          m,
+          'transitWalkRadiusTiles',
+          'commute',
+        ).value.round(),
+        transitCarReduction = _p(m, 'transitCarReduction', 'commute').value,
+        cyclePathRadiusTiles = _p(
+          m,
+          'cyclePathRadiusTiles',
+          'commute',
+        ).value.round(),
+        cycleCarReduction = _p(m, 'cycleCarReduction', 'commute').value,
+        cycleCompetitiveKm = _p(m, 'cycleCompetitiveKm', 'commute').value,
+        minCarShareFactor = _p(m, 'minCarShareFactor', 'commute').value,
         modeShareBins = [
           for (final b in (_map(m['modeShareByDistance'], 'commute.modeShareByDistance')['bins'] as List<dynamic>)
               .cast<Map<String, dynamic>>())
@@ -382,6 +396,24 @@ class CommuteParams {
   final double workingDaysPerMonth;
   final double referenceCommuteKm;
   final List<ModeShareBin> modeShareBins;
+
+  /// Walking catchment of a tram stop, in tiles.
+  final int transitWalkRadiusTiles;
+
+  /// Share of a cell's car trips a stop in reach can take, at most.
+  final double transitCarReduction;
+
+  /// How far a cycle route counts as reachable, in tiles.
+  final int cyclePathRadiusTiles;
+
+  /// Share of a cell's car trips a route in reach can take, at most.
+  final double cycleCarReduction;
+
+  /// Distance beyond which cycling stops competing with the car, km.
+  final double cycleCompetitiveKm;
+
+  /// Floor on the combined shift, so some car trips always remain.
+  final double minCarShareFactor;
 
   /// Car share for a one-way commute of [km].
   double carShare(double km) {

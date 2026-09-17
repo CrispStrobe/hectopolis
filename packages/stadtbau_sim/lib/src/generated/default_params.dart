@@ -1174,8 +1174,8 @@ const String defaultParamsJson = r'''
         "source": "n/a"
       },
       "co2PerHaYear": {
-        "value": -20.0,
-        "source": "design placeholder: the point of a stop is the car traffic it replaces, which belongs in the commute model rather than in a per-hectare figure; a modest negative stands in until that exists"
+        "value": 0.0,
+        "source": "design: the traffic a stop replaces is now modelled in commute.transitCarReduction, so counting it again as a per-hectare figure would double it; what remains is the stop's own footprint"
       },
       "buildCostKEur": {
         "value": 800,
@@ -1257,8 +1257,8 @@ const String defaultParamsJson = r'''
         "source": "design: a green corridor people use, below park (1.0) but real"
       },
       "co2PerHaYear": {
-        "value": -2.0,
-        "source": "design placeholder: the point of a cycle path is the car trips it replaces, which belongs in the commute model; the verge itself is a small sink, near meadow (-1)"
+        "value": -1.0,
+        "source": "design: the traffic a route replaces is now modelled in commute.cycleCarReduction; what remains is the small sink of the verge itself, near meadow (-1)"
       },
       "buildCostKEur": {
         "value": 120,
@@ -1556,6 +1556,32 @@ const String defaultParamsJson = r'''
     "referenceCommuteKm": {
       "value": 20,
       "source": "MiD 2017: mean one-way commute ≈ 16–17 km; a mean of 20 km scores zero on the distance half of the commuting indicator"
+    },
+    "transitWalkRadiusTiles": {
+      "value": 4,
+      "source": "planning practice: the walking catchment of a tram or light-rail stop is usually taken as 400-600 m; 4 tiles is 400 m at this cell size"
+    },
+    "transitCarReduction": {
+      "value": 0.25,
+      "source": "design, anchored on MiD 2017 (BMVI/infas) Ergebnisbericht: national modal split of 22% on foot, 11% bicycle, 43% car driver, 14% car passenger and 10% public transport. That 10% mixes served and unserved places, so a stop within walking distance shifting up to a quarter of a cell's car trips onto public transport puts a fully served map above the national average without reaching the share of a large city",
+      "note": "design value: the model has no public-transport mode of its own, so this is a substitution away from car rather than a measured elasticity"
+    },
+    "cyclePathRadiusTiles": {
+      "value": 2,
+      "source": "design: a cycle route is useful if it starts within a couple of hundred metres; 2 tiles is 200 m at this cell size"
+    },
+    "cycleCarReduction": {
+      "value": 0.15,
+      "source": "design, anchored on MiD 2017 (BMVI/infas) Ergebnisbericht: national modal split of 22% on foot, 11% bicycle, 43% car driver, 14% car passenger and 10% public transport: the bicycle share is 11% nationally and this model's own distance bins already peak cycling at 21% between 1 and 1.5 km, so a route in reach shifting up to 0.15 of car trips is of that order",
+      "note": "design value, not a measured elasticity"
+    },
+    "cycleCompetitiveKm": {
+      "value": 5.0,
+      "source": "MiD 2017 Analysen zum Rad- und Fussverkehr: cycling competes with the car on short trips and falls away beyond about 5 km, which is also where this model's own bins put the car above 85%"
+    },
+    "minCarShareFactor": {
+      "value": 0.5,
+      "source": "design: even with a stop and a route in reach, at most half of a cell's car trips shift; the rest are trips public transport and cycling do not serve"
     }
   },
   "economy": {

@@ -19,6 +19,8 @@ class Fields {
         traffic = Float64List(n),
         meanCommuteKm = Float64List(n),
         carShare = Float64List(n),
+        transitAccess = Float64List(n),
+        cycleAccess = Float64List(n),
         attractiveness = Float64List(n),
         connected = Uint8List(n),
         runoffMm = Float64List(n);
@@ -66,6 +68,11 @@ class Fields {
   /// Car share of commutes starting in the cell, 0–1.
   final Float64List carShare;
 
+  /// 0–1 reach of a tram stop and of a cycle route from the cell, falling off
+  /// to zero at the radius (docs/model/commute.md).
+  final Float64List transitAccess;
+  final Float64List cycleAccess;
+
   /// 0–1 residential attractiveness (0 for non-residential cells).
   final Float64List attractiveness;
 
@@ -96,6 +103,8 @@ class Fields {
     traffic.setAll(0, other.traffic);
     meanCommuteKm.setAll(0, other.meanCommuteKm);
     carShare.setAll(0, other.carShare);
+    transitAccess.setAll(0, other.transitAccess);
+    cycleAccess.setAll(0, other.cycleAccess);
     attractiveness.setAll(0, other.attractiveness);
     connected.setAll(0, other.connected);
     runoffMm.setAll(0, other.runoffMm);
