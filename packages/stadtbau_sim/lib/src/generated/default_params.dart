@@ -84,6 +84,10 @@ const String defaultParamsJson = r'''
       "maintenanceKEurYear": {
         "value": 1,
         "source": "1–2 Mahden/Jahr (initial estimate)"
+      },
+      "noiseNightReductionDb": {
+        "value": 0,
+        "source": "no night emission to reduce"
       }
     },
     "cropland": {
@@ -151,6 +155,10 @@ const String defaultParamsJson = r'''
       "maintenanceKEurYear": {
         "value": 0,
         "source": "privately farmed"
+      },
+      "noiseNightReductionDb": {
+        "value": 0,
+        "source": "no night emission to reduce"
       }
     },
     "forest": {
@@ -220,6 +228,10 @@ const String defaultParamsJson = r'''
       "maintenanceKEurYear": {
         "value": 1,
         "source": "initial estimate"
+      },
+      "noiseNightReductionDb": {
+        "value": 0,
+        "source": "no night emission to reduce"
       }
     },
     "water": {
@@ -288,6 +300,10 @@ const String defaultParamsJson = r'''
       "maintenanceKEurYear": {
         "value": 2,
         "source": "initial estimate"
+      },
+      "noiseNightReductionDb": {
+        "value": 0,
+        "source": "no night emission to reduce"
       }
     },
     "park": {
@@ -357,6 +373,10 @@ const String defaultParamsJson = r'''
       "maintenanceKEurYear": {
         "value": 20,
         "source": "Grünflächenpflege 1–3 €/m²/a (initial estimate)"
+      },
+      "noiseNightReductionDb": {
+        "value": 0,
+        "source": "no night emission to reduce"
       }
     },
     "housing_low": {
@@ -426,6 +446,10 @@ const String defaultParamsJson = r'''
       "maintenanceKEurYear": {
         "value": 2,
         "source": "initial estimate"
+      },
+      "noiseNightReductionDb": {
+        "value": 5,
+        "source": "design: household activity falls at night; TA Larm night limits sit 15 dB below day limits for residential areas"
       }
     },
     "housing_high": {
@@ -493,6 +517,10 @@ const String defaultParamsJson = r'''
       "maintenanceKEurYear": {
         "value": 4,
         "source": "initial estimate"
+      },
+      "noiseNightReductionDb": {
+        "value": 5,
+        "source": "design: household activity falls at night; TA Larm night limits sit 15 dB below day limits for residential areas"
       }
     },
     "commercial": {
@@ -564,6 +592,10 @@ const String defaultParamsJson = r'''
       "maintenanceKEurYear": {
         "value": 3,
         "source": "initial estimate"
+      },
+      "noiseNightReductionDb": {
+        "value": 8,
+        "source": "design: shops and deliveries stop overnight, leaving only plant and car-park movements"
       }
     },
     "industry": {
@@ -631,6 +663,10 @@ const String defaultParamsJson = r'''
       "maintenanceKEurYear": {
         "value": 3,
         "source": "initial estimate"
+      },
+      "noiseNightReductionDb": {
+        "value": 5,
+        "source": "design: partial night shift; TA Larm regulates night separately, so a compliant plant throttles rather than stops"
       }
     },
     "road": {
@@ -700,6 +736,10 @@ const String defaultParamsJson = r'''
         "value": 10,
         "source": "Straßenerhaltung 1.5–3 €/m² Fahrbahn/a (Difu/KfW Kommunalpanel: Erhaltungsbedarf) für ~2 000 m² Fahrbahn je 100 m Hauptstraße plus Beleuchtung, Reinigung, Winterdienst ≈ 10 k€/a",
         "note": "initial estimate"
+      },
+      "noiseNightReductionDb": {
+        "value": 6.5,
+        "source": "RLS-19 / typical German urban day-night split: about 10% of daily traffic falls in the 8 night hours against 90% in the 16 day hours, so the hourly rate is 0.22 of the day rate and 10*log10(0.22) = -6.5 dB"
       }
     }
   },
@@ -747,6 +787,18 @@ const String defaultParamsJson = r'''
     "limitBadDb": {
       "value": 65,
       "source": "TA Lärm: Gewerbegebiet 65; used as 0-score for residents"
+    },
+    "nightGuidelineDb": {
+      "value": 45,
+      "source": "WHO Environmental Noise Guidelines for the European Region (2018): road traffic Lnight below 45 dB (strong recommendation); Lden below 53 dB"
+    },
+    "nightLoaelDb": {
+      "value": 40,
+      "source": "WHO Night Noise Guidelines for Europe (2009): Lnight,outside 40 dB is the guideline value and the lowest observed adverse effect level"
+    },
+    "nightHighRiskDb": {
+      "value": 55,
+      "source": "WHO Night Noise Guidelines for Europe (2009): 55 dB is the interim target; above it cardiovascular effects become the major public health concern"
     }
   },
   "air": {

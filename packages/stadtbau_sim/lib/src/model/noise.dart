@@ -44,6 +44,12 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
   // Emission and screening per cell, so the inner loops index flat arrays
   // rather than resolving enums and parameters per offset.
   final emission = Float64List(n);
+  // Night emission per cell: the same source, quieter (docs/model/noise.md).
+  final nightEmission = Float64List(n);
+  final nightReductionOf = Float64List(TileType.values.length);
+  for (final t in TileType.values) {
+    nightReductionOf[t.index] = p.tile(t).noiseNightReductionDb.value;
+  }
   final attenuation = Float64List(n);
   final sources = <int>[];
   final trafficReference = np.trafficReferenceVehiclesPerDay;
@@ -57,6 +63,7 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
         : base;
     if (e <= 0) continue;
     emission[i] = e;
+    nightEmission[i] = e - nightReductionOf[t.index];
     sources.add(i);
   }
 
@@ -70,8 +77,14 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
   final cutoff = np.backgroundDb - 15;
 
   final energy = Float64List(n)..fillRange(0, n, _dbToEnergy(np.backgroundDb));
+  // The night level rides along in the same pass: the geometry and the path
+  // attenuation are identical, and only the source term differs, so a second
+  // sweep would repeat the expensive half of the work for nothing.
+  final nightEnergy = Float64List(n)
+    ..fillRange(0, n, _dbToEnergy(np.backgroundDb));
   for (final s in sources) {
     energy[s] += _dbToEnergy(emission[s]);
+    if (nightEmission[s] > 0) nightEnergy[s] += _dbToEnergy(nightEmission[s]);
   }
 
   // Path attenuation is reciprocal, so each unordered pair of cells is visited
@@ -83,6 +96,7 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
     final sx = s % width;
     final sy = s ~/ width;
     final es = emission[s];
+    final ns = nightEmission[s];
     for (var h = 0; h < halfCount; h++) {
       final k = half[h];
       final rx = sx + dxs[k];
@@ -91,6 +105,7 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
       if (ry < 0 || ry >= height) continue;
       final r = ry * width + rx;
       final er = emission[r];
+      final nr = nightEmission[r];
       final loudest = es > er ? es : er;
       if (loudest <= 0) continue;
       final divergenceDb = divergence[k];
@@ -108,15 +123,24 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
       if (es > 0) {
         final level = es - drop;
         if (level > cutoff) energy[r] += _dbToEnergy(level);
+        final nightLevel = ns - drop;
+        if (ns > 0 && nightLevel > cutoff) {
+          nightEnergy[r] += _dbToEnergy(nightLevel);
+        }
       }
       if (er > 0) {
         final level = er - drop;
         if (level > cutoff) energy[s] += _dbToEnergy(level);
+        final nightLevel = nr - drop;
+        if (nr > 0 && nightLevel > cutoff) {
+          nightEnergy[s] += _dbToEnergy(nightLevel);
+        }
       }
     }
   }
   for (var i = 0; i < n; i++) {
     f.noiseDb[i] = 10 * _log10(energy[i]);
+    f.noiseNightDb[i] = 10 * _log10(nightEnergy[i]);
   }
 }
 

@@ -441,8 +441,18 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   Writing the regrowth reading caught a modelling slip in my own first draft — it ignored
   `biotopeStart`, so a fresh meadow read as owing its whole value when the model already counts
   almost half. The test now pins it to `1 − biotopeStart`.
-- [ ] **T-505 Night noise and health.** L_night, WHO night guideline 40 dB, annoyance
-  curves (WHO 2018 Environmental Noise Guidelines, free).
+- [x] **T-505 Night noise and health.** L_night, WHO night guideline, exposure shares
+  (WHO 2018 Environmental Noise Guidelines and WHO 2009 Night Noise Guidelines).
+  *Note 2026-09-17:* L_night rides along in the existing noise pass — same geometry, same path
+  attenuation, only the source term differs — from a per-tile `noiseNightReductionDb`. The road
+  value of 6.5 dB is derived from the German urban day-night traffic split rather than assumed.
+  **The task text conflated two WHO documents:** 40 dB L_night is the 2009 Night Noise Guidelines
+  value (and LOAEL), while the 2018 Environmental Noise Guidelines recommend 45 dB for road
+  traffic — 40 dB there is the *aircraft* figure. Both are now parameters with their own sources,
+  and the indicators use 45 dB because this game's night noise is road traffic.
+  Reported, not scored: the 0–100 noise indicator still scores the day level, so no scenario was
+  silently rebalanced. A %HSD exposure-response curve was deliberately left out because the
+  coefficients could not be read from a primary source from here; `docs/model/noise.md` says so.
 - [ ] **T-506 Time and seasons.** Yearly cycle for crop yield, ETI, heat waves.
 
 ### Phase 6 — Multiplayer (same WLAN, cross-play)

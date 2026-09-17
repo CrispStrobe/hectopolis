@@ -6,6 +6,7 @@ import 'dart:typed_data';
 class Fields {
   Fields(int n)
       : noiseDb = Float64List(n),
+        noiseNightDb = Float64List(n),
         airConcentration = Float64List(n),
         airIndex = Float64List(n),
         coolingCapacity = Float64List(n),
@@ -23,6 +24,10 @@ class Fields {
 
   /// L_den-like day level in dB(A) at the cell centre.
   final Float64List noiseDb;
+
+  /// L_night-like night level in dB(A), from the same sources with their
+  /// night emissions (docs/model/noise.md).
+  final Float64List noiseNightDb;
 
   /// Relative pollutant concentration (unitless, see docs/model/air.md).
   final Float64List airConcentration;
@@ -74,6 +79,7 @@ class Fields {
   /// than recomputing them.
   void copyFrom(Fields other) {
     noiseDb.setAll(0, other.noiseDb);
+    noiseNightDb.setAll(0, other.noiseNightDb);
     airConcentration.setAll(0, other.airConcentration);
     airIndex.setAll(0, other.airIndex);
     coolingCapacity.setAll(0, other.coolingCapacity);

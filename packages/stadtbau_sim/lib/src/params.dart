@@ -50,6 +50,7 @@ class TileParams {
     required this.biotopeStart,
     required this.recoveryMonths,
     required this.noiseEmissionDb,
+    required this.noiseNightReductionDb,
     required this.airEmission,
     required this.airSink,
     required this.shade,
@@ -79,6 +80,9 @@ class TileParams {
 
   /// L_eq in dB(A) at the reference distance; 0 = silent.
   final Param noiseEmissionDb;
+
+  /// How much quieter this tile is between 22:00 and 06:00.
+  final Param noiseNightReductionDb;
   final Param airEmission;
   final Param airSink;
   final Param shade;
@@ -105,6 +109,7 @@ class TileParams {
       biotopeStart: _p(m, 'biotopeStart', path, 1),
       recoveryMonths: _p(m, 'recoveryMonths', path, 1),
       noiseEmissionDb: _p(m, 'noiseEmissionDb', path, 0),
+      noiseNightReductionDb: _p(m, 'noiseNightReductionDb', path, 0),
       airEmission: _p(m, 'airEmission', path, 0),
       airSink: _p(m, 'airSink', path, 0),
       shade: _p(m, 'shade', path),
@@ -131,7 +136,10 @@ class NoiseParams {
         trafficReferenceVehiclesPerDay = _p(m, 'trafficReferenceVehiclesPerDay', 'noise').value,
         baselineThroughTraffic = _p(m, 'baselineThroughTraffic', 'noise').value,
         limitDayDb = _p(m, 'limitDayDb', 'noise').value,
-        limitBadDb = _p(m, 'limitBadDb', 'noise').value;
+        limitBadDb = _p(m, 'limitBadDb', 'noise').value,
+        nightGuidelineDb = _p(m, 'nightGuidelineDb', 'noise').value,
+        nightLoaelDb = _p(m, 'nightLoaelDb', 'noise').value,
+        nightHighRiskDb = _p(m, 'nightHighRiskDb', 'noise').value;
 
   final double areaReferenceDistanceM;
   final double areaDecayDbPerDecade;
@@ -144,6 +152,15 @@ class NoiseParams {
   final double baselineThroughTraffic;
   final double limitDayDb;
   final double limitBadDb;
+
+  /// WHO 2018 road-traffic night recommendation, dB L_night.
+  final double nightGuidelineDb;
+
+  /// WHO 2009 night guideline and lowest observed adverse effect level.
+  final double nightLoaelDb;
+
+  /// WHO 2009 interim target, above which cardiovascular effects dominate.
+  final double nightHighRiskDb;
 }
 
 class AirParams {

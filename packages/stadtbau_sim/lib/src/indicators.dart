@@ -31,6 +31,9 @@ class IndicatorSnapshot {
     required this.budgetKEur,
     required this.budgetDeltaKEur,
     required this.meanNoiseDb,
+    required this.meanNightNoiseDb,
+    required this.shareAboveNightGuideline,
+    required this.shareAboveNightHighRisk,
     required this.meanAirIndex,
     required this.meanCommuteKm,
     required this.carShare,
@@ -49,6 +52,16 @@ class IndicatorSnapshot {
   final double budgetKEur;
   final double budgetDeltaKEur;
   final double meanNoiseDb;
+
+  /// Resident-weighted mean night level, dB L_night.
+  final double meanNightNoiseDb;
+
+  /// Share of residents whose night level exceeds the WHO 2018 road-traffic
+  /// recommendation of 45 dB, and the WHO 2009 interim target of 55 dB above
+  /// which cardiovascular effects dominate. Reported, not scored: see
+  /// docs/model/noise.md.
+  final double shareAboveNightGuideline;
+  final double shareAboveNightHighRisk;
   final double meanAirIndex;
   final double meanCommuteKm;
   final double carShare;
@@ -69,6 +82,9 @@ class IndicatorSnapshot {
         'budgetKEur': budgetKEur,
         'budgetDeltaKEur': budgetDeltaKEur,
         'meanNoiseDb': meanNoiseDb,
+        'meanNightNoiseDb': meanNightNoiseDb,
+        'shareAboveNightGuideline': shareAboveNightGuideline,
+        'shareAboveNightHighRisk': shareAboveNightHighRisk,
         'meanAirIndex': meanAirIndex,
         'meanCommuteKm': meanCommuteKm,
         'carShare': carShare,
@@ -107,6 +123,9 @@ IndicatorSnapshot computeIndicators(
   var wsum = 0.0;
   var noiseScore = 0.0;
   var noiseDb = 0.0;
+  var nightDb = 0.0;
+  var aboveGuideline = 0.0;
+  var aboveHighRisk = 0.0;
   var air = 0.0;
   var green = 0.0;
   var retail = 0.0;
@@ -121,6 +140,9 @@ IndicatorSnapshot computeIndicators(
     wsum += wt;
     noiseScore += wt * clamp01((np.limitBadDb - f.noiseDb[i]) / (np.limitBadDb - np.limitDayDb));
     noiseDb += wt * f.noiseDb[i];
+    nightDb += wt * f.noiseNightDb[i];
+    if (f.noiseNightDb[i] > np.nightGuidelineDb) aboveGuideline += wt;
+    if (f.noiseNightDb[i] > np.nightHighRiskDb) aboveHighRisk += wt;
     air += wt * f.airIndex[i];
     green += wt * f.greenAccess[i];
     retail += wt * f.retailAccess[i];
@@ -135,6 +157,9 @@ IndicatorSnapshot computeIndicators(
   if (wsum > 0) {
     noiseScore /= wsum;
     noiseDb /= wsum;
+    nightDb /= wsum;
+    aboveGuideline /= wsum;
+    aboveHighRisk /= wsum;
     air /= wsum;
     green /= wsum;
     retail /= wsum;
@@ -205,6 +230,9 @@ IndicatorSnapshot computeIndicators(
     budgetKEur: w.budgetKEur,
     budgetDeltaKEur: budgetDeltaKEur,
     meanNoiseDb: noiseDb,
+    meanNightNoiseDb: nightDb,
+    shareAboveNightGuideline: aboveGuideline,
+    shareAboveNightHighRisk: aboveHighRisk,
     meanAirIndex: air,
     meanCommuteKm: commuteKm,
     carShare: carShare,
