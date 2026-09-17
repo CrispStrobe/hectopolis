@@ -51,6 +51,7 @@ class TileParams {
     required this.recoveryMonths,
     required this.noiseEmissionDb,
     required this.noiseNightReductionDb,
+    required this.perviousCurveNumber,
     required this.airEmission,
     required this.airSink,
     required this.shade,
@@ -83,6 +84,10 @@ class TileParams {
 
   /// How much quieter this tile is between 22:00 and 06:00.
   final Param noiseNightReductionDb;
+
+  /// SCS runoff curve number of the tile's *unsealed* part. The sealed part is
+  /// [sealing], and the two compose by TR-55 (docs/model/water.md).
+  final Param perviousCurveNumber;
   final Param airEmission;
   final Param airSink;
   final Param shade;
@@ -110,6 +115,7 @@ class TileParams {
       recoveryMonths: _p(m, 'recoveryMonths', path, 1),
       noiseEmissionDb: _p(m, 'noiseEmissionDb', path, 0),
       noiseNightReductionDb: _p(m, 'noiseNightReductionDb', path, 0),
+      perviousCurveNumber: _p(m, 'perviousCurveNumber', path, 61),
       airEmission: _p(m, 'airEmission', path, 0),
       airSink: _p(m, 'airSink', path, 0),
       shade: _p(m, 'shade', path),
@@ -161,6 +167,38 @@ class NoiseParams {
 
   /// WHO 2009 interim target, above which cardiovascular effects dominate.
   final double nightHighRiskDb;
+}
+
+/// Rainfall and runoff (docs/model/water.md).
+class WaterParams {
+  WaterParams(Map<String, dynamic> m)
+    : designStormMm = _p(m, 'designStormMm', 'water').value,
+      imperviousCurveNumber = _p(m, 'imperviousCurveNumber', 'water').value,
+      initialAbstractionRatio = _p(m, 'initialAbstractionRatio', 'water').value,
+      retentionRadiusTiles = _p(
+        m,
+        'retentionRadiusTiles',
+        'water',
+      ).value.round(),
+      retentionMmPerCell = _p(m, 'retentionMmPerCell', 'water').value,
+      floodRiskMm = _p(m, 'floodRiskMm', 'water').value;
+
+  /// Rain depth of the design storm, mm.
+  final double designStormMm;
+
+  /// Curve number of connected impervious area.
+  final double imperviousCurveNumber;
+
+  /// Initial abstraction as a fraction of the maximum retention S.
+  final double initialAbstractionRatio;
+
+  final int retentionRadiusTiles;
+
+  /// Depth one water cell can take from its neighbourhood, mm.
+  final double retentionMmPerCell;
+
+  /// Runoff depth above which a cell is reported as at risk, mm.
+  final double floodRiskMm;
 }
 
 /// The yearly cycle (docs/model/seasons.md).
@@ -420,6 +458,7 @@ class SimParams {
     required this.commute,
     required this.economy,
     required this.seasons,
+    required this.water,
   });
 
   final int schemaVersion;
@@ -433,6 +472,7 @@ class SimParams {
   final CommuteParams commute;
   final EconomyParams economy;
   final SeasonParams seasons;
+  final WaterParams water;
 
   TileParams tile(TileType t) => tiles[t]!;
 
@@ -466,6 +506,7 @@ class SimParams {
       habitat: HabitatParams(_map(root['habitat'], 'habitat')),
       commute: CommuteParams(_map(root['commute'], 'commute')),
       seasons: SeasonParams(_map(root['seasons'], 'seasons')),
+      water: WaterParams(_map(root['water'], 'water')),
       economy: EconomyParams(_map(root['economy'], 'economy')),
     );
   }

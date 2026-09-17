@@ -88,6 +88,10 @@ const String defaultParamsJson = r'''
       "noiseNightReductionDb": {
         "value": 0,
         "source": "no night emission to reduce"
+      },
+      "perviousCurveNumber": {
+        "value": 58,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: meadow, continuous grass, protected from grazing"
       }
     },
     "cropland": {
@@ -159,6 +163,10 @@ const String defaultParamsJson = r'''
       "noiseNightReductionDb": {
         "value": 0,
         "source": "no night emission to reduce"
+      },
+      "perviousCurveNumber": {
+        "value": 78,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: row crops, straight row, good condition"
       }
     },
     "forest": {
@@ -232,6 +240,10 @@ const String defaultParamsJson = r'''
       "noiseNightReductionDb": {
         "value": 0,
         "source": "no night emission to reduce"
+      },
+      "perviousCurveNumber": {
+        "value": 55,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: woods, good condition"
       }
     },
     "water": {
@@ -304,6 +316,10 @@ const String defaultParamsJson = r'''
       "noiseNightReductionDb": {
         "value": 0,
         "source": "no night emission to reduce"
+      },
+      "perviousCurveNumber": {
+        "value": 98,
+        "source": "open water does not infiltrate; it is handled as retention rather than as runoff-generating, see docs/model/water.md"
       }
     },
     "park": {
@@ -377,6 +393,10 @@ const String defaultParamsJson = r'''
       "noiseNightReductionDb": {
         "value": 0,
         "source": "no night emission to reduce"
+      },
+      "perviousCurveNumber": {
+        "value": 61,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: open space, lawns, grass cover over 75 percent, good condition"
       }
     },
     "housing_low": {
@@ -450,6 +470,10 @@ const String defaultParamsJson = r'''
       "noiseNightReductionDb": {
         "value": 5,
         "source": "design: household activity falls at night; TA Larm night limits sit 15 dB below day limits for residential areas"
+      },
+      "perviousCurveNumber": {
+        "value": 61,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the pervious part of a residential lot is lawn in good condition; the sealed part is carried by tiles.*.sealing"
       }
     },
     "housing_high": {
@@ -521,6 +545,10 @@ const String defaultParamsJson = r'''
       "noiseNightReductionDb": {
         "value": 5,
         "source": "design: household activity falls at night; TA Larm night limits sit 15 dB below day limits for residential areas"
+      },
+      "perviousCurveNumber": {
+        "value": 61,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: pervious part is lawn in good condition; the sealed part is carried by tiles.*.sealing"
       }
     },
     "commercial": {
@@ -596,6 +624,10 @@ const String defaultParamsJson = r'''
       "noiseNightReductionDb": {
         "value": 8,
         "source": "design: shops and deliveries stop overnight, leaving only plant and car-park movements"
+      },
+      "perviousCurveNumber": {
+        "value": 61,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: pervious part is lawn in good condition; the sealed part is carried by tiles.*.sealing"
       }
     },
     "industry": {
@@ -667,6 +699,10 @@ const String defaultParamsJson = r'''
       "noiseNightReductionDb": {
         "value": 5,
         "source": "design: partial night shift; TA Larm regulates night separately, so a compliant plant throttles rather than stops"
+      },
+      "perviousCurveNumber": {
+        "value": 61,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: pervious part is lawn in good condition; the sealed part is carried by tiles.*.sealing"
       }
     },
     "road": {
@@ -740,6 +776,10 @@ const String defaultParamsJson = r'''
       "noiseNightReductionDb": {
         "value": 6.5,
         "source": "RLS-19 / typical German urban day-night split: about 10% of daily traffic falls in the 8 night hours against 90% in the 16 day hours, so the hourly rate is 0.22 of the day rate and 10*log10(0.22) = -6.5 dB"
+      },
+      "perviousCurveNumber": {
+        "value": 61,
+        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the verge is lawn in good condition; the carriageway is carried by tiles.*.sealing"
       }
     }
   },
@@ -1100,6 +1140,32 @@ const String defaultParamsJson = r'''
         0.44,
         0.275
       ]
+    }
+  },
+  "water": {
+    "designStormMm": {
+      "value": 22.1,
+      "source": "KOSTRA-DWD-2020, grid field Spalte 118 Zeile 81 (INDEX_RC 081118), duration 60 min, return period 5 a: hN = 22.1 mm. A five-year hour is the ordinary heavy shower a drainage system is expected to cope with, not a disaster."
+    },
+    "imperviousCurveNumber": {
+      "value": 98,
+      "source": "USDA NRCS TR-55: connected impervious area, CN 98"
+    },
+    "initialAbstractionRatio": {
+      "value": 0.2,
+      "source": "USDA NRCS TR-55: initial abstraction Ia = 0.2 S, the classical ratio"
+    },
+    "retentionRadiusTiles": {
+      "value": 2,
+      "source": "design: open water and wetland take runoff from their immediate surroundings; 200 m at this cell size"
+    },
+    "retentionMmPerCell": {
+      "value": 30,
+      "source": "design: a water cell absorbs up to 30 mm of depth from its neighbourhood, above the 22.1 mm design storm so one pond can hold one ordinary shower from about its own area"
+    },
+    "floodRiskMm": {
+      "value": 10,
+      "source": "design: the threshold above which a cell's runoff from the design storm is reported as at risk; roughly half the design storm leaving as surface flow"
     }
   }
 }

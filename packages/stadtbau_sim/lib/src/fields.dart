@@ -20,7 +20,8 @@ class Fields {
         meanCommuteKm = Float64List(n),
         carShare = Float64List(n),
         attractiveness = Float64List(n),
-        connected = Uint8List(n);
+        connected = Uint8List(n),
+        runoffMm = Float64List(n);
 
   /// L_den-like day level in dB(A) at the cell centre.
   final Float64List noiseDb;
@@ -71,6 +72,9 @@ class Fields {
   /// 1 if a main road is within reach, else 0.
   final Uint8List connected;
 
+  /// Runoff depth from the design storm, mm (docs/model/water.md).
+  final Float64List runoffMm;
+
   /// Overwrite every field and aggregate with [other]'s, which must describe a
   /// grid of the same size.
   ///
@@ -94,6 +98,7 @@ class Fields {
     carShare.setAll(0, other.carShare);
     attractiveness.setAll(0, other.attractiveness);
     connected.setAll(0, other.connected);
+    runoffMm.setAll(0, other.runoffMm);
     totalCarKmPerDay = other.totalCarKmPerDay;
     revenueKEur = other.revenueKEur;
     maintenanceKEur = other.maintenanceKEur;
@@ -104,6 +109,8 @@ class Fields {
     biodiversityIndex = other.biodiversityIndex;
     habitatAreaEff = other.habitatAreaEff;
     habitatConnectivity = other.habitatConnectivity;
+    meanRunoffMm = other.meanRunoffMm;
+    floodRiskCells = other.floodRiskCells;
   }
 
   /// Aggregates produced while computing the fields.
@@ -120,4 +127,9 @@ class Fields {
   double biodiversityIndex = 0;
   double habitatAreaEff = 0;
   double habitatConnectivity = 0;
+
+  /// Mean runoff depth over the map, mm, and how many cells shed more than
+  /// the flood-risk threshold.
+  double meanRunoffMm = 0;
+  int floodRiskCells = 0;
 }
