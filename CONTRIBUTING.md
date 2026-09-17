@@ -22,7 +22,14 @@ Thank you for helping. Before you start, read `PLAN.md` (scope, model, roadmap) 
   sourcing convention for parameters, and the four things the analyzer will *not*
   catch (one of them a runtime crash).
 - **[The model](docs/model/)** — one file per component, each with its formulas,
-  its calibration and an explicit list of what it leaves out.
+  its calibration and an explicit list of what it leaves out. Published at
+  <https://crispstrobe.github.io/hectopolis/docs/>, rendered by
+  `dart run tools/build_docs_site.dart` (writes `docs/_site/`, which is not
+  committed). A new model doc has to be added to `_pages` in that script, or
+  `tools/check.sh` fails rather than leaving the page unpublished.
+- **[Quellen](https://crispstrobe.github.io/hectopolis/docs/quellen.html)** —
+  every law, standard and dataset the model uses, generated from the `source`
+  field of each parameter, so a number added without one is visible there.
 
 ## Developer Certificate of Origin 1.1
 

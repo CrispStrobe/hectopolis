@@ -26,6 +26,8 @@ pubspec_overrides.yaml
 **/windows/flutter/ephemeral/
 # Generated l10n
 app/lib/l10n/generated/
+# Rendered documentation site (tools/build_docs_site.dart); CI builds it
+docs/_site/
 # Raw datasets never enter the repo
 /data/raw/
 __pycache__/

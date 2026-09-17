@@ -549,8 +549,31 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   default. Local statistics are the stars and medals already kept for the player; nothing is
   aggregated, and no identifier of any kind is generated, because nothing is sent that would need
   one.
-- [ ] **T-703 Model documentation site.** `docs/model` rendered as a static site with
+- [x] **T-703 Model documentation site.** `docs/model` rendered as a static site with
   formulas; "Quellen" page listing every dataset and law used.
+  *Note 2026-09-17:* `tools/build_docs_site.dart` renders `docs/` into `docs/_site/` and
+  the pages workflow writes it into `app/build/web/docs`, so one deployment publishes the
+  game and its documentation and the in-app links are same-origin. Two decisions worth
+  recording. First, no maths renderer: KaTeX or MathJax from a CDN would have been the one
+  third-party request left in the project, directly against T-702, so formulas are typeset
+  from the backticked text the docs already contain (a paragraph that is nothing but one
+  code span becomes a display formula). Second, the generator has no dependencies and
+  implements only the markdown the docs use — it *fails* on an image, a block quote, a
+  nested list, an unbalanced backtick or a link to an unpublished page, with file and line,
+  rather than emitting literal markdown nobody would trace back. All four guards were
+  checked by deliberate failure, as was the one that catches a new doc missing from the
+  navigation. The "Quellen" page is generated from the 379 `source` fields in
+  `data/params/tiles.json`: 182 of them (48 %) cite a law, standard, dataset or paper, and
+  the remaining 197 are grouped by the reason they carry none — design decision,
+  derivation, calibration, initial estimate awaiting T-103, or not applicable — so the
+  estimates are on the page rather than hidden behind it. An authority anywhere in the
+  string wins over the `design:` prefix, because "design, anchored on MiD 2017" does rest
+  on MiD 2017 and filing it as a bare design decision would understate it; the page tags
+  it as anchored rather than cited. The page also asserts that every parameter appears
+  exactly once. Along the way: three screens each carried their own copy of a
+  `github.com/CrispStrobe/stadtbau/blob/main/docs/model/...` URL, which only resolved
+  through GitHub's rename redirect and showed raw markdown when it did; they now share
+  `app/lib/ui/doc_links.dart` and point at the rendered pages.
 - [x] **T-704 Contributor guide** for adding tile types and parameters with citations.
   *Note 2026-09-17:* `docs/adding-a-tile-type.md`, written straight after adding six of them, so
   the traps listed are the ones that actually bit: `TileStyle.of` null-asserts its map so a

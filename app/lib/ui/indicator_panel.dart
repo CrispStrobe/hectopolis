@@ -6,28 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
-
-/// Base URL of the model documentation in the repository (T-204).
-const indicatorDocsBaseUrl =
-    'https://github.com/CrispStrobe/stadtbau/blob/main/docs/model/';
-
-/// The model document that explains each indicator.
-const indicatorDocFile = <Indicator, String>{
-  Indicator.biodiversity: 'biodiversity.md',
-  Indicator.air: 'air.md',
-  Indicator.noise: 'noise.md',
-  Indicator.housing: 'economy.md',
-  Indicator.economy: 'economy.md',
-  Indicator.shopping: 'access.md',
-  Indicator.recreation: 'access.md',
-  Indicator.commuting: 'commute.md',
-  Indicator.climate: 'heat.md',
-  Indicator.budget: 'economy.md',
-};
-
-/// The documentation URL for [indicator].
-String indicatorDocUrl(Indicator indicator) =>
-    '$indicatorDocsBaseUrl${indicatorDocFile[indicator]!}';
+import 'doc_links.dart';
 
 /// Opens the detail sheet of one indicator: name, hint, current detail line,
 /// how the score is computed and a link into `docs/model` (T-204).
