@@ -150,6 +150,49 @@ Adding all of this needed **no protocol bump**: `resumeToken` is optional on
 and an older client never sends one. That is the additive-change rule from
 above, working as intended.
 
+## The lobby (T-603)
+
+`SessionController` (`app/lib/game/session_controller.dart`) is the one place
+that knows both the protocol and Flutter: the package knows nothing about
+widgets, the widgets know nothing about the wire format. It exposes plain
+lists and flags, so a screen cannot accidentally depend on a message type.
+
+`LobbyScreen` shows who is here, which columns are theirs, who is ready, and
+— for the host — a button to divide the map and one to start.
+
+**Districts are vertical strips**, in player order, and the last strip takes
+the remainder so no column is left unassigned. Strips rather than quadrants
+because every strip then touches both edges of the map: with quadrants the
+player in the far corner is shielded from everyone else's noise and traffic,
+and a mode whose entire point is that effects cross borders should not hand
+anyone a quiet corner.
+
+The screen has **no entry point in the menu yet**, which is deliberate rather
+than forgotten. A player reaches a lobby by hosting or joining over a network,
+and there is no transport until T-602. It is driven by the in-memory pair in
+its tests, so it is verified end to end today and needs no rework when a
+socket arrives.
+
+One thing the host needed that the protocol had not provided: `SessionHost`
+broadcast to its clients, but the host's *own* screen is not a client, so a
+lobby on the hosting device never noticed anyone arrive. `SessionHost.changes`
+now fires on every broadcast, which is one place, so a new message type cannot
+forget to notify.
+
+### Testing a session in a widget test
+
+Two rules, learned the hard way, both about `flutter_test`'s faked clock:
+
+- **Never wait on a timer.** `Future.delayed`, even with `Duration.zero`, is a
+  timer, and a faked clock does not run it unless the test pumps. Everything
+  in the in-memory transport defers with a microtask instead, which is also
+  the matching primitive, since delivery is scheduled as a microtask.
+- **Do not await a session teardown inside a test body.** Close in
+  `addTearDown`, where the clock is real. To simulate a drop mid-test, close
+  the *transport* — which is what a dropped connection is — and note that a
+  close outside message delivery does its work synchronously, so the other
+  side has already noticed by the next line.
+
 ## What is not here yet
 
 T-602 discovery (mDNS, room code, QR, manual IP), T-603 the lobby UI, T-604

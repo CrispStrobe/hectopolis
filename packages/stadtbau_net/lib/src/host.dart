@@ -68,6 +68,17 @@ class SessionHost {
   String _hostPlayerId;
   String get hostPlayerId => _hostPlayerId;
 
+  /// Emits whenever anything observable changed: a player joined, left, got
+  /// a district or a ready flag, or the simulation advanced.
+  ///
+  /// The host broadcasts to its clients, but the host's *own* UI is not a
+  /// client and was getting nothing — so a lobby on the hosting device never
+  /// noticed anyone arrive (found by T-603's widget tests). A local observer
+  /// needs telling too.
+  Stream<SessionHost> get changes => _changes.stream;
+  final StreamController<SessionHost> _changes =
+      StreamController<SessionHost>.broadcast(sync: true);
+
   final Map<String, PlayerInfo> _players = {};
   final Map<String, _Seat> _seats = {};
 
@@ -331,10 +342,18 @@ class SessionHost {
     for (final seat in _seats.values) {
       seat.transport.send(text);
     }
+    // Every broadcast is by definition a change worth showing locally, and
+    // going through one place means a new message type cannot forget to
+    // notify. Safe to fire synchronously: this is a different controller from
+    // the transports', so it is not re-entrant on one that is already firing.
+    if (!_changes.isClosed) _changes.add(this);
   }
 
   /// Closes every connection.
   Future<void> dispose() async {
+    // See SessionClient.dispose: nothing observes this controller's `done`,
+    // and awaiting it hangs under a faked clock.
+    unawaited(_changes.close());
     for (final seat in _seats.values) {
       await seat.subscription.cancel();
       await seat.transport.close();

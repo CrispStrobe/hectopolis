@@ -16,6 +16,8 @@ dependencies:
   intl: any
   package_info_plus: ^10.1.0
   shared_preferences: ^2.5.0
+  stadtbau_net:
+    path: ../packages/stadtbau_net
   stadtbau_sim:
     path: ../packages/stadtbau_sim
   url_launcher: ^6.3.0
