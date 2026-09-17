@@ -33,7 +33,9 @@ class SessionHost {
     required String hostName,
     this.maxPlayers = 4,
     String Function()? idFactory,
+    String Function()? tokenFactory,
   })  : _nextId = idFactory ?? _sequentialIds(),
+        _nextToken = tokenFactory ?? _sequentialTokens(),
         _hostPlayerId = '' {
     _hostPlayerId = _nextId();
     _players[_hostPlayerId] =
@@ -47,15 +49,30 @@ class SessionHost {
     return () => 'p${++n}';
   }
 
+  /// Resume tokens, likewise deterministic by default. A real transport
+  /// supplies something unguessable: the token is the only thing standing
+  /// between a rejoining player and someone else taking their district, so
+  /// over a network it must not be a counter. That is the transport's job to
+  /// provide, and it is a named parameter so the choice is visible at the
+  /// call site rather than buried here.
+  static String Function() _sequentialTokens() {
+    var n = 0;
+    return () => 't${++n}';
+  }
+
   final Simulation simulation;
   final int maxPlayers;
   final String Function() _nextId;
+  final String Function() _nextToken;
 
   String _hostPlayerId;
   String get hostPlayerId => _hostPlayerId;
 
   final Map<String, PlayerInfo> _players = {};
   final Map<String, _Seat> _seats = {};
+
+  /// Resume token -> player id, for seats being held open (T-605).
+  final Map<String, String> _tokens = {};
   bool _started = false;
 
   /// Everyone in the session, host first.
@@ -70,7 +87,7 @@ class SessionHost {
   /// Whether every player has ticked ready. The host counts as ready.
   bool get allReady => players
       .where((p) => !p.isHost)
-      .every((p) => p.ready);
+      .every((p) => p.ready && p.connected);
 
   /// Assigns the district a player may build in (T-604).
   void assignDistrict(String playerId, District district) {
@@ -118,8 +135,8 @@ class SessionHost {
 
     final seat = _seatOf(transport);
     switch (message) {
-      case Hello(:final name):
-        _onHello(transport, name);
+      case Hello(:final name, :final resumeToken):
+        _onHello(transport, name, resumeToken);
       case ReadyState(:final ready) when seat != null:
         _players[seat.playerId] = _players[seat.playerId]!.copyWith(
           ready: ready,
@@ -153,7 +170,7 @@ class SessionHost {
     return null;
   }
 
-  void _onHello(Transport transport, String name) {
+  void _onHello(Transport transport, String name, String? resumeToken) {
     final sub = _pending.remove(transport);
     if (sub == null) return; // already seated, or never accepted
     void reject(RejectReason reason) {
@@ -162,6 +179,24 @@ class SessionHost {
       transport.close();
     }
 
+    if (resumeToken != null) {
+      final id = _tokens[resumeToken];
+      // A token for a seat that is still connected is not a reconnect; it is
+      // either a duplicate or someone else holding a stale copy, and honouring
+      // it would evict the player sitting there.
+      if (id == null || _seats.containsKey(id)) {
+        return reject(RejectReason.unknownSeat);
+      }
+      _seats[id] = _Seat(id, transport, sub);
+      _players[id] = _players[id]!.copyWith(connected: true);
+      transport.send(_welcomeFor(id, resumeToken, resumed: true).encode());
+      _broadcastLobby();
+      return;
+    }
+
+    // A game in progress has its districts handed out; a new player would
+    // need one carved out of someone else's. A *returning* player is handled
+    // above, which is why the token check comes first.
     if (_started) return reject(RejectReason.alreadyStarted);
     if (_players.length >= maxPlayers) return reject(RejectReason.sessionFull);
     if (_players.values.any((p) => p.name == name)) {
@@ -169,16 +204,24 @@ class SessionHost {
     }
 
     final id = _nextId();
+    final token = _nextToken();
+    _tokens[token] = id;
     _players[id] = PlayerInfo(id: id, name: name, isHost: false);
     _seats[id] = _Seat(id, transport, sub);
-    transport.send(Welcome(
-      playerId: id,
-      players: players,
-      state: simulation.state.toJson(),
-      hash: simulation.state.hash(),
-    ).encode());
+    transport.send(_welcomeFor(id, token, resumed: false).encode());
     _broadcastLobby();
   }
+
+  Welcome _welcomeFor(String id, String token, {required bool resumed}) =>
+      Welcome(
+        playerId: id,
+        players: players,
+        state: simulation.state.toJson(),
+        hash: simulation.state.hash(),
+        resumeToken: token,
+        resumed: resumed,
+        started: _started,
+      );
 
   void _onIntent(_Seat seat, int seq, Command command) {
     // Only the host moves time. Letting any client advance would make the
@@ -251,10 +294,33 @@ class SessionHost {
       if (entry.value.transport != transport) continue;
       entry.value.subscription.cancel();
       _seats.remove(entry.key);
-      _players.remove(entry.key);
+      if (_started) {
+        // Hold the seat. Dropping the player would free their district for
+        // someone else and lose the tiles they still owe, and a dropped
+        // connection mid-game is the ordinary case, not the exception
+        // (T-605). They come back with their resume token.
+        _players[entry.key] =
+            _players[entry.key]!.copyWith(connected: false);
+      } else {
+        // In the lobby there is nothing to hold, so leaving means leaving.
+        _players.remove(entry.key);
+        _tokens.removeWhere((_, id) => id == entry.key);
+      }
       _broadcast(PlayerLeft(playerId: entry.key));
       _broadcastLobby();
     }
+  }
+
+  /// Gives up a held seat for good, freeing its district and its name.
+  ///
+  /// Not automatic: there is no clock in this package, and a grace period
+  /// measured in this layer would be a policy decision made in the wrong
+  /// place. The session UI decides when a player is not coming back.
+  void releaseSeat(String playerId) {
+    if (_seats.containsKey(playerId)) return; // they are connected
+    _players.remove(playerId);
+    _tokens.removeWhere((_, id) => id == playerId);
+    _broadcastLobby();
   }
 
   void _broadcastLobby() =>

@@ -565,8 +565,25 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 - [ ] **T-603 Lobby UI.** Host or join, player list, district assignment, ready check.
 - [ ] **T-604 Turn-based co-op mode.** Districts, per-player tile budgets, shared
   indicators, cross-border effects visible in overlays.
-- [ ] **T-605 Reconnect and state sync.** Full state on join, diffs afterwards, hash check
+- [~] **T-605 Reconnect and state sync.** Full state on join, diffs afterwards, hash check
   per tick, resync on mismatch.
+  *Note 2026-09-17:* Protocol half done with T-601; the remaining half is UI (hold the token
+  across a reconnect, decide when a seat is given up), which waits for T-603. Full state on
+  join, the per-tick hash check and resync-on-mismatch came with T-601 — "diffs afterwards"
+  is satisfied by sending commands rather than state, since a command *is* the diff and is
+  three orders of magnitude smaller than the fields it changes. Added here: a resume token
+  on `welcome`, and a disconnect during a game now **holds** the seat (`connected: false`)
+  instead of dropping the player, because a dropped connection on a phone is the ordinary
+  case and freeing the district would give their land away. Three judgement calls worth
+  recording. A token for a seat that is still occupied is refused rather than honoured —
+  otherwise a stale copy of a token is a way to evict someone and take their district. The
+  host never expires a seat on its own: there is no clock in this package, and "how long do
+  we wait for them" is a session-UI decision, so `releaseSeat` is explicit. And the token
+  is kept out of `PlayerInfo` because the player list goes to everyone. The default token
+  factory is a counter, which is right for the in-memory transport and wrong over a network,
+  so it is a named constructor parameter rather than a default that quietly ships. None of
+  it needed a protocol bump: both fields are optional, which is the additive-change rule
+  from `docs/multiplayer.md` working as designed.
 - [ ] **T-606 Internet relay (later).** Dart server reusing the protocol; document hosting.
 
 ### Phase 7 — Quality and community

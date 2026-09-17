@@ -32,7 +32,11 @@ enum RejectReason {
   alreadyStarted,
 
   /// The name is in use by another player in this session.
-  nameTaken;
+  nameTaken,
+
+  /// The resume token does not match any seat this session is holding: the
+  /// grace period expired, or it belongs to another session (T-605).
+  unknownSeat;
 
   String get id => name;
   static RejectReason fromId(String id) =>
@@ -102,6 +106,7 @@ class PlayerInfo {
     required this.isHost,
     this.district,
     this.ready = false,
+    this.connected = true,
   });
 
   final String id;
@@ -110,12 +115,19 @@ class PlayerInfo {
   final District? district;
   final bool ready;
 
-  PlayerInfo copyWith({District? district, bool? ready}) => PlayerInfo(
+  /// False while a player's seat is being held open for them after a dropped
+  /// connection (T-605). Their district stays theirs and nobody else may
+  /// build in it, so the others need to see that it is empty on purpose.
+  final bool connected;
+
+  PlayerInfo copyWith({District? district, bool? ready, bool? connected}) =>
+      PlayerInfo(
         id: id,
         name: name,
         isHost: isHost,
         district: district ?? this.district,
         ready: ready ?? this.ready,
+        connected: connected ?? this.connected,
       );
 
   Map<String, dynamic> toJson() => {
@@ -124,6 +136,7 @@ class PlayerInfo {
         'isHost': isHost,
         if (district != null) 'district': district!.toJson(),
         'ready': ready,
+        'connected': connected,
       };
 
   static PlayerInfo fromJson(Map<String, dynamic> json) => PlayerInfo(
@@ -134,6 +147,7 @@ class PlayerInfo {
             ? null
             : District.fromJson(json['district'] as Map<String, dynamic>),
         ready: json['ready'] as bool? ?? false,
+        connected: json['connected'] as bool? ?? true,
       );
 }
 
@@ -205,14 +219,26 @@ class ProtocolVersionException implements Exception {
 
 /// client -> host: the first thing a client says.
 class Hello extends NetMessage {
-  const Hello({required this.name});
+  const Hello({required this.name, this.resumeToken});
   final String name;
+
+  /// A token from an earlier [Welcome], to reclaim the same seat after a
+  /// dropped connection (T-605). Optional, which is why adding it needed no
+  /// protocol bump: an older host ignores the field and answers as it always
+  /// did, and an older client simply never sends one.
+  final String? resumeToken;
+
   @override
   String get type => 'hello';
   @override
-  Map<String, dynamic> get body => {'name': name};
-  static Hello fromJson(Map<String, dynamic> j) =>
-      Hello(name: j['name'] as String);
+  Map<String, dynamic> get body => {
+        'name': name,
+        if (resumeToken != null) 'resumeToken': resumeToken,
+      };
+  static Hello fromJson(Map<String, dynamic> j) => Hello(
+        name: j['name'] as String,
+        resumeToken: j['resumeToken'] as String?,
+      );
 }
 
 /// host -> one client: you are in, here is the world as it stands.
@@ -222,10 +248,25 @@ class Welcome extends NetMessage {
     required this.players,
     required this.state,
     required this.hash,
+    this.resumeToken,
+    this.resumed = false,
+    this.started = false,
   });
 
   final String playerId;
   final List<PlayerInfo> players;
+
+  /// Present this on a later [Hello] to reclaim this seat (T-605). Kept out
+  /// of [PlayerInfo] deliberately: the lobby list goes to everyone, and a
+  /// token that lets someone take your seat is not lobby information.
+  final String? resumeToken;
+
+  /// Whether this welcome restored an existing seat rather than creating one.
+  final bool resumed;
+
+  /// Whether the game is already running, so a rejoining client goes straight
+  /// to playing instead of sitting in a lobby that has moved on.
+  final bool started;
 
   /// The full world, as [WorldState.toJson]. A joining client always starts
   /// from a snapshot; diffs only make sense once both sides agree on a base.
@@ -240,6 +281,9 @@ class Welcome extends NetMessage {
         'players': [for (final p in players) p.toJson()],
         'state': state,
         'hash': hash,
+        if (resumeToken != null) 'resumeToken': resumeToken,
+        'resumed': resumed,
+        'started': started,
       };
 
   static Welcome fromJson(Map<String, dynamic> j) => Welcome(
@@ -250,6 +294,9 @@ class Welcome extends NetMessage {
         ],
         state: j['state'] as Map<String, dynamic>,
         hash: j['hash'] as int,
+        resumeToken: j['resumeToken'] as String?,
+        resumed: j['resumed'] as bool? ?? false,
+        started: j['started'] as bool? ?? false,
       );
 }
 

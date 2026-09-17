@@ -210,6 +210,144 @@ void main() {
     });
   });
 
+  group('reconnect (T-605)', () {
+    test('a dropped player keeps their seat and district and comes back', () async {
+      final s = await _session(2);
+      final leaver = s.clients[1];
+      final id = leaver.playerId!;
+      final token = leaver.resumeToken!;
+      s.host.assignDistrict(id, const District(x: 6, y: 0, width: 6, height: 12));
+      s.host.start();
+      await InMemoryTransport.settle();
+
+      // Build something, so the returning client has a world to catch up to.
+      s.host.applyAsHost(const PlaceTile(0, 0, TileType.road));
+      s.host.applyAsHost(const AdvanceTick(5));
+      await InMemoryTransport.settle();
+
+      await leaver.dispose();
+      await InMemoryTransport.settle();
+      // The seat is held, not freed: the district stays theirs.
+      final held = s.host.players.firstWhere((p) => p.id == id);
+      expect(held.connected, isFalse);
+      expect(held.district, isNotNull);
+      expect(s.host.players, hasLength(3));
+      // And the others can see that it is empty on purpose.
+      expect(
+        s.clients[0].players.firstWhere((p) => p.id == id).connected,
+        isFalse,
+      );
+
+      // More happens while they are away.
+      s.host.applyAsHost(const AdvanceTick(4));
+      await InMemoryTransport.settle();
+
+      final (hostEnd, clientEnd) = InMemoryTransport.pair();
+      s.host.accept(hostEnd);
+      final back = SessionClient(
+        transport: clientEnd,
+        playerName: 'Player 2',
+        resumeToken: token,
+      );
+      await InMemoryTransport.settle();
+
+      expect(back.resumed, isTrue);
+      expect(back.playerId, id, reason: 'the same seat, not a new one');
+      expect(back.phase, SessionPhase.playing,
+          reason: 'the game moved on; there is no lobby to return to');
+      expect(back.simulation!.state.tick, s.host.simulation.state.tick);
+      expect(back.simulation!.state.hash(), s.host.simulation.state.hash());
+      expect(back.players.firstWhere((p) => p.id == id).connected, isTrue);
+      expect(
+        back.players.firstWhere((p) => p.id == id).district,
+        isNotNull,
+        reason: 'the district came back with the seat',
+      );
+      // And they can build in it again.
+      final seq = back.request(const PlaceTile(7, 1, TileType.park));
+      await InMemoryTransport.settle();
+      expect(back.denials[seq], isNull);
+    });
+
+    test('a stale or foreign token is refused rather than given a seat', () async {
+      final s = await _session(1);
+      s.host.start();
+      await InMemoryTransport.settle();
+      final (hostEnd, clientEnd) = InMemoryTransport.pair();
+      s.host.accept(hostEnd);
+      final impostor = SessionClient(
+        transport: clientEnd,
+        playerName: 'Nobody',
+        resumeToken: 'not-a-real-token',
+      );
+      await InMemoryTransport.settle();
+      expect(impostor.rejectReason, RejectReason.unknownSeat);
+      expect(impostor.simulation, isNull);
+    });
+
+    test("a token for a seat that is still occupied does not evict them",
+        () async {
+      final s = await _session(1);
+      final sitting = s.clients.single;
+      s.host.start();
+      await InMemoryTransport.settle();
+      final (hostEnd, clientEnd) = InMemoryTransport.pair();
+      s.host.accept(hostEnd);
+      final twin = SessionClient(
+        transport: clientEnd,
+        playerName: 'Player 1',
+        resumeToken: sitting.resumeToken,
+      );
+      await InMemoryTransport.settle();
+      expect(twin.rejectReason, RejectReason.unknownSeat);
+      expect(sitting.phase, SessionPhase.playing);
+    });
+
+    test('leaving the lobby really leaves; there is nothing to hold', () async {
+      final s = await _session(2);
+      await s.clients[1].dispose();
+      await InMemoryTransport.settle();
+      expect(s.host.players, hasLength(2));
+      final (hostEnd, clientEnd) = InMemoryTransport.pair();
+      s.host.accept(hostEnd);
+      final back = SessionClient(
+        transport: clientEnd,
+        playerName: 'Player 2',
+        resumeToken: 't2',
+      );
+      await InMemoryTransport.settle();
+      expect(back.rejectReason, RejectReason.unknownSeat);
+    });
+
+    test('a held seat can be given up for good', () async {
+      final s = await _session(2);
+      final id = s.clients[1].playerId!;
+      s.host.start();
+      await InMemoryTransport.settle();
+      await s.clients[1].dispose();
+      await InMemoryTransport.settle();
+      expect(s.host.players, hasLength(3));
+      s.host.releaseSeat(id);
+      await InMemoryTransport.settle();
+      expect(s.host.players, hasLength(2));
+      expect(s.clients[0].players.map((p) => p.id), isNot(contains(id)));
+    });
+
+    test('a held seat blocks the ready check', () async {
+      final s = await _session(2);
+      s.clients[0].setReady(ready: true);
+      s.clients[1].setReady(ready: true);
+      await InMemoryTransport.settle();
+      expect(s.host.allReady, isTrue);
+      s.host.start();
+      await InMemoryTransport.settle();
+      await s.clients[1].dispose();
+      await InMemoryTransport.settle();
+      expect(s.host.allReady, isFalse,
+          reason: 'someone who is not there cannot be ready');
+    });
+  });
+
   group('lobby', () {
     test('ready state travels to every client', () async {
       final s = await _session(2);
