@@ -19,13 +19,27 @@ enum SessionPhase { connecting, lobby, playing, rejected, closed }
 /// The hash on every message is what makes it safe -- one disagreement and
 /// the client throws its world away and takes the host's.
 class SessionClient {
-  SessionClient({required this.transport, required this.playerName}) {
+  SessionClient({
+    required this.transport,
+    required this.playerName,
+    String? resumeToken,
+  }) {
     _sub = transport.incoming.listen(_onMessage, onDone: _onDone);
-    transport.send(Hello(name: playerName).encode());
+    transport
+        .send(Hello(name: playerName, resumeToken: resumeToken).encode());
   }
 
   final Transport transport;
   final String playerName;
+
+  /// Present this on a later connection to reclaim this seat (T-605). Held
+  /// by the session UI across a reconnect; it is not part of the lobby list,
+  /// because a token that reclaims a seat is not public information.
+  String? resumeToken;
+
+  /// Whether this connection restored an existing seat rather than taking a
+  /// new one.
+  bool resumed = false;
 
   late final StreamSubscription<String> _sub;
   final StreamController<SessionClient> _changes =
@@ -87,9 +101,20 @@ class SessionClient {
     }
 
     switch (message) {
-      case Welcome(:final playerId, :final players, :final state, :final hash):
+      case Welcome(
+          :final playerId,
+          :final players,
+          :final state,
+          :final hash,
+          :final resumeToken,
+          :final resumed,
+          :final started,
+        ):
         this.playerId = playerId;
         this.players = players;
+        this.resumeToken = resumeToken ?? this.resumeToken;
+        this.resumed = resumed;
+        this.started = started;
         _adopt(state, hash);
         phase = started ? SessionPhase.playing : SessionPhase.lobby;
       case Rejected(:final reason, :final hostProtocol):
@@ -120,9 +145,13 @@ class SessionClient {
       case Snapshot(:final state, :final hash):
         _adopt(state, hash);
       case PlayerLeft(:final playerId):
+        // Only remove them if the host has actually let the seat go. During
+        // a game the seat is held open (T-605), and the authoritative list
+        // arrives in the LobbyUpdate that follows; dropping the player here
+        // would make their district look unowned for one frame.
         players = [
           for (final p in players)
-            if (p.id != playerId) p,
+            if (p.id != playerId) p else p.copyWith(connected: false),
         ];
       case Hello() || ReadyState() || Intent() || ResyncRequest():
         return; // client-to-host messages; not ours to handle

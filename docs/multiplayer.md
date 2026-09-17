@@ -46,9 +46,9 @@ than "connection failed".
 
 | From | Message | Meaning |
 |---|---|---|
-| client | `hello` | my name |
-| host | `welcome` | your id, who is here, the full world, its hash |
-| host | `rejected` | version mismatch, session full, already started, name taken |
+| client | `hello` | my name, and a resume token if I have one |
+| host | `welcome` | your id, who is here, the full world, its hash, your resume token |
+| host | `rejected` | version mismatch, session full, already started, name taken, unknown seat |
 | host | `lobby` | the player list, districts, ready flags, started |
 | client | `ready` | I am (not) ready |
 | client | `intent` | please do this command (with my sequence number) |
@@ -111,8 +111,48 @@ that way, and a protocol that only works over a synchronous transport is not a
 protocol. `InMemoryTransport.settle()` completes when nothing is in flight, so
 tests wait on a condition instead of guessing at a number of pumps.
 
+## Reconnect (T-605)
+
+A dropped connection mid-game is the ordinary case on a phone, not an
+exception, so it is not treated as leaving.
+
+Every `welcome` carries a **resume token**. When a connection drops during a
+game the host *holds the seat*: the player stays in the list with
+`connected: false`, their district stays theirs, and nobody else may build in
+it. A later `hello` carrying that token re-seats them — same player id, same
+district — and the `welcome` that answers it contains the full world as it now
+stands, so they catch up in one message however long they were away.
+
+Three rules that matter more than they look:
+
+- **In the lobby, leaving means leaving.** There is no district to hold and no
+  game to return to, so the seat is freed and the token forgotten.
+- **A token for a seat that is still occupied is refused** (`unknownSeat`).
+  Honouring it would evict the player sitting there, which turns a stale copy
+  of a token into a way to take someone's district.
+- **The host never expires a seat on its own.** There is no clock in this
+  package; `releaseSeat` is explicit, because "how long do we wait for them"
+  is a decision for the session UI and would be the wrong thing to hard-code
+  three layers down.
+
+A held seat also cannot be ready: someone who is not there has not agreed to
+start.
+
+The token is deliberately not part of `PlayerInfo`. The player list goes to
+everyone, and a token that reclaims a seat is not lobby information. The
+default token factory is a counter, which is fine for the in-memory transport
+and is not fine over a network — so it is a named constructor parameter, to be
+supplied with something unguessable at the point where a real transport is
+introduced, rather than a default that quietly ships.
+
+Adding all of this needed **no protocol bump**: `resumeToken` is optional on
+`hello` and `welcome`, an older host ignores it and answers as it always did,
+and an older client never sends one. That is the additive-change rule from
+above, working as intended.
+
 ## What is not here yet
 
 T-602 discovery (mDNS, room code, QR, manual IP), T-603 the lobby UI, T-604
-the district rules and per-player tile budgets in the game itself, T-605
-reconnect, and T-606 an internet relay.
+the district rules and per-player tile budgets in the game itself, and T-606
+an internet relay. T-605's remaining half is the UI that holds a token across
+a reconnect and decides when to give a seat up.
