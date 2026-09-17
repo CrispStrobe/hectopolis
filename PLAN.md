@@ -537,7 +537,15 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 - [ ] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
 - [ ] **T-703 Model documentation site.** `docs/model` rendered as a static site with
   formulas; "Quellen" page listing every dataset and law used.
-- [ ] **T-704 Contributor guide** for adding tile types and parameters with citations.
+- [x] **T-704 Contributor guide** for adding tile types and parameters with citations.
+  *Note 2026-09-17:* `docs/adding-a-tile-type.md`, written straight after adding six of them, so
+  the traps listed are the ones that actually bit: `TileStyle.of` null-asserts its map so a
+  missing entry is a runtime crash rather than a compile error; ICU `select` has no
+  exhaustiveness so a missing name shows as the fallback; `_isRetention` in the water model is a
+  plain `==` chain; and digits reach only the first ten of sixteen tiles. Also records the two
+  judgement calls worth passing on — normalise art against the range a field actually occupies
+  rather than 0–1, and put a tile's *purpose* in the model rather than in an invented
+  per-hectare figure. Linked from `CONTRIBUTING.md`.
 
 ---
 
