@@ -22,8 +22,17 @@ void computeHeat(WorldState w, SimParams p, Fields f) {
   final width = w.width;
   final hp = p.heat;
 
+  // Seasons act on the two terms that are actually seasonal: vegetation
+  // transpires in the growing season and barely at all in winter, and the
+  // heat island itself is a summer phenomenon. Shade and albedo are properties
+  // of the surface and stay put. (docs/model/seasons.md)
+  final growth = p.seasons.growthAt(w.tick);
+  final uhiMax = p.heat.uhiMaxC * p.seasons.heatAt(w.tick);
+
   double capacity(TileParams tp) =>
-      hp.shadeWeight * tp.shade.value + hp.albedoWeight * tp.albedo.value + hp.etiWeight * tp.eti.value;
+      hp.shadeWeight * tp.shade.value +
+      hp.albedoWeight * tp.albedo.value +
+      hp.etiWeight * tp.eti.value * growth;
 
   final ccRef = capacity(p.tile(TileType.terrain));
   var ccMin = ccRef;
@@ -77,6 +86,6 @@ void computeHeat(WorldState w, SimParams p, Fields f) {
       final weight = 1 - offsets.dist[k] / (hp.coolingDistanceTiles + 1);
       hm = math.max(hm, cc[j] * weight);
     }
-    f.heatDeltaC[i] = hp.uhiMaxC * clamp01((ccRef - hm) / span);
+    f.heatDeltaC[i] = uhiMax * clamp01((ccRef - hm) / span);
   }
 }

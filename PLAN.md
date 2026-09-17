@@ -453,7 +453,19 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   Reported, not scored: the 0–100 noise indicator still scores the day level, so no scenario was
   silently rebalanced. A %HSD exposure-response curve was deliberately left out because the
   coefficients could not be read from a primary source from here; `docs/model/noise.md` says so.
-- [ ] **T-506 Time and seasons.** Yearly cycle for crop yield, ETI, heat waves.
+- [~] **T-506 Time and seasons.** Yearly cycle for crop yield, ETI, heat waves.
+  *Note 2026-09-17:* Model side done. A tick is a month and tick 0 is January, so the month is
+  `tick % 12` and the cycle carries no state — replays stay deterministic. Two twelve-value series
+  in `seasons.*`: `growth` scales the ETI term of cooling capacity, `heat` scales `uhiMaxC`.
+  Both average **exactly 1.0** over the year, which is why seasons shipped without re-tuning a
+  single scenario: a season redistributes within a year rather than adding warmth to one, and all
+  five level solution tests passed unchanged. A test asserts that mean, after a first draft
+  averaged 0.900 while its source field claimed 1.0. `amplitude` scales the departure from the
+  mean, so 0 reproduces the season-free model exactly.
+  Crop yield is represented through `growth` on cropland's evapotranspiration; an economic yield
+  term is deliberately not modelled (`docs/model/seasons.md` says why). **Open:** the seasonal
+  tint on vegetation, which should read `growthAt(tick)` — it pairs with the illustrative
+  direction and is the visible half of this task.
 
 ### Phase 6 — Multiplayer (same WLAN, cross-play)
 
