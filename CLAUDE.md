@@ -43,6 +43,9 @@ tools/check.sh test-sim i18n        # only those stages — use this when the bo
                                     # a full run needs three analysis servers and three test
                                     # runners at once and gets OOM-killed with no output
 flutter test                        # in app/ or packages/stadtbau_sim/
+cd packages/stadtbau_sim && \
+  dart run tool/learning_audit.dart  # mission copy in DE+EN, and whether the
+                                    # teaching content is actually reachable
 flutter build web --release         # writes to app/build/web -> /mnt/storage/...
 ```
 

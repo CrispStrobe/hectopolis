@@ -82,23 +82,39 @@ Units are per hectare (one tile) unless stated.
 
 ### 4.1 Tile types
 
-| id | DE | EN | Category | Residents/ha | Jobs/ha | Sealing | Biotope value (BKompV 0–24) | Noise emission L_eq dB(A) at tile edge |
-|---|---|---|---|---|---|---|---|---|
-| `meadow` | Wiese | Meadow | nature | 0 | 0 | 0.00 | 13 (mesophiles Grünland) | – |
-| `cropland` | Acker | Cropland | nature | 0 | 1 | 0.00 | 6 (Intensivacker) | – |
-| `forest` | Wald | Forest | nature | 0 | 0 | 0.00 | 17 (Laubwald mittleres Alter) | – |
-| `water` | Gewässer | Water | nature | 0 | 0 | 0.00 | 16 (naturnahes Stillgewässer) | – |
-| `park` | Park | Park | green-urban | 0 | 2 | 0.15 | 9 (Parkanlage mit Baumbestand) | – |
-| `housing_low` | Einfamilienhäuser | Detached housing | residential | 45 | 3 | 0.45 | 5 (locker bebaut mit Gärten) | 45 |
-| `housing_high` | Mehrfamilienhäuser | Apartment blocks | residential | 180 | 15 | 0.75 | 2 (dicht bebaut) | 50 |
-| `commercial` | Gewerbe / Einzelhandel | Commercial / retail | work | 0 | 100 | 0.85 | 2 | 58 |
-| `industry` | Industrie | Industry | work | 0 | 45 | 0.90 | 1 | 65 |
-| `road` | Hauptstraße | Main road | infrastructure | 0 | 0 | 0.95 | 0 | 60 per 100 m segment at 10 000 Kfz/24h (sum of segments ≈ 58 dB at 100 m) |
+| id | DE | EN | Category | Residents/ha | Jobs/ha | Sealing | Biotope (BKompV 0–24) | Noise dB(A) | CO₂ t/ha/a | Build k€ | Upkeep k€/a |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `meadow` | Wiese | Meadow | nature | 0 | 0 | 0,00 | 18 | – | -1 | 5 | 1 |
+| `cropland` | Acker | Cropland | nature | 0 | 1 | 0,00 | 6 | – | 1,5 | 2 | 0 |
+| `forest` | Wald | Forest | nature | 0 | 0 | 0,00 | 18 | – | -10 | 20 | 1 |
+| `water` | Gewässer | Water | nature | 0 | 0 | 0,00 | 16 | – | 0 | 200 | 2 |
+| `park` | Park | Park | green-urban | 0 | 2 | 0,10 | 13 | – | -3 | 400 | 20 |
+| `housing_low` | Einfamilienhäuser | Detached housing | residential | 45 | 3 | 0,45 | 5 | 45 | 42 | 200 | 2 |
+| `housing_high` | Mehrfamilienhäuser | Apartment blocks | residential | 180 | 15 | 0,75 | 4 | 50 | 166 | 400 | 4 |
+| `commercial` | Gewerbe / Einzelhandel | Commercial / retail | work | 0 | 100 | 0,85 | 2 | 58 | 66 | 300 | 3 |
+| `industry` | Industrie | Industry | work | 0 | 45 | 0,88 | 2 | 63 | 1220 | 300 | 3 |
+| `road` | Hauptstraße | Main road | infrastructure | 0 | 0 | 0,95 | 0 | 60 | 0 | 300 | 10 |
+| `wetland` | Feuchtgebiet | Wetland | nature | 0 | 0 | 0,00 | 22 | – | -5 | 20 | 1 |
+| `solar_field` | Freiflächen-PV | Solar field | infrastructure | 0 | 0,5 | 0,10 | 8 | – | -266 | 700 | 8 |
+| `mixed_use` | Mischgebiet | Mixed use | residential | 120 | 45 | 0,70 | 4 | 55 | 140 | 450 | 10 |
+| `school` | Schule | School | work | 0 | 25 | 0,50 | 6 | 52 | 33 | 900 | 45 |
+| `tram_stop` | Tramhaltestelle | Tram stop | infrastructure | 0 | 1 | 0,85 | 1 | 56 | 0 | 800 | 25 |
+| `cycle_path` | Radweg | Cycle path | infrastructure | 0 | 0 | 0,35 | 12 | – | -1 | 120 | 3 |
 
-Sources to verify against: BKompV Anlage 2 (biotope values, gesetze-im-internet.de),
-BBSR "Städtebauliche Dichte" and BauNVO (GRZ/GFZ → residents and sealing), Destatis
-(47.4 m² living space per person), TA Lärm and CNOSSOS-EU (emission levels), Copernicus
-Imperviousness (sealing by land use).
+**This table is a mirror, not the source.** `data/params/tiles.json` is the source
+of truth — every entry there carries its own `source` field — and the generated
+Quellen page lists all 380 parameters with their provenance. The values above
+were regenerated from it on 2026-09-18, after T-103 verified them; if the two
+ever disagree, the JSON is right. `docs/model/tiles.md` explains the
+derivations, including the three cases where the original design anchored a
+parameter on the wrong kind of number (a GRZ is not a measurement of sealing,
+TA Lärm is an immission limit and not an emission, and the InVEST sample threat
+table does not say what was claimed of it).
+
+Sources behind the columns: BKompV Anlage 2 (biotope values), Umweltatlas
+Berlin 01.02 (sealing), GIFPRO Flächenkennziffern (jobs/ha), Destatis 49.2 m²
+living space per person with BauNVO GFZ (residents/ha), DIN 18005-1 and TA Lärm
+(noise), UBA and Thünen (CO₂). Full register in §8.
 
 ### 4.2 Spatial fields (recomputed each tick, O(cells × kernel))
 
@@ -106,28 +122,31 @@ Imperviousness (sealing by land use).
 |---|---|---|---|---|
 | **Noise** L_den (dB) | road (100 m segments, emission scaled by 10·log10(Q/10 000)), industry, commercial, housing | Every tile is a point/area source: −6 dB per doubling from the 50 m tile boundary (ISO 9613-2). Road segments summed energetically reproduce the −3 dB per doubling of a line (CNOSSOS-EU segmentation). | Forest / park in the path: −2 dB per tile (foliage, CNOSSOS ground/foliage attenuation, simplified); housing_high blocks −5 dB per tile (screening). | Housing exposure vs TA Lärm limits (WA 55 day / 40 night; MI 60/45). |
 | **Air pollution** index 0–100 | road (NOx), industry (PM, NOx), commercial (delivery traffic), commute-derived traffic | Exponential kernel exp(−d/L), L = 300 m (3 tiles), isotropic (no wind in v1). | Forest −20 %, park −10 %, meadow −5 % local deposition (i-Tree / Nowak et al. magnitudes). | Health/attractiveness of residential tiles. |
-| **Cooling / heat** ΔT (°C) | Every tile has cooling capacity CC = 0.6·shade + 0.2·albedo + 0.2·ETI (InVEST Urban Cooling). | Green tiles ≥ 2 ha (connected) cool neighbours up to 100 m (InVEST default d_cool). | UHI magnitude 3.5 °C × (1 − CC) for sealed tiles. | Recreation, health, attractiveness. |
+| **Cooling / heat** ΔT (°C) | Every tile has cooling capacity CC = 0.6·shade + 0.2·albedo + 0.2·ETI (InVEST Urban Cooling), with the ETI term scaled by the month (`seasons.growth`). | Connected green patches ≥ 2 ha cool neighbours within 300 m (3 tiles). | ΔT = UHI_max(month) · clamp((CC_meadow − HM) / (CC_meadow − CC_min)); `heat.uhiMaxC` = 3.0 °C is the **annual-mean** ceiling and the month's factor scales it (July ×1.93). Scores divide by that scaled ceiling, never by the parameter — see `docs/model/heat.md`. | Recreation, climate, attractiveness. |
 | **Green access** | park, forest, meadow, water (≥ 0.5 ha ⇒ any tile qualifies) | Boolean within 300 m (3 tiles, WHO / 3-30-300 rule); quality weight by biotope value and size. | – | Recreation indicator per residential tile. |
 | **Retail access** | commercial (retail floor space 2 000 m² per tile ≈ supply for 1 400 residents at 1.4 m²/resident, HDE) | Huff model: P_ij = S_j·d_ij^−λ / Σ, λ = 2, walking radius 700 m (BBSR Nahversorgung). | – | Shopping indicator; retail revenue → commercial viability. |
 | **Job access** | commercial, industry, housing_high (local services) | Gravity: A_i = Σ_j J_j·exp(−d_ij/2 km). | – | Commute distance, mode share, traffic. |
-| **Habitat quality** 0–1 | nature + park tiles | Base = biotope value / 24. Threats (InVEST Habitat Quality): road (w 1.0, max dist 300 m), industry (0.8, 500 m), housing_high (0.5, 200 m), commercial (0.6, 300 m), decay linear. | Patch connectivity via 8-neighbourhood; species-area S = c·A^z, z = 0.25 (MacArthur–Wilson / Arrhenius). | Biodiversity indicator. |
+| **Habitat quality** 0–1 | nature + park tiles | Base = biotope value / 24. Threats (InVEST Habitat Quality): road (w 1.0, max dist 300 m), industry (0.8, 500 m), housing_high (0.5, 200 m), commercial (0.6, 300 m), decay linear. | Patch connectivity via 8-neighbourhood; species-area S = c·A^z, z = 0.30 (MacArthur–Wilson / Arrhenius). | Biodiversity indicator. |
 | **Traffic** (vehicles/day) | Derived from commutes (see 4.4) routed via nearest road tiles. | Assigned to road tiles; feeds noise and air. | – | Noise, air. |
 
 ### 4.3 Stocks (system dynamics, per tick = one game month)
 
 | Stock | Inflow | Outflow | Notes |
 |---|---|---|---|
-| Population P | Immigration = capacity_free × attractiveness × 0.05 | Emigration = P × (1 − attractiveness) × 0.02 | capacity = Σ residents/ha of residential tiles |
+| Population P | Immigration = capacity_free × attractiveness × 0.08 | Emigration = P × (1 − attractiveness) × 0.03 | capacity = Σ residents/ha of residential tiles |
 | Jobs filled J | min(jobs_capacity, P × labour_participation 0.52) | – | participation from Destatis Erwerbstätigenquote |
-| Budget B (€) | Taxes: 600 €/resident/yr (Einkommensteuer-Gemeindeanteil), 2 100 €/job/yr (Gewerbesteuer), 180 €/resident/yr (Grundsteuer) | Maintenance: road 25 000 €/ha/yr, park 20 000 €/ha/yr, other 2 000 €/ha/yr; building costs on placement | Annual figures ÷ 12 per tick. Sources: Destatis kommunale Finanzen, BBSR. |
-| Habitat index H | Recovery towards potential (biotope value) with τ = 60 months for meadow, 240 for forest | Immediate loss when a nature tile is replaced | Newly planted forest starts at 30 % of its potential biotope value. |
-| CO₂ balance (t/yr) | Sequestration: forest −10 t/ha/yr, meadow −1, wetland (later) −3 | Emissions: industry 400 t/ha/yr, commercial 60, housing_high 50, housing_low 25, commute km × 0.15 kg | Magnitudes from UBA / Thünen forest inventory; verify. |
+| Budget B (€) | Taxes: 550 €/resident/yr (Einkommensteuer-Gemeindeanteil), 2 100 €/job/yr (Gewerbesteuer), 180 €/resident/yr (Grundsteuer) | Maintenance: school 45 000 €/ha/yr, tram stop 25 000, park 20 000, road 10 000, other 1 000–10 000; building costs on placement | Annual figures ÷ 12 per tick. Sources: Destatis kommunale Finanzen; GALK benchmarks for green upkeep; Difu/KfW Kommunalpanel for roads. |
+| Habitat index H | Recovery towards potential (biotope value) over `recoveryMonths`: 120 for meadow, 240 for forest and park, 180 for wetland | Immediate loss when a nature tile is replaced | A newly planted forest starts at 40 % of its potential biotope value (`biotopeStart`). |
+| CO₂ balance (t/yr) | Sequestration: solar field −266 t/ha/yr (avoided grid emissions), forest −10, wetland −5, park −3, meadow −1 | Emissions: industry 1 220 t/ha/yr, housing_high 166, mixed use 140, commercial 66, housing_low 42, school 33, cropland 1,5, commute km × 0.15 kg | Verified in T-103 against the UBA inventory, the Waldgesamtrechnung and the LULUCF figures; the land-cover values are rates of land-use *change*, not national averages. The climate indicator scores 5.0 t per resident-or-job as zero, which is Germany's own figure. |
 
 ### 4.4 Commuting
 
 For each residential tile: workers = residents × 0.52. Distribute to job tiles with the
 gravity kernel. Mean commute distance d̄ per tile. Mode share by distance (MiD 2017):
-≤ 1 km walk 0.6 / bike 0.2 / car 0.2; 1–3 km walk 0.2 / bike 0.35 / car 0.45; > 3 km car 0.8.
+≤ 1 km walk 0.55 / bike 0.20 / car 0.25; 1–3 km walk 0.15 / bike 0.35 / car 0.50;
+> 3 km walk 0.02 / bike 0.13 / car 0.85. **The gravity kernel is `access.jobDecayM`,
+the same 2 km decay that drives the job-access overlay** — retuning it moves both
+(`docs/model/access.md`).
 Car trips × 2 per day become vehicles/day on the nearest road path (v1: straight-line to
 nearest road tile, then nearest road tile to job). No road within 3 tiles ⇒ residents count
 as poorly connected (attractiveness malus).
@@ -402,6 +421,20 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   German copy is covered by the i18n lint and the existing German widget tests, not visually.
   **The copy is a first pass and wants your voice** — the structure is the durable part.
   Broader playtesting remains open.
+  *Note 2026-09-18:* `packages/stadtbau_sim/tool/learning_audit.dart` audits the whole teaching
+  surface without a browser, and runs in CI. It checks every id the level data produces against
+  the ICU branches in **both** ARB files — the i18n lint compares keys, not the branches inside
+  a `select`, where a missing id renders the generic wording instead of failing — and it replays
+  every mission along randomised paths plus its worked plan from `tool/level_plans.dart` (moved
+  out of the solutions test so both can use it). Copy coverage is clean: 205 ids, both languages,
+  identical branch sets; verified by deleting a German branch and watching the audit catch what
+  the lint missed. `docs/missions.md` has the findings. The largest: **`habitat` and `tuebingen`
+  are won before a single month passes** — on habitat after 124 of the plan's 207 tiles, so the
+  end screen appears mid-build, the 240-month limit and the seasonal cycle never apply, and the
+  maturation model the level exists to teach never decides anything (biodiversity 72 at month 0
+  against a goal of 70, reaching 87 by month 120). Two month-triggered beats are unreachable as a
+  consequence, and `tuebingen` ships with no learning block at all. All of these are authoring
+  decisions, recorded rather than taken.
 - [x] **T-306 Counterfactual experiments.** Pin the current deterministic simulation,
   freely test builds and time, compare live indicator and overlay deltas, then keep or
   discard the branch without affecting the pinned city.

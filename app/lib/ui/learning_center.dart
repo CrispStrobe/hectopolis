@@ -9,14 +9,6 @@ import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'doc_links.dart';
 
-List<String> _predictionChoices(String predictionId) => switch (predictionId) {
-  'village_access' => const ['near', 'far', 'balance'],
-  'noise_homes' => const ['near', 'far', 'shield'],
-  'habitat_corridor' => const ['connect', 'scatter', 'cut'],
-  'budget_recovery' => const ['income', 'decorate', 'roads'],
-  _ => const ['balance', 'far', 'near'],
-};
-
 class MissionDebrief extends StatelessWidget {
   const MissionDebrief({super.key, required this.controller});
 
@@ -116,7 +108,7 @@ Future<void> showMissionBriefing(
                       onChanged: (value) => setState(() => prediction = value),
                       child: Column(
                         children: [
-                          for (final choice in _predictionChoices(predictionId))
+                          for (final choice in predictionChoicesFor(predictionId))
                             RadioListTile<String>(
                               contentPadding: EdgeInsets.zero,
                               title: Text(l10n.missionPredictionChoice(choice)),

@@ -43,6 +43,13 @@ jobs:
       - name: i18n lint
         run: dart run tools/i18n_lint.dart
 
+      # The lint above compares keys. This compares the branches inside each
+      # ICU select, where a missing id renders the generic wording instead of
+      # failing, and replays every mission to check its teaching content is
+      # reachable.
+      - name: Learning audit
+        run: cd packages/stadtbau_sim && dart run tool/learning_audit.dart --paths 8
+
       - name: License audit
         run: |
           tools/license_audit.sh

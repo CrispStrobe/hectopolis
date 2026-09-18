@@ -209,6 +209,51 @@ class MissionBeat {
   }
 }
 
+/// The answers offered for a mission's prediction, by `predictionId`.
+///
+/// This is mission content, not presentation, so it lives beside the mission
+/// data the level files declare rather than in the widget that draws the radio
+/// buttons. Keeping it here is what lets `tool/learning_audit.dart` check that
+/// every choice has copy in both languages: an id with no entry would fall
+/// back silently in the ICU `select` and show the generic wording.
+List<String> predictionChoicesFor(String predictionId) => switch (predictionId) {
+  'village_access' => const ['near', 'far', 'balance'],
+  'noise_homes' => const ['near', 'far', 'shield'],
+  'habitat_corridor' => const ['connect', 'scatter', 'cut'],
+  'budget_recovery' => const ['income', 'decorate', 'roads'],
+  _ => const ['balance', 'far', 'near'],
+};
+
+/// Whether [predictionId] has answers of its own rather than the fallback.
+bool hasPredictionChoices(String predictionId) =>
+    !identical(predictionChoicesFor(predictionId), predictionChoicesFor('##'));
+
+/// Tiles worth suggesting for a goal that is not yet met, most direct first.
+///
+/// The app turns this into the hint under the goals panel; the audit uses it
+/// to check that a level actually allows at least one of the tiles its own
+/// goals point at. A goal whose candidates a level forbids leaves the player
+/// with a hint that names nothing.
+List<TileType> guidanceCandidatesFor(LevelGoal goal) =>
+    switch (goal.indicator) {
+      Indicator.biodiversity ||
+      Indicator.air ||
+      Indicator.climate => const [TileType.forest, TileType.meadow],
+      Indicator.noise => const [TileType.forest, TileType.park],
+      Indicator.housing => const [TileType.housingHigh, TileType.housingLow],
+      Indicator.economy ||
+      Indicator.budget => const [TileType.commercial, TileType.industry],
+      Indicator.shopping => const [TileType.commercial],
+      Indicator.recreation => const [TileType.park, TileType.forest],
+      Indicator.commuting => const [TileType.commercial, TileType.road],
+      null => switch (goal.metric) {
+        'population' => const [TileType.housingHigh, TileType.housingLow],
+        'jobs' ||
+        'budgetKEur' => const [TileType.commercial, TileType.industry],
+        _ => const <TileType>[],
+      },
+    };
+
 /// An optional, model-evaluated way to solve a mission. Challenges always
 /// require the normal level goals as well as these additional constraints.
 class MissionChallenge {

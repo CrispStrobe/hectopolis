@@ -25,7 +25,7 @@ fi
 JOBS="${CHECK_JOBS:-2}"
 
 STAGES=(params licenses l10n analyze-sim analyze-net analyze-app \
-        test-sim test-net test-app i18n docs license privacy)
+        test-sim test-net test-app i18n learning docs license privacy)
 
 # Memory available to a new process: free RAM plus free swap, in MiB.
 headroom_mib() {
@@ -64,6 +64,12 @@ run_stage() {
     test-net)    (cd packages/stadtbau_net && dart test -j "$JOBS") ;;
     test-app)    (cd app && flutter test --concurrency "$JOBS") ;;
     i18n)        dart run tools/i18n_lint.dart ;;
+    # The i18n lint checks that both ARB files carry the same keys. It cannot
+    # see inside an ICU `select`, where a missing branch renders the generic
+    # wording instead of failing, so a German build can fall back where the
+    # English one does not. Few paths here: the copy half is deterministic and
+    # the reachability half only reports notes.
+    learning)    (cd packages/stadtbau_sim && dart run tool/learning_audit.dart --paths "${CHECK_LEARNING_PATHS:-8}") ;;
     docs)        dart run tools/build_docs_site.dart --check ;;
     license)     tools/license_audit.sh ;;
     privacy)     tools/privacy_audit.sh ;;
