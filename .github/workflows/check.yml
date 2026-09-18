@@ -60,6 +60,17 @@ jobs:
         # the configuration that actually ships.
         run: cd app && flutter build web --release --no-web-resources-cdn
 
+      # The web build must fetch nothing from anyone but us (T-702). What
+      # breaks that is not a new dependency but a character: CanvasKit fetches
+      # a fallback font for any glyph the bundled fonts lack. Chrome is run
+      # with every host but 127.0.0.1 resolving to nothing, so a third-party
+      # fetch fails and is reported rather than quietly succeeding.
+      - name: Web origin check
+        run: |
+          python3 -m pip install --quiet websockets
+          python3 tools/web_origin_check.py --build app/build/web \
+            --shot "${RUNNER_TEMP}/web-origin.png"
+
       - uses: actions/upload-artifact@v4
         with:
           name: web

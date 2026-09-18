@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:stadtbau_sim/stadtbau_sim.dart';
@@ -9,13 +10,42 @@ void main() {
   final params = SimParams.defaults();
 
   group('params', () {
-    test('every tile type has parameters with sources', () {
+    test('every tile type has parameters in range', () {
       for (final t in TileType.values) {
         final tp = params.tile(t);
         expect(tp.biotopeValue.value, inInclusiveRange(0, 24), reason: t.id);
-        expect(tp.biotopeValue.source, isNotEmpty, reason: t.id);
         expect(tp.sealing.value, inInclusiveRange(0, 1), reason: t.id);
       }
+    });
+
+    test('every parameter in the table on disk carries a source', () {
+      // Read the JSON rather than `SimParams.defaults()`: the generated mirror
+      // the app ships is values only, because nothing reads a source at run
+      // time and the prose was 15 KB gzipped of every first load. The table on
+      // disk is where the citations live and where this invariant belongs.
+      final file = File('../../data/params/tiles.json');
+      expect(file.existsSync(), isTrue, reason: 'run from the package root');
+      final json = jsonDecode(file.readAsStringSync());
+      final missing = <String>[];
+      void walk(Object? node, String path) {
+        if (node is Map<String, dynamic>) {
+          if (node.containsKey('value')) {
+            final source = node['source'];
+            if (source is! String || source.isEmpty) missing.add(path);
+            return;
+          }
+          node.forEach((key, value) {
+            walk(value, path.isEmpty ? key : '$path.$key');
+          });
+        } else if (node is List) {
+          for (var i = 0; i < node.length; i++) {
+            walk(node[i], '$path[$i]');
+          }
+        }
+      }
+
+      walk(json, '');
+      expect(missing, isEmpty, reason: 'parameters with no source');
     });
 
     test('mode share bins are ordered and sum to one', () {

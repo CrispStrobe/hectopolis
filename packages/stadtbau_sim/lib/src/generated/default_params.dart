@@ -2,1510 +2,1137 @@
 // GENERATED FILE - do not edit. Source: data/params/tiles.json
 // Regenerate with: dart run tools/gen_params.dart
 
-/// Default simulation parameters as JSON (mirror of data/params/tiles.json).
+/// Default simulation parameters as JSON.
+///
+/// Values only: the `source` and `note` fields of
+/// data/params/tiles.json are stripped here, because nothing
+/// reads them at run time and they are 15 KB gzipped of every
+/// first load. The citations live in the JSON, and the
+/// generated Quellen page renders them from it.
 const String defaultParamsJson = r'''
 {
   "schemaVersion": 1,
   "notes": "Source of truth for all simulation parameters. Regenerate the Dart mirror with `dart run tools/gen_params.dart`. Every numeric entry is {value, source, note?}. Values marked 'initial estimate' must be verified in task T-103.",
   "grid": {
     "cellSizeM": {
-      "value": 100,
-      "source": "Zensus 2022 100 m grid (Destatis, dl-de/by-2.0); 1 tile = 1 ha"
+      "value": 100
     },
     "tickMonths": {
-      "value": 1,
-      "source": "design: one tick = one month. Recorded here as the convention the model is built on, not as a knob — nothing reads this entry. The month is hard-coded wherever it matters: seasons take the month as tick % 12, and the economy divides annual figures by 12. Changing this number would change nothing; changing the convention means changing those."
+      "value": 1
     }
   },
   "tiles": {
     "meadow": {
       "category": "nature",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "sealing": {
-        "value": 0.0,
-        "source": "Copernicus Imperviousness: grassland ~0 %"
+        "value": 0.0
       },
       "biotopeValue": {
-        "value": 18,
-        "source": "BKompV Anlage 2: 34.07a.02 artenreiche frische (Mäh-)Weide = 18 (34.07a.01 Mähwiese = 20, 34.08a.01 Intensivgrünland = 8); modelled as extensive grassland developing from intensive to species-rich"
+        "value": 18
       },
       "biotopeStart": {
-        "value": 0.45,
-        "source": "BKompV Anlage 2: starts as Intensivgrünland (8/18)"
+        "value": 0.45
       },
       "recoveryMonths": {
-        "value": 120,
-        "source": "BfN-Schriften 721 / Kompensationspraxis: Entwicklung artenreichen Grünlands 10–15 Jahre",
-        "note": "initial estimate"
+        "value": 120
       },
       "noiseEmissionDb": {
-        "value": 0,
-        "source": "no source"
+        "value": 0
       },
       "airEmission": {
-        "value": 0.0,
-        "source": "no source"
+        "value": 0.0
       },
       "airSink": {
-        "value": 0.05,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Gras statt Kronen: ein Viertel des Parkwerts."
+        "value": 0.05
       },
       "shade": {
-        "value": 0.05,
-        "source": "InVEST Urban Cooling: shade = canopy fraction"
+        "value": 0.05
       },
       "albedo": {
-        "value": 0.2,
-        "source": "InVEST Urban Cooling biophysical table example values"
+        "value": 0.2
       },
       "eti": {
-        "value": 0.8,
-        "source": "InVEST Urban Cooling crop coefficient Kc scaled 0–1"
+        "value": 0.8
       },
       "greenWeight": {
-        "value": 0.6,
-        "source": "design: recreational usability of open meadow"
+        "value": 0.6
       },
       "co2PerHaYear": {
-        "value": -1.0,
-        "source": "Poeplau & Don 2013 (Geoderma 192, 189–201): Umwandlung Acker → Grünland baut im Mittel 0,8 t C/ha/a Bodenkohlenstoff auf, also rund 2,9 t CO2/ha/a; Poeplau et al. 2017 (Sci. Rep. 7, 11550) mahnt für hochproduktive Ackerböden zur Vorsicht, deshalb der konservative Ansatz von 1 t CO2/ha/a. Das ist die Rate einer neu angelegten Wiese, nicht der deutsche Grünlanddurchschnitt: der ist laut UBA-Inventar 2024 mit 24,2 Mt CO2-Äq. auf 4,74 Mio. ha (Destatis 2025) eine Quelle von 5,1 t/ha/a, weil entwässerte Moorböden dominieren"
+        "value": -1.0
       },
       "buildCostKEur": {
-        "value": 5,
-        "source": "Difu, Folgekosten der Siedlungsentwicklung (REFINA Band III, 2009), dort nach TMLNU 2003: auf brachgefallenem nassem Grünland kostet die Herstellung einer Feuchtwiese rund 5 000 €/ha — die Größenordnung einer Ansaat ohne Erdbau, die auch für die Extensivwiese gilt"
+        "value": 5
       },
       "maintenanceKEurYear": {
-        "value": 1,
-        "source": "GALK-Kennzahlen zur Unterhaltung von Grünanlagen (Deutsche Gartenamtsleiterkonferenz, überarbeitet 2012, veröffentlicht in Stadt+Grün): deutlich unter dem Parkrasen (0,40 €/m²/a bei regelmäßiger Mahd), weil die Extensivwiese ein- bis zweimal im Jahr gemäht wird — 0,10 €/m²/a"
+        "value": 1
       },
       "noiseNightReductionDb": {
-        "value": 0,
-        "source": "no night emission to reduce"
+        "value": 0
       },
       "perviousCurveNumber": {
-        "value": 58,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: meadow, continuous grass, protected from grazing"
+        "value": 58
       }
     },
     "cropland": {
       "category": "nature",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 1,
-        "source": "Destatis Landwirtschaftszählung: ~1 AK je 50 ha; rounded up for game"
+        "value": 1
       },
       "sealing": {
-        "value": 0.0,
-        "source": "Copernicus Imperviousness"
+        "value": 0.0
       },
       "biotopeValue": {
-        "value": 6,
-        "source": "BKompV Anlage 2: 33.0x.03 Acker mit stark verarmter oder fehlender Segetalvegetation = 6"
+        "value": 6
       },
       "biotopeStart": {
-        "value": 1.0,
-        "source": "design"
+        "value": 1.0
       },
       "recoveryMonths": {
-        "value": 1,
-        "source": "design"
+        "value": 1
       },
       "noiseEmissionDb": {
-        "value": 0,
-        "source": "no source"
+        "value": 0
       },
       "airEmission": {
-        "value": 0.05,
-        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Landwirtschaft trägt 12,1 % der NOx-Emissionen und relevante NH3-Mengen bei, aber verteilt über 11,66 Mio. ha Ackerland — je Hektar wenig. 0,05 ist die kleinste Stufe über null. calibration T-114: der Acker-Archetyp erreicht einen Luftindex von 96, im Zielband über 90"
+        "value": 0.05
       },
       "airSink": {
-        "value": 0.02,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Offener Acker, überwiegend ohne Bestand außerhalb der Vegetationszeit."
+        "value": 0.02
       },
       "shade": {
-        "value": 0.02,
-        "source": "InVEST Urban Cooling"
+        "value": 0.02
       },
       "albedo": {
-        "value": 0.2,
-        "source": "InVEST Urban Cooling"
+        "value": 0.2
       },
       "eti": {
-        "value": 0.6,
-        "source": "InVEST Urban Cooling"
+        "value": 0.6
       },
       "greenWeight": {
-        "value": 0.3,
-        "source": "design: fields are walkable at the edge only"
+        "value": 0.3
       },
       "co2PerHaYear": {
-        "value": 1.5,
-        "source": "UBA, Emissionen der Landnutzung (LULUCF), Berichtsjahr 2024: Ackerland 17,5 Mt CO2-Äq.; bezogen auf 11,66 Mio. ha Ackerland (Destatis, Flächen nach Hauptnutzungsarten 2025) sind das 1,50 t/ha/a. 62 % davon stammen aus organischen Böden, mineralische Ackerböden liegen darunter"
+        "value": 1.5
       },
       "buildCostKEur": {
-        "value": 2,
-        "source": "initial estimate"
+        "value": 2
       },
       "maintenanceKEurYear": {
-        "value": 0,
-        "source": "privately farmed"
+        "value": 0
       },
       "noiseNightReductionDb": {
-        "value": 0,
-        "source": "no night emission to reduce"
+        "value": 0
       },
       "perviousCurveNumber": {
-        "value": 78,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: row crops, straight row, good condition"
+        "value": 78
       }
     },
     "forest": {
       "category": "nature",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "sealing": {
-        "value": 0.0,
-        "source": "Copernicus Imperviousness"
+        "value": 0.0
       },
       "biotopeValue": {
-        "value": 18,
-        "source": "BKompV Anlage 2: 43.07.05M Buchen(misch)wald frischer basenreicher Standorte, mittlere Ausprägung = 16; 43.07.02M Eichen-Hainbuchenwald mittlere Ausprägung = 20; mean 18"
+        "value": 18
       },
       "biotopeStart": {
-        "value": 0.4,
-        "source": "BKompV Anlage 2: young plantation below Vorwald (42.03.02 Vorwald frischer Standorte = 13); 0.4·18 ≈ 7",
-        "note": "initial estimate"
+        "value": 0.4
       },
       "recoveryMonths": {
-        "value": 240,
-        "source": "BKompV Anlage 2 distinguishes junge / mittlere / alte Ausprägung; mittlere Ausprägung after ~20–40 years",
-        "note": "initial estimate"
+        "value": 240
       },
       "noiseEmissionDb": {
-        "value": 0,
-        "source": "no source"
+        "value": 0
       },
       "airEmission": {
-        "value": 0.0,
-        "source": "no source"
+        "value": 0.0
       },
       "airSink": {
-        "value": 0.2,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Der Wald ist die Obergrenze der Skala: 0,20 je Feld im 3-Felder-Mittel."
+        "value": 0.2
       },
       "shade": {
-        "value": 0.9,
-        "source": "InVEST Urban Cooling: closed canopy"
+        "value": 0.9
       },
       "albedo": {
-        "value": 0.15,
-        "source": "InVEST Urban Cooling"
+        "value": 0.15
       },
       "eti": {
-        "value": 1.0,
-        "source": "InVEST Urban Cooling"
+        "value": 1.0
       },
       "greenWeight": {
-        "value": 0.9,
-        "source": "design: forest walks highly valued (WHO urban green space review)"
+        "value": 0.9
       },
       "co2PerHaYear": {
-        "value": -10.0,
-        "source": "Rate eines neu begründeten, wachsenden Bestandes, nicht des deutschen Waldes im Mittel. Waldgesamtrechnung (Thünen-Institut im Auftrag des Statistischen Bundesamtes): 52,5 Mt CO2 netto auf 10,7 Mio. ha Wald (2021) = 4,9 t/ha/a; die II. Altersklasse (21–40 Jahre) bindet am meisten, ein sich etablierender Mischwald rund 2,4 t C/ha/a = 8,8 t CO2/ha/a. Gegenprobe und Warnung: nach der Bundeswaldinventur 2022 ist der deutsche Wald 2017–2022 durch Kalamitäten zur Quelle geworden (UBA-Inventar 2024: Wald +2,1 Mt), der Spielwert gilt also für eine Aufforstung unter günstigen Bedingungen"
+        "value": -10.0
       },
       "buildCostKEur": {
-        "value": 20,
-        "source": "Aufforstung 1–2 €/m² (initial estimate)"
+        "value": 20
       },
       "maintenanceKEurYear": {
-        "value": 1,
-        "source": "initial estimate"
+        "value": 1
       },
       "noiseNightReductionDb": {
-        "value": 0,
-        "source": "no night emission to reduce"
+        "value": 0
       },
       "perviousCurveNumber": {
-        "value": 55,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: woods, good condition"
+        "value": 55
       }
     },
     "water": {
       "category": "nature",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "sealing": {
-        "value": 0.0,
-        "source": "n/a"
+        "value": 0.0
       },
       "biotopeValue": {
-        "value": 16,
-        "source": "BKompV Anlage 2: 24.03b sonstige natürliche mesotrophe Gewässer = 19; constructed pond assumed below natural, 16",
-        "note": "initial estimate"
+        "value": 16
       },
       "biotopeStart": {
-        "value": 0.5,
-        "source": "design: new pond matures over years"
+        "value": 0.5
       },
       "recoveryMonths": {
-        "value": 120,
-        "source": "initial estimate"
+        "value": 120
       },
       "noiseEmissionDb": {
-        "value": 0,
-        "source": "no source"
+        "value": 0
       },
       "airEmission": {
-        "value": 0.0,
-        "source": "no source"
+        "value": 0.0
       },
       "airSink": {
-        "value": 0.03,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Offene Wasserfläche nimmt nass deponierend etwas auf, ohne Blattoberflächen."
+        "value": 0.03
       },
       "shade": {
-        "value": 0.0,
-        "source": "InVEST Urban Cooling"
+        "value": 0.0
       },
       "albedo": {
-        "value": 0.08,
-        "source": "InVEST Urban Cooling: water albedo"
+        "value": 0.08
       },
       "eti": {
-        "value": 1.0,
-        "source": "InVEST Urban Cooling: open water evaporation"
+        "value": 1.0
       },
       "greenWeight": {
-        "value": 0.7,
-        "source": "design: blue space recreation (WHO)"
+        "value": 0.7
       },
       "co2PerHaYear": {
-        "value": 0.0,
-        "source": "neutral in v1"
+        "value": 0.0
       },
       "buildCostKEur": {
-        "value": 200,
-        "source": "Teichbau/Renaturierung ~20 €/m² (initial estimate)"
+        "value": 200
       },
       "maintenanceKEurYear": {
-        "value": 2,
-        "source": "initial estimate"
+        "value": 2
       },
       "noiseNightReductionDb": {
-        "value": 0,
-        "source": "no night emission to reduce"
+        "value": 0
       },
       "perviousCurveNumber": {
-        "value": 98,
-        "source": "open water does not infiltrate; it is handled as retention rather than as runoff-generating, see docs/model/water.md"
+        "value": 98
       }
     },
     "park": {
       "category": "green_urban",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 2,
-        "source": "Grünflächenamt/Gastronomie (initial estimate)"
+        "value": 2
       },
       "sealing": {
-        "value": 0.1,
-        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Typ 53 'Park / Grünfläche' 10,1 %, davon nur 0,7 % bebaut — Wege, Plätze und Spielflächen"
+        "value": 0.1
       },
       "biotopeValue": {
-        "value": 13,
-        "source": "BKompV Anlage 2: 51.06a.03 intensiv gepflegte Parkanlage mit altem Baumbestand = 13 (51.06a.02.01 extensiv gepflegt = 16)"
+        "value": 13
       },
       "biotopeStart": {
-        "value": 0.5,
-        "source": "BKompV Anlage 2: park without old trees; grows into 13 as trees age",
-        "note": "initial estimate"
+        "value": 0.5
       },
       "recoveryMonths": {
-        "value": 240,
-        "source": "tree maturity 20–40 years",
-        "note": "initial estimate"
+        "value": 240
       },
       "noiseEmissionDb": {
-        "value": 0,
-        "source": "no source"
+        "value": 0
       },
       "airEmission": {
-        "value": 0.0,
-        "source": "no source"
+        "value": 0.0
       },
       "airSink": {
-        "value": 0.1,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Halber Waldwert, weil eine Parkhektare nur etwa die halbe Kronenfläche hat (shade 0,5 gegen 0,9)."
+        "value": 0.1
       },
       "shade": {
-        "value": 0.5,
-        "source": "InVEST Urban Cooling"
+        "value": 0.5
       },
       "albedo": {
-        "value": 0.18,
-        "source": "InVEST Urban Cooling"
+        "value": 0.18
       },
       "eti": {
-        "value": 0.7,
-        "source": "InVEST Urban Cooling"
+        "value": 0.7
       },
       "greenWeight": {
-        "value": 1.0,
-        "source": "design: park is the reference recreation space (WHO 300 m rule)"
+        "value": 1.0
       },
       "co2PerHaYear": {
-        "value": -3.0,
-        "source": "Nowak et al. 2013 (Environmental Pollution 178, 229–236): st\u00e4dtische B\u00e4ume binden brutto 0,28 kg C je m\u00b2 Kronenfl\u00e4che und Jahr; bei der Kronenfl\u00e4che 0,5 dieses Tiles sind das 1,4 t C = 5,1 t CO2/ha/a im ausgewachsenen Zustand. Angesetzt sind 3,0, weil co2PerHaYear nicht mit dem Tile altert und ein Park seine ersten zwei Jahrzehnte darunter liegt"
+        "value": -3.0
       },
       "buildCostKEur": {
-        "value": 400,
-        "source": "Parkneubau 30–50 €/m² (initial estimate)"
+        "value": 400
       },
       "maintenanceKEurYear": {
-        "value": 20,
-        "source": "GALK-Kennzahlen zur Unterhaltung von Grünanlagen (Deutsche Gartenamtsleiterkonferenz, überarbeitet 2012, veröffentlicht in Stadt+Grün): Rasen in einer Parkanlage rund 0,40 €/m²/a allein für die Mahd, ein Parkbaum rund 52 €/Jahr. Eine intensiv genutzte Parkhektare mit Wegen, Beeten, Baumbestand, Spielflächen, Abfall und Verkehrssicherungskontrolle liegt bei rund 2 €/m²/a, also 20 k€/ha/a"
+        "value": 20
       },
       "noiseNightReductionDb": {
-        "value": 0,
-        "source": "no night emission to reduce"
+        "value": 0
       },
       "perviousCurveNumber": {
-        "value": 61,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: open space, lawns, grass cover over 75 percent, good condition"
+        "value": 61
       }
     },
     "housing_low": {
       "category": "residential",
       "residentsPerHa": {
-        "value": 45,
-        "source": "Derived: GFZ 0.4 (typical EFH-Gebiet, BauNVO §17 allows up to 1.2 in WA) × 10 000 m² × 0.8 net = 3 200 m² Wohnfläche ÷ 49.2 m²/EW (Destatis, Ende 2024) = 65 EW/ha net; × 0.7 gross incl. streets ≈ 45"
+        "value": 45
       },
       "jobsPerHa": {
-        "value": 3,
-        "source": "home offices, local trades (initial estimate)"
+        "value": 3
       },
       "sealing": {
-        "value": 0.45,
-        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Flächentyp 23 'Freistehende Einfamilienhäuser mit Gärten' 34,9 %, Typ 22 'Reihen- und Doppelhäuser mit Gärten' 37,3 %, Typ 25 'Verdichtung in Einzelhausgebieten' 39,9 %; auf die Brutto-Hektare mit Erschließungsstraßen hochgerechnet (Straßenraum 85,2 % bei 11,6 % Flächenanteil): 0,87·0,37 + 0,13·0,85 ≈ 0,44. Deckt sich mit BauNVO § 17 GRZ 0,4 für WR/WA zuzüglich der nach § 19 Abs. 4 zulässigen Überschreitung"
+        "value": 0.45
       },
       "biotopeValue": {
-        "value": 5,
-        "source": "BKompV Anlage 2: 53.01.03b lockeres Einzelhausgebiet = 5"
+        "value": 5
       },
       "biotopeStart": {
-        "value": 1.0,
-        "source": "design"
+        "value": 1.0
       },
       "recoveryMonths": {
-        "value": 1,
-        "source": "design"
+        "value": 1
       },
       "noiseEmissionDb": {
-        "value": 45,
-        "source": "design: ein Wohngebiet ist selbst kaum Schallquelle — sein Verkehr steckt in den Straßen-Tiles. 45 dB(A) in 50 m steht für das Restgeräusch (Haustechnik, Menschen, Anliegerverkehr) und liegt unter dem TA-Lärm-Tagrichtwert für reine Wohngebiete (50 dB(A)). Für Wohngebiete gibt es keinen flächenbezogenen Schallleistungspegel wie für GE und GI; dieser Wert wird sich nicht extern belegen lassen"
+        "value": 45
       },
       "airEmission": {
-        "value": 0.15,
-        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Wohnen ist bei PM2,5 groß (Holz- und Ölheizungen), bei NOx klein. 0,15 relativ zur Straße (1,0) ordnet ein Einzelhausgebiet dort ein. calibration T-114: der Dorf-Archetyp erreicht damit einen Luftindex von 92"
+        "value": 0.15
       },
       "airSink": {
-        "value": 0.03,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Gärten und Straßenbäume eines Einzelhausgebiets."
+        "value": 0.03
       },
       "shade": {
-        "value": 0.15,
-        "source": "InVEST Urban Cooling: shade = canopy fraction; garden trees over ~15 % of an EFH plot",
-        "note": "initial estimate"
+        "value": 0.15
       },
       "albedo": {
-        "value": 0.2,
-        "source": "InVEST Urban Cooling"
+        "value": 0.2
       },
       "eti": {
-        "value": 0.3,
-        "source": "InVEST Urban Cooling: lawns and gardens ~40 % of plot, Kc ~0.7",
-        "note": "initial estimate"
+        "value": 0.3
       },
       "greenWeight": {
-        "value": 0.0,
-        "source": "n/a"
+        "value": 0.0
       },
       "co2PerHaYear": {
-        "value": 42,
-        "source": "UBA, Energieverbrauch privater Haushalte: direkte CO2-Emissionen der Feuerungsanlagen privater Haushalte 77 Mt (2024) auf 4,1 Mrd. m² Wohnfläche (Destatis, Wohnungsbestand Ende 2024) = 18,8 kg CO2/m²/a. Bei 49,2 m² je Einwohner und 45 EW/ha sind das 41,6 t/ha/a. Fern- und Stromwärme (rund 15 % des Wärmeverbrauchs, dena-Gebäudereport 2025) stecken nicht darin, weil das Inventar sie der Energiewirtschaft zurechnet. Ein- und Mehrfamilienhäuser unterscheiden sich laut UBA je m² nur geringfügig, der Unterschied zwischen den Wohn-Tiles kommt also aus der Dichte"
+        "value": 42
       },
       "buildCostKEur": {
-        "value": 200,
-        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Einzelhausgebiet liegt mit 20 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
+        "value": 200
       },
       "maintenanceKEurYear": {
-        "value": 2,
-        "source": "initial estimate"
+        "value": 2
       },
       "noiseNightReductionDb": {
-        "value": 5,
-        "source": "design: household activity falls at night; TA Larm night limits sit 15 dB below day limits for residential areas"
+        "value": 5
       },
       "perviousCurveNumber": {
-        "value": 61,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the pervious part of a residential lot is lawn in good condition; the sealed part is carried by tiles.*.sealing"
+        "value": 61
       }
     },
     "housing_high": {
       "category": "residential",
       "residentsPerHa": {
-        "value": 180,
-        "source": "Derived: GFZ 1.2 (BauNVO §17 Obergrenze WA/MI) × 10 000 m² × 0.8 net = 9 600 m² ÷ 49.2 m²/EW (Destatis, Ende 2024) = 195 EW/ha net; ~180 gross"
+        "value": 180
       },
       "jobsPerHa": {
-        "value": 15,
-        "source": "ground-floor services (initial estimate)"
+        "value": 15
       },
       "sealing": {
-        "value": 0.75,
-        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Geschosswohnungsbau zwischen Typ 3 'Geschlossene und halboffene Blockbebauung' 65,6 %, Typ 73 'Geschosswohnungsbau der 1990er Jahre und jünger' 64,3 % und Typ 2 'Geschlossene Blockbebauung, 5-geschossig' 77,8 %; mit Erschließungsstraßen (Straßenraum 85,2 % bei 11,6 % Flächenanteil) 0,72–0,79. Entspricht BauNVO § 17 GRZ 0,6 für WA/MI plus § 19 Abs. 4"
+        "value": 0.75
       },
       "biotopeValue": {
-        "value": 4,
-        "source": "BKompV Anlage 2: 53.01.16a.02 sonstige Blockbebauung = 4"
+        "value": 4
       },
       "biotopeStart": {
-        "value": 1.0,
-        "source": "design"
+        "value": 1.0
       },
       "recoveryMonths": {
-        "value": 1,
-        "source": "design"
+        "value": 1
       },
       "noiseEmissionDb": {
-        "value": 50,
-        "source": "design: wie housing_low, aber vierfache Dichte — 5 dB(A) darüber, auf dem TA-Lärm-Tagrichtwert für reine Wohngebiete und unter dem für allgemeine Wohngebiete (55 dB(A))"
+        "value": 50
       },
       "airEmission": {
-        "value": 0.3,
-        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Geschosswohnungsbau hat die vierfache Dichte von housing_low, aber je Einwohner weniger Einzelfeuerung; angesetzt ist der Faktor 2, nicht 4. calibration T-114: der Archetyp dichtes Quartier erreicht damit einen Luftindex von 80, im Zielband 60–85"
+        "value": 0.3
       },
       "airSink": {
-        "value": 0.01,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Blockbebauung hat kaum durchgrünte Fläche."
+        "value": 0.01
       },
       "shade": {
-        "value": 0.1,
-        "source": "InVEST Urban Cooling"
+        "value": 0.1
       },
       "albedo": {
-        "value": 0.15,
-        "source": "InVEST Urban Cooling"
+        "value": 0.15
       },
       "eti": {
-        "value": 0.15,
-        "source": "InVEST Urban Cooling"
+        "value": 0.15
       },
       "greenWeight": {
-        "value": 0.0,
-        "source": "n/a"
+        "value": 0.0
       },
       "co2PerHaYear": {
-        "value": 166,
-        "source": "UBA, Energieverbrauch privater Haushalte: direkte CO2-Emissionen der Feuerungsanlagen privater Haushalte 77 Mt (2024) auf 4,1 Mrd. m² Wohnfläche (Destatis, Wohnungsbestand Ende 2024) = 18,8 kg CO2/m²/a. Bei 49,2 m² je Einwohner und 180 EW/ha sind das 166,5 t/ha/a. Fern- und Stromwärme (rund 15 % des Wärmeverbrauchs, dena-Gebäudereport 2025) stecken nicht darin, weil das Inventar sie der Energiewirtschaft zurechnet. Ein- und Mehrfamilienhäuser unterscheiden sich laut UBA je m² nur geringfügig, der Unterschied zwischen den Wohn-Tiles kommt also aus der Dichte"
+        "value": 166
       },
       "buildCostKEur": {
-        "value": 400,
-        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Geschosswohnungsbau mit höherem Infrastrukturaufwand liegt mit 40 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
+        "value": 400
       },
       "maintenanceKEurYear": {
-        "value": 4,
-        "source": "initial estimate"
+        "value": 4
       },
       "noiseNightReductionDb": {
-        "value": 5,
-        "source": "design: household activity falls at night; TA Larm night limits sit 15 dB below day limits for residential areas"
+        "value": 5
       },
       "perviousCurveNumber": {
-        "value": 61,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: pervious part is lawn in good condition; the sealed part is carried by tiles.*.sealing"
+        "value": 61
       }
     },
     "commercial": {
       "category": "work",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 100,
-        "source": "GIFPRO-Flächenkennziffern, wie sie in kommunalen Gewerbeflächenkonzepten angewandt werden (Difu-Methodik; TBS-GIFPRO-Tabelle im Gewerbeflächenkonzept Bielefeld 2020, Baustein 07): wirtschaftsnahe Dienstleistungen 100 m² Nettobauland je Beschäftigten = 100 Beschäftigte/ha. Einzelhandel/Kfz-Handel liegt mit 250 m² deutlich darunter (40/ha), sonstige Dienstleistungen mit 50 m² darüber (200/ha); der Tile bildet die Mischung aus Büro und Handel ab"
+        "value": 100
       },
       "retailFloorM2": {
-        "value": 2000,
-        "source": "design: 20 % of 1 ha plot as retail floor; HDE 1.4 m²/EW"
+        "value": 2000
       },
       "sealing": {
-        "value": 0.85,
-        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Typ 29 'Kerngebiet' 85,7 %; mit Erschließungsstraßen (Straßenraum 85,2 % bei 11,6 % Flächenanteil) ≈ 0,86. BauNVO § 17 GRZ 0,8 für GE ist die rechtliche Obergrenze"
+        "value": 0.85
       },
       "biotopeValue": {
-        "value": 2,
-        "source": "BKompV Anlage 2: 53.01.14a Industrie- und Gewerbefläche inkl. typischen Freiräumen = 2"
+        "value": 2
       },
       "biotopeStart": {
-        "value": 1.0,
-        "source": "design"
+        "value": 1.0
       },
       "recoveryMonths": {
-        "value": 1,
-        "source": "design"
+        "value": 1
       },
       "noiseEmissionDb": {
-        "value": 58,
-        "source": "DIN 18005-1 Ziffer 5.2.3 nennt flächenbezogene Schallleistungspegel von 60 dB(A)/m² für Gewerbegebiete und 65 dB(A)/m² für Industriegebiete (Werte wiedergegeben bei Versteyl/Storr/Schiller, Die schalltechnische Überplanung von bebauten Gewerbe- und Industriegebieten mit Emissionskontingenten). Für eine Hektare: L_W = 60 + 10·log10(10 000) = 100 dB(A); über der Halbkugel in 50 m Abstand L = L_W − 10·log10(2π·50²) = 58 dB(A). Die TA-Lärm-Tagrichtwerte (65 dB(A) für GE) sind die Immissionsgrenze, nicht die Emission"
+        "value": 58
       },
       "airEmission": {
-        "value": 0.6,
-        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Handel und Dienstleistung emittieren vor allem über Lieferverkehr und Heizung; angesetzt ist rund die Hälfte einer Hauptstraße. calibration T-114"
+        "value": 0.6
       },
       "airSink": {
-        "value": 0.0,
-        "source": "n/a"
+        "value": 0.0
       },
       "shade": {
-        "value": 0.05,
-        "source": "InVEST Urban Cooling"
+        "value": 0.05
       },
       "albedo": {
-        "value": 0.2,
-        "source": "InVEST Urban Cooling"
+        "value": 0.2
       },
       "eti": {
-        "value": 0.1,
-        "source": "InVEST Urban Cooling"
+        "value": 0.1
       },
       "greenWeight": {
-        "value": 0.0,
-        "source": "n/a"
+        "value": 0.0
       },
       "co2PerHaYear": {
-        "value": 66,
-        "source": "UBA, finale Daten 2024: der KSG-Sektor Gebäude emittiert 100 Mt, davon 77 Mt private Haushalte, also rund 23 Mt aus Gebäuden von Gewerbe, Handel und Dienstleistungen. Auf 34,8 Mio. Erwerbstätige in den Dienstleistungsbereichen (Destatis, Erwerbstätige 2024) sind das 0,66 t je Arbeitsplatz und Jahr; bei 100 Arbeitsplätzen/ha ergibt das 66 t/ha/a"
+        "value": 66
       },
       "buildCostKEur": {
-        "value": 300,
-        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Gewerbe liegt mit 30 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
+        "value": 300
       },
       "maintenanceKEurYear": {
-        "value": 3,
-        "source": "initial estimate"
+        "value": 3
       },
       "noiseNightReductionDb": {
-        "value": 8,
-        "source": "design: shops and deliveries stop overnight, leaving only plant and car-park movements"
+        "value": 8
       },
       "perviousCurveNumber": {
-        "value": 61,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: pervious part is lawn in good condition; the sealed part is carried by tiles.*.sealing"
+        "value": 61
       }
     },
     "industry": {
       "category": "work",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 45,
-        "source": "GIFPRO-Flächenkennziffern (Difu-Methodik; Gewerbeflächenkonzept Bielefeld 2020, Baustein 07): Standardmodell 225 m² Nettobauland je Beschäftigten = 44 Beschäftigte/ha; nach Vallee et al. 2012 verarbeitendes Gewerbe 250 m² (40/ha), emissionsintensives verarbeitendes Gewerbe 200 m² (50/ha), emissionsarmes 150 m² (67/ha). 45 ist der Standardwert, gerundet"
+        "value": 45
       },
       "sealing": {
-        "value": 0.88,
-        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Typ 31 'Gewerbe- und Industriegebiet, dichte Bebauung' 88,4 % (davon 38,0 % unbebaut versiegelt, also Hof- und Lagerflächen); mit Erschließungsstraßen (Straßenraum 85,2 % bei 11,6 % Flächenanteil) ≈ 0,88. Die ganze Nutzungsklasse liegt mit 70,7 % niedriger, weil sie auch gering bebaute Standorte (Typ 30, 66,9 %) enthält; eine voll ausgebaute Industrie-Hektare im Spiel ist der dichte Fall"
+        "value": 0.88
       },
       "biotopeValue": {
-        "value": 2,
-        "source": "BKompV Anlage 2: 53.01.14a Industrie- und Gewerbefläche inkl. typischen Freiräumen = 2"
+        "value": 2
       },
       "biotopeStart": {
-        "value": 1.0,
-        "source": "design"
+        "value": 1.0
       },
       "recoveryMonths": {
-        "value": 1,
-        "source": "design"
+        "value": 1
       },
       "noiseEmissionDb": {
-        "value": 63,
-        "source": "DIN 18005-1 Ziffer 5.2.3 nennt flächenbezogene Schallleistungspegel von 60 dB(A)/m² für Gewerbegebiete und 65 dB(A)/m² für Industriegebiete (Werte wiedergegeben bei Versteyl/Storr/Schiller, Die schalltechnische Überplanung von bebauten Gewerbe- und Industriegebieten mit Emissionskontingenten). Für eine Hektare: L_W = 65 + 10·log10(10 000) = 105 dB(A); über der Halbkugel in 50 m Abstand L = L_W − 10·log10(2π·50²) = 63 dB(A). Die TA-Lärm-Tagrichtwerte (70 dB(A) für GI) sind die Immissionsgrenze, nicht die Emission. Der frühere Wert 65 war um 2 dB höher als die Norm hergibt"
+        "value": 63
       },
       "airEmission": {
-        "value": 3.0,
-        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Je Hektar gerechnet läge Industrie nach Inventar noch deutlich höher — 149 kt NOx-Größenordnung auf 5,5 Mio. Beschäftigte gegenüber 365 000 Fahrzeugkilometern je Straßen-Hektar. Angesetzt ist 3,0 statt des Inventarverhältnisses, weil das Luftmodell keine Schornsteinhöhe und keinen Abgasauftrieb kennt (docs/model/air.md, Limits): ein Hochkamin und eine Straße verteilen hier identisch, und eine bodennahe Quelle mit Inventarstärke würde die Nachbarschaft maßlos belasten. calibration T-114: der Archetyp Industriegebiet erreicht damit einen Luftindex von 87"
+        "value": 3.0
       },
       "airSink": {
-        "value": 0.0,
-        "source": "n/a"
+        "value": 0.0
       },
       "shade": {
-        "value": 0.02,
-        "source": "InVEST Urban Cooling"
+        "value": 0.02
       },
       "albedo": {
-        "value": 0.25,
-        "source": "InVEST Urban Cooling: light roofs"
+        "value": 0.25
       },
       "eti": {
-        "value": 0.05,
-        "source": "InVEST Urban Cooling"
+        "value": 0.05
       },
       "greenWeight": {
-        "value": 0.0,
-        "source": "n/a"
+        "value": 0.0
       },
       "co2PerHaYear": {
-        "value": 1220,
-        "source": "UBA, finale Daten 2024: der KSG-Sektor Industrie emittiert 149 Mt (Energie und Prozesse). Auf 5,5 Mio. Beschäftigte in Betrieben des verarbeitenden Gewerbes ab 50 Beschäftigten (Destatis, Jahresende 2024) sind das 27,1 t je Arbeitsplatz und Jahr; bei 45 Arbeitsplätzen/ha ergibt das 1 220 t/ha/a. Der Wert ist der deutsche Durchschnitt einschließlich Stahl, Zement und Chemie und liegt damit am oberen Rand dessen, was ein kommunales Gewerbegebiet emittiert; Betriebe unter 50 Beschäftigten fehlen in der Bezugsgröße"
+        "value": 1220
       },
       "buildCostKEur": {
-        "value": 300,
-        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Industrie liegt mit 30 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
+        "value": 300
       },
       "maintenanceKEurYear": {
-        "value": 3,
-        "source": "initial estimate"
+        "value": 3
       },
       "noiseNightReductionDb": {
-        "value": 5,
-        "source": "design: partial night shift; TA Larm regulates night separately, so a compliant plant throttles rather than stops"
+        "value": 5
       },
       "perviousCurveNumber": {
-        "value": 61,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: pervious part is lawn in good condition; the sealed part is carried by tiles.*.sealing"
+        "value": 61
       }
     },
     "road": {
       "category": "infrastructure",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "sealing": {
-        "value": 0.95,
-        "source": "n/a"
+        "value": 0.95
       },
       "biotopeValue": {
-        "value": 0,
-        "source": "BKompV Anlage 2: 52.01.01a versiegelter Verkehrs- und Betriebsweg = 0"
+        "value": 0
       },
       "biotopeStart": {
-        "value": 1.0,
-        "source": "design"
+        "value": 1.0
       },
       "recoveryMonths": {
-        "value": 1,
-        "source": "design"
+        "value": 1
       },
       "noiseEmissionDb": {
-        "value": 60,
-        "source": "Sound power of one 100 m segment at the 50 m reference, calibrated so that the energetic sum of segments gives L_den ≈ 58 dB(A) at 100 m and ≈ 65 dB(A) at 25 m from a straight road with 10 000 Kfz/24h at 50 km/h (RLS-19 / CNOSSOS-EU orders of magnitude)",
-        "note": "calibration: the segment level is set so the summed field reproduces the RLS-19 / CNOSSOS orders of magnitude quoted in the source"
+        "value": 60
       },
       "airEmission": {
-        "value": 1.0,
-        "source": "EMEP/EEA road transport NOx/PM at 10 000 Kfz/24h (relative unit 1.0)"
+        "value": 1.0
       },
       "airSink": {
-        "value": 0.0,
-        "source": "n/a"
+        "value": 0.0
       },
       "shade": {
-        "value": 0.05,
-        "source": "InVEST Urban Cooling"
+        "value": 0.05
       },
       "albedo": {
-        "value": 0.1,
-        "source": "InVEST Urban Cooling: asphalt"
+        "value": 0.1
       },
       "eti": {
-        "value": 0.02,
-        "source": "InVEST Urban Cooling"
+        "value": 0.02
       },
       "greenWeight": {
-        "value": 0.0,
-        "source": "n/a"
+        "value": 0.0
       },
       "co2PerHaYear": {
-        "value": 0,
-        "source": "traffic CO2 is computed from commute km, not per tile"
+        "value": 0
       },
       "buildCostKEur": {
-        "value": 300,
-        "source": "Hauptstraße ~2–4 M€/km inkl. Knoten → 100 m Abschnitt (initial estimate)"
+        "value": 300
       },
       "maintenanceKEurYear": {
-        "value": 10,
-        "source": "Straßenerhaltung 1.5–3 €/m² Fahrbahn/a (Difu/KfW Kommunalpanel: Erhaltungsbedarf) für ~2 000 m² Fahrbahn je 100 m Hauptstraße plus Beleuchtung, Reinigung, Winterdienst ≈ 10 k€/a",
-        "note": "initial estimate"
+        "value": 10
       },
       "noiseNightReductionDb": {
-        "value": 6.5,
-        "source": "RLS-19 / typical German urban day-night split: about 10% of daily traffic falls in the 8 night hours against 90% in the 16 day hours, so the hourly rate is 0.22 of the day rate and 10*log10(0.22) = -6.5 dB"
+        "value": 6.5
       },
       "perviousCurveNumber": {
-        "value": 61,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the verge is lawn in good condition; the carriageway is carried by tiles.*.sealing"
+        "value": 61
       }
     },
     "wetland": {
       "category": "nature",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "sealing": {
-        "value": 0.0,
-        "source": "unsealed by definition"
+        "value": 0.0
       },
       "biotopeValue": {
-        "value": 22,
-        "source": "BKompV Anlage 2: Roehrichte und Grossseggenriede sit among the highest-valued biotope types, above open water (16) and below the scale maximum (24)",
-        "note": "initial estimate within the BKompV range"
+        "value": 22
       },
       "biotopeStart": {
-        "value": 0.35,
-        "source": "a newly created wetland is bare mud before the reed establishes",
-        "note": "initial estimate"
+        "value": 0.35
       },
       "recoveryMonths": {
-        "value": 180,
-        "source": "reed and sedge stands establish over roughly 15 years",
-        "note": "initial estimate"
+        "value": 180
       },
       "noiseEmissionDb": {
-        "value": 0,
-        "source": "no source"
+        "value": 0
       },
       "airEmission": {
-        "value": 0.0,
-        "source": "no source"
+        "value": 0.0
       },
       "airSink": {
-        "value": 0.08,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Bewachsene Fläche zwischen Wiese (0,05) und Park (0,10)."
+        "value": 0.08
       },
       "shade": {
-        "value": 0.1,
-        "source": "InVEST Urban Cooling: open reed gives little canopy shade"
+        "value": 0.1
       },
       "albedo": {
-        "value": 0.12,
-        "source": "InVEST Urban Cooling: wet surfaces are dark"
+        "value": 0.12
       },
       "eti": {
-        "value": 0.95,
-        "source": "InVEST Urban Cooling: standing water and reed transpire near the potential rate, the highest of any cover here"
+        "value": 0.95
       },
       "greenWeight": {
-        "value": 0.5,
-        "source": "design: green and visible but not walkable recreation space, half of park"
+        "value": 0.5
       },
       "co2PerHaYear": {
-        "value": -5.0,
-        "source": "Greifswald Moor Centrum / Universität Greifswald: Wiedervernässung spart gegenüber entwässerter Grünlandnutzung mindestens 20 t CO2-Äq./ha/a; wiedervernässte Niedermoore gehen von der Quelle zur Senke über, erreichen die Standard-Emissionsfaktoren aber erst 13–16 Jahre nach der Wiedervernässung ('Temporally dynamic carbon dioxide and methane emission factors for rewetted peatlands', Commun. Earth Environ. 2024). 5 t/ha/a ist der konservative Senkenwert, deutlich unter den vermiedenen 20 t"
+        "value": -5.0
       },
       "buildCostKEur": {
-        "value": 20,
-        "source": "Difu, Folgekosten der Siedlungsentwicklung (REFINA Band III, 2009), dort nach TMLNU 2003: Herstellungskosten einer Feuchtwiese auf Acker einschließlich Wiedervernässung rund 20 000 €/ha (auf brachgefallenem nassem Grünland rund 5 000 €/ha). Der frühere Wert von 250 k€/ha war eine Schätzung in der Größenordnung eines ausgebaggerten Teichs, nicht einer Vernässung"
+        "value": 20
       },
       "maintenanceKEurYear": {
-        "value": 1,
-        "source": "occasional reed cutting",
-        "note": "initial estimate"
+        "value": 1
       },
       "retailFloorM2": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "noiseNightReductionDb": {
-        "value": 0,
-        "source": "no night emission to reduce"
+        "value": 0
       },
       "perviousCurveNumber": {
-        "value": 98,
-        "source": "open water and wetland do not infiltrate; handled as retention rather than as runoff-generating, see docs/model/water.md"
+        "value": 98
       }
     },
     "solar_field": {
       "category": "infrastructure",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 0.5,
-        "source": "Freiflaechen-PV needs little on-site labour beyond maintenance",
-        "note": "initial estimate"
+        "value": 0.5
       },
       "sealing": {
-        "value": 0.1,
-        "source": "Freiflaechen-PV: modules stand on posts and the ground between them stays open; only foundations, tracks and inverter pads are sealed",
-        "note": "initial estimate"
+        "value": 0.1
       },
       "biotopeValue": {
-        "value": 8,
-        "source": "BKompV Anlage 2: extensively managed grassland under the modules, well below meadow (18) because of shading and access tracks",
-        "note": "initial estimate"
+        "value": 8
       },
       "biotopeStart": {
-        "value": 0.7,
-        "source": "the grassland is sown with the installation",
-        "note": "initial estimate"
+        "value": 0.7
       },
       "recoveryMonths": {
-        "value": 60,
-        "source": "sward establishes within about five years",
-        "note": "initial estimate"
+        "value": 60
       },
       "noiseEmissionDb": {
-        "value": 0,
-        "source": "inverter hum is negligible at 100 m"
+        "value": 0
       },
       "airEmission": {
-        "value": 0.0,
-        "source": "no source"
+        "value": 0.0
       },
       "airSink": {
-        "value": 0.02,
-        "source": "sparse vegetation between modules",
-        "note": "initial estimate"
+        "value": 0.02
       },
       "shade": {
-        "value": 0.3,
-        "source": "InVEST Urban Cooling: modules shade the ground but are themselves hot surfaces"
+        "value": 0.3
       },
       "albedo": {
-        "value": 0.1,
-        "source": "InVEST Urban Cooling: photovoltaic modules are deliberately dark, the lowest albedo of any cover here"
+        "value": 0.1
       },
       "eti": {
-        "value": 0.3,
-        "source": "InVEST Urban Cooling: shaded sward transpires less than open grassland"
+        "value": 0.3
       },
       "greenWeight": {
-        "value": 0.1,
-        "source": "design: fenced and not accessible, so almost no recreation value"
+        "value": 0.1
       },
       "co2PerHaYear": {
-        "value": -266.0,
-        "source": "derived: German ground-mount PV occupies about 1.4 ha per MWp, so 1 ha is roughly 0.7 MWp; at about 1000 kWh/kWp/yr that is 700 MWh/ha/yr, and at the UBA grid emission factor of about 380 g CO2/kWh that displaces 266 t/ha/yr",
-        "note": "this is an AVOIDED emission, an order of magnitude larger than any emitted value in this table; see docs/model/tiles.md"
+        "value": -266.0
       },
       "buildCostKEur": {
-        "value": 700,
-        "source": "Freiflaechen-PV investment is roughly 500-700 EUR/kWp, so about 0.7 MWp/ha gives 350-490 kEUR plus grid connection",
-        "note": "initial estimate"
+        "value": 700
       },
       "maintenanceKEurYear": {
-        "value": 8,
-        "source": "PV operation and maintenance runs a low single-digit percent of investment per year",
-        "note": "initial estimate"
+        "value": 8
       },
       "retailFloorM2": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "noiseNightReductionDb": {
-        "value": 0,
-        "source": "no night emission to reduce"
+        "value": 0
       },
       "perviousCurveNumber": {
-        "value": 61,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the sward between modules is grassland in good condition"
+        "value": 61
       }
     },
     "mixed_use": {
       "category": "residential",
       "residentsPerHa": {
-        "value": 120,
-        "source": "design: between apartment blocks (180) and detached housing (45); the ground floor is given to shops and workshops instead of flats"
+        "value": 120
       },
       "jobsPerHa": {
-        "value": 45,
-        "source": "design: ground-floor retail, offices and workshops, between apartment blocks (15) and commercial (100)"
+        "value": 45
       },
       "sealing": {
-        "value": 0.7,
-        "source": "design: dense but with courtyards, just below apartment blocks (0.75)"
+        "value": 0.7
       },
       "biotopeValue": {
-        "value": 4,
-        "source": "BKompV Anlage 2: densely built land with courtyards, as apartment blocks (4)"
+        "value": 4
       },
       "biotopeStart": {
-        "value": 1.0,
-        "source": "built land does not mature"
+        "value": 1.0
       },
       "recoveryMonths": {
-        "value": 1,
-        "source": "n/a"
+        "value": 1
       },
       "noiseEmissionDb": {
-        "value": 55,
-        "source": "design: quieter than pure commercial (58) because the upper floors are homes, louder than apartment blocks (50) because of deliveries and custom"
+        "value": 55
       },
       "airEmission": {
-        "value": 0.35,
-        "source": "design: between apartment blocks (0.3) and commercial (0.6)"
+        "value": 0.35
       },
       "airSink": {
-        "value": 0.02,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Straßenbäume und Höfe."
+        "value": 0.02
       },
       "shade": {
-        "value": 0.35,
-        "source": "InVEST Urban Cooling: built up with some courtyard planting"
+        "value": 0.35
       },
       "albedo": {
-        "value": 0.2,
-        "source": "InVEST Urban Cooling: mixed roof and render surfaces"
+        "value": 0.2
       },
       "eti": {
-        "value": 0.25,
-        "source": "InVEST Urban Cooling: little transpiring surface"
+        "value": 0.25
       },
       "greenWeight": {
-        "value": 0.05,
-        "source": "design: courtyards only, as apartment blocks"
+        "value": 0.05
       },
       "co2PerHaYear": {
-        "value": 140,
-        "source": "derived: Wohnanteil 120 EW/ha × 49,2 m² × 18,8 kg = 111 t plus 45 Arbeitsplätze × 0,66 t = 30 t, zusammen rund 140 t/ha/a — dieselben Grundlagen wie housing_high und commercial"
+        "value": 140
       },
       "buildCostKEur": {
-        "value": 450,
-        "source": "design: above apartment blocks (400) for the commercial ground floor"
+        "value": 450
       },
       "maintenanceKEurYear": {
-        "value": 10,
-        "source": "design: between apartment blocks and commercial"
+        "value": 10
       },
       "retailFloorM2": {
-        "value": 3000,
-        "source": "design: a ground floor of shops at about a third of the commercial figure"
+        "value": 3000
       },
       "noiseNightReductionDb": {
-        "value": 6,
-        "source": "design: between homes (5) and shops (8); the flats stay occupied but the shops close"
+        "value": 6
       },
       "perviousCurveNumber": {
-        "value": 61,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: courtyards are lawn in good condition; the sealed part is carried by sealing"
+        "value": 61
       }
     },
     "school": {
       "category": "work",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a: pupils are counted at home, not at school"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 25,
-        "source": "design: teaching and support staff for a school serving a few thousand residents, a quarter of commercial (100)"
+        "value": 25
       },
       "sealing": {
-        "value": 0.5,
-        "source": "design: buildings and a hard yard, with a sports field and planting; above detached housing (0.45) and well below commercial (0.85)"
+        "value": 0.5
       },
       "biotopeValue": {
-        "value": 6,
-        "source": "BKompV Anlage 2: school grounds with lawn and trees, above apartment blocks (4) and near cropland (6)",
-        "note": "initial estimate"
+        "value": 6
       },
       "biotopeStart": {
-        "value": 0.8,
-        "source": "grounds are planted with the building",
-        "note": "initial estimate"
+        "value": 0.8
       },
       "recoveryMonths": {
-        "value": 120,
-        "source": "yard trees take a decade to matter",
-        "note": "initial estimate"
+        "value": 120
       },
       "noiseEmissionDb": {
-        "value": 52,
-        "source": "design: a school yard is loud in bursts but quiet outside school hours; between apartment blocks (50) and mixed use (55)"
+        "value": 52
       },
       "airEmission": {
-        "value": 0.15,
-        "source": "design: heating and the school run, as detached housing"
+        "value": 0.15
       },
       "airSink": {
-        "value": 0.05,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Schulgelände mit Rasen und Bäumen, wie die Wiese."
+        "value": 0.05
       },
       "shade": {
-        "value": 0.4,
-        "source": "InVEST Urban Cooling: yard trees and a sports field"
+        "value": 0.4
       },
       "albedo": {
-        "value": 0.22,
-        "source": "InVEST Urban Cooling: light roofs and hard yard"
+        "value": 0.22
       },
       "eti": {
-        "value": 0.4,
-        "source": "InVEST Urban Cooling: lawn and sports turf"
+        "value": 0.4
       },
       "greenWeight": {
-        "value": 0.3,
-        "source": "design: grounds are open out of hours in many places but are not a park"
+        "value": 0.3
       },
       "co2PerHaYear": {
-        "value": 33,
-        "source": "design: ein Schulgebäude heizt je Beschäftigtem deutlich mehr Fläche als ein Büro. Angesetzt ist das Doppelte der gewerblichen Kennzahl (0,66 t je Arbeitsplatz) bei 25 Arbeitsplätzen/ha = 33 t/ha/a"
+        "value": 33
       },
       "buildCostKEur": {
-        "value": 900,
-        "source": "design: the most expensive tile: a school building is a large public investment per hectare"
+        "value": 900
       },
       "maintenanceKEurYear": {
-        "value": 45,
-        "source": "design: staffed and heated year round, the highest upkeep of any tile"
+        "value": 45
       },
       "retailFloorM2": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "noiseNightReductionDb": {
-        "value": 12,
-        "source": "design: empty at night, the largest night reduction of any emitter"
+        "value": 12
       },
       "perviousCurveNumber": {
-        "value": 61,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: lawn and sports turf in good condition; the sealed part is carried by sealing"
+        "value": 61
       }
     },
     "tram_stop": {
       "category": "infrastructure",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 1,
-        "source": "design: a stop is not a workplace beyond occasional staff"
+        "value": 1
       },
       "sealing": {
-        "value": 0.85,
-        "source": "design: track bed, platform and pavement, just below main road (0.95); grassed track is possible but not assumed"
+        "value": 0.85
       },
       "biotopeValue": {
-        "value": 1,
-        "source": "BKompV Anlage 2: sealed transport land, between main road (0) and commercial (2)"
+        "value": 1
       },
       "biotopeStart": {
-        "value": 1.0,
-        "source": "built land does not mature"
+        "value": 1.0
       },
       "recoveryMonths": {
-        "value": 1,
-        "source": "n/a"
+        "value": 1
       },
       "noiseEmissionDb": {
-        "value": 56,
-        "source": "design: trams are quieter per passenger than the equivalent car traffic but squeal on curves and at stops; below main road (60)"
+        "value": 56
       },
       "airEmission": {
-        "value": 0.05,
-        "source": "design: electric traction emits nothing locally; the figure covers brake and rail dust"
+        "value": 0.05
       },
       "airSink": {
-        "value": 0.0,
-        "source": "no source"
+        "value": 0.0
       },
       "shade": {
-        "value": 0.1,
-        "source": "InVEST Urban Cooling: shelter and any stop planting"
+        "value": 0.1
       },
       "albedo": {
-        "value": 0.12,
-        "source": "InVEST Urban Cooling: rail and asphalt"
+        "value": 0.12
       },
       "eti": {
-        "value": 0.05,
-        "source": "InVEST Urban Cooling: almost nothing transpires"
+        "value": 0.05
       },
       "greenWeight": {
-        "value": 0.0,
-        "source": "n/a"
+        "value": 0.0
       },
       "co2PerHaYear": {
-        "value": 0.0,
-        "source": "design: the traffic a stop replaces is now modelled in commute.transitCarReduction, so counting it again as a per-hectare figure would double it; what remains is the stop's own footprint"
+        "value": 0.0
       },
       "buildCostKEur": {
-        "value": 800,
-        "source": "design: a stop plus its share of track is expensive per hectare, near a school"
+        "value": 800
       },
       "maintenanceKEurYear": {
-        "value": 25,
-        "source": "design: track and vehicle upkeep"
+        "value": 25
       },
       "retailFloorM2": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "noiseNightReductionDb": {
-        "value": 9,
-        "source": "design: night service is thinner than the day timetable, a larger drop than a road (6.5)"
+        "value": 9
       },
       "perviousCurveNumber": {
-        "value": 61,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the verge beside the track is lawn; the sealed part is carried by sealing"
+        "value": 61
       }
     },
     "cycle_path": {
       "category": "infrastructure",
       "residentsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "jobsPerHa": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "sealing": {
-        "value": 0.35,
-        "source": "design: a 3 m asphalt path in a green corridor seals a third of the hectare, far less than a main road (0.95)"
+        "value": 0.35
       },
       "biotopeValue": {
-        "value": 12,
-        "source": "BKompV Anlage 2: a path through a green verge keeps most of the hectare vegetated; between park (13) and school grounds (6)",
-        "note": "initial estimate"
+        "value": 12
       },
       "biotopeStart": {
-        "value": 0.6,
-        "source": "the verge is sown with the path",
-        "note": "initial estimate"
+        "value": 0.6
       },
       "recoveryMonths": {
-        "value": 120,
-        "source": "verge trees and hedges take a decade",
-        "note": "initial estimate"
+        "value": 120
       },
       "noiseEmissionDb": {
-        "value": 0,
-        "source": "bicycles are inaudible against a 35 dB rural background at 100 m"
+        "value": 0
       },
       "airEmission": {
-        "value": 0.0,
-        "source": "no source"
+        "value": 0.0
       },
       "airSink": {
-        "value": 0.06,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Begrünter Seitenraum, zwischen Wiese (0,05) und Park (0,10)."
+        "value": 0.06
       },
       "shade": {
-        "value": 0.35,
-        "source": "InVEST Urban Cooling: hedge and verge trees along the route"
+        "value": 0.35
       },
       "albedo": {
-        "value": 0.15,
-        "source": "InVEST Urban Cooling: asphalt with green either side"
+        "value": 0.15
       },
       "eti": {
-        "value": 0.55,
-        "source": "InVEST Urban Cooling: mostly vegetated, below meadow"
+        "value": 0.55
       },
       "greenWeight": {
-        "value": 0.4,
-        "source": "design: a green corridor people use, below park (1.0) but real"
+        "value": 0.4
       },
       "co2PerHaYear": {
-        "value": -1.0,
-        "source": "design: the traffic a route replaces is now modelled in commute.cycleCarReduction; what remains is the small sink of the verge itself, near meadow (-1)"
+        "value": -1.0
       },
       "buildCostKEur": {
-        "value": 120,
-        "source": "design: asphalt path plus verge, well below a main road (300)"
+        "value": 120
       },
       "maintenanceKEurYear": {
-        "value": 3,
-        "source": "design: sweeping, surface and hedge cutting"
+        "value": 3
       },
       "retailFloorM2": {
-        "value": 0,
-        "source": "n/a"
+        "value": 0
       },
       "noiseNightReductionDb": {
-        "value": 0,
-        "source": "no night emission to reduce"
+        "value": 0
       },
       "perviousCurveNumber": {
-        "value": 58,
-        "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the verge is meadow, continuous grass; the sealed part is carried by sealing"
+        "value": 58
       }
     }
   },
   "noise": {
     "areaReferenceDistanceM": {
-      "value": 50,
-      "source": "half tile: boundary of a 1 ha area source; roads are split into 100 m segments (CNOSSOS-EU point-source segmentation)"
+      "value": 50
     },
     "areaDecayDbPerDecade": {
-      "value": 20,
-      "source": "ISO 9613-2 / CNOSSOS-EU: geometric divergence of a point source, 6 dB per doubling; summing segments reproduces the 3 dB/doubling of a line"
+      "value": 20
     },
     "foliageAttenuationDbPerTile": {
-      "value": 2,
-      "source": "ISO 9613-2 Table A.2 foliage attenuation up to ~10 dB over 200 m; simplified per 100 m tile"
+      "value": 2
     },
     "buildingScreeningDbPerTile": {
-      "value": 5,
-      "source": "design, anchored on ISO 9613-2 und CNOSSOS-EU: eine geschlossene Bebauungszeile wirkt wie ein Schirm und bringt in der Praxis 5–10 dB Einfügungsdämmung; angesetzt ist der untere Rand, weil eine Spiel-Hektare keine geschlossene Zeile garantiert. ISO 9613-2 deckelt Einfachbeugung bei 20 dB"
+      "value": 5
     },
     "maxPathAttenuationDb": {
-      "value": 20,
-      "source": "ISO 9613-2 practical cap"
+      "value": 20
     },
     "backgroundDb": {
-      "value": 35,
-      "source": "TA Lärm Nr. 6.1: Immissionsrichtwert für reine Wohngebiete nachts 35 dB(A) — der niedrigste Wert der Tabelle und damit die ruhigste Umgebung, die die Verwaltungsvorschrift kennt. Das Feld fällt nirgends darunter"
+      "value": 35
     },
     "radiusTiles": {
-      "value": 8,
-      "source": "design: beyond 800 m contributions < 45 dB"
+      "value": 8
     },
     "trafficReferenceVehiclesPerDay": {
-      "value": 10000,
-      "source": "RLS-19: emission scales with 10·log10(Q)"
+      "value": 10000
     },
     "baselineThroughTraffic": {
-      "value": 2000,
-      "source": "design: any main road carries some through traffic"
+      "value": 2000
     },
     "limitDayDb": {
-      "value": 55,
-      "source": "TA Lärm: allgemeines Wohngebiet (WA) Tag 55 dB(A)"
+      "value": 55
     },
     "limitBadDb": {
-      "value": 65,
-      "source": "TA Lärm: Gewerbegebiet 65; used as 0-score for residents"
+      "value": 65
     },
     "nightGuidelineDb": {
-      "value": 45,
-      "source": "WHO Environmental Noise Guidelines for the European Region (2018): road traffic Lnight below 45 dB (strong recommendation); Lden below 53 dB"
+      "value": 45
     },
     "nightLoaelDb": {
-      "value": 40,
-      "source": "WHO Night Noise Guidelines for Europe (2009): Lnight,outside 40 dB is the guideline value and the lowest observed adverse effect level"
+      "value": 40
     },
     "nightHighRiskDb": {
-      "value": 55,
-      "source": "WHO Night Noise Guidelines for Europe (2009): 55 dB is the interim target; above it cardiovascular effects become the major public health concern"
+      "value": 55
     }
   },
   "air": {
     "decayLengthM": {
-      "value": 300,
-      "source": "design, anchored on Pasquill-Gifford: das Modell ist ein Ersatz für eine Gaußfahne, keine Lösung einer solchen (docs/model/air.md). 300 m Abklinglänge heißt, dass eine Quelle nach 300 m auf 37 % und nach 600 m auf 14 % abgefallen ist — die Größenordnung, in der Straßenschluchten- und Nahfeldgradienten in der EMEP/EEA-Praxis abklingen. Auf einem 100-m-Raster ist das die Entscheidung, die zählt: drei Felder Abstand halbieren die Belastung mehr als einmal"
+      "value": 300
     },
     "radiusTiles": {
-      "value": 6,
-      "source": "design: exp(-600/300) ≈ 0.14"
+      "value": 6
     },
     "sinkRadiusTiles": {
-      "value": 3,
-      "source": "design, anchored on Nowak et al. 2006: die Deposition an Blattoberflächen wirkt lokal, im Bereich einiger hundert Meter. 3 Felder = 300 m auf diesem Raster"
+      "value": 3
     },
     "indexScale": {
-      "value": 1.0,
-      "source": "calibration T-114: uniform housing_high + traffic (C≈0.4) → index ≈ 67; inside an industrial area (C≈3) → index ≈ 5"
+      "value": 1.0
     },
     "trafficReferenceVehiclesPerDay": {
-      "value": 10000,
-      "source": "EMEP/EEA road transport emission ∝ vehicle-km"
+      "value": 10000
     },
     "windFromDegrees": {
-      "value": 225,
-      "source": "DWD: prevailing wind in Germany is from the south-west; meteorological convention, the direction the wind blows FROM. Only acts when windSpeedMs > 0."
+      "value": 225
     },
     "windSpeedMs": {
-      "value": 0,
-      "source": "design: calm by default so a scenario opts into wind through paramOverrides; DWD annual means for German lowlands are 3-4 m/s at 10 m"
+      "value": 0
     },
     "windStretchPerMs": {
-      "value": 0.35,
-      "source": "Gaussian plume (Pasquill-Gifford): advection lengthens the plume downwind roughly in proportion to wind speed; 0.35 per m/s puts a 3 m/s wind at about twice the downwind reach"
+      "value": 0.35
     }
   },
   "heat": {
     "shadeWeight": {
-      "value": 0.6,
-      "source": "InVEST Urban Cooling: CC = 0.6·shade + 0.2·albedo + 0.2·ETI"
+      "value": 0.6
     },
     "albedoWeight": {
-      "value": 0.2,
-      "source": "InVEST Urban Cooling"
+      "value": 0.2
     },
     "etiWeight": {
-      "value": 0.2,
-      "source": "InVEST Urban Cooling"
+      "value": 0.2
     },
     "uhiMaxC": {
-      "value": 3.0,
-      "source": "InVEST Urban Cooling: UHI_max is a user input (rural–urban maximum difference); DWD reports 2–4 K for German mid-size cities",
-      "note": "initial estimate"
+      "value": 3.0
     },
     "greenPatchMinHa": {
-      "value": 2,
-      "source": "InVEST Urban Cooling: green areas larger than 2 ha have an additional cooling effect"
+      "value": 2
     },
     "coolingDistanceTiles": {
-      "value": 3,
-      "source": "InVEST Urban Cooling default d_cool = 450 m; game uses 3 tiles (300 m)"
+      "value": 3
     }
   },
   "access": {
     "greenRadiusTiles": {
-      "value": 3,
-      "source": "WHO Urban green spaces 2016: ≥0.5 ha within 300 m; 3-30-300 rule (Konijnendijk 2021)"
+      "value": 3
     },
     "greenVarietyBonus": {
-      "value": 0.2,
-      "source": "design"
+      "value": 0.2
     },
     "greenVarietyMinTiles": {
-      "value": 3,
-      "source": "design"
+      "value": 3
     },
     "retailRadiusTiles": {
-      "value": 7,
-      "source": "BBSR Nahversorgung: fußläufig 500–700 m"
+      "value": 7
     },
     "huffLambda": {
-      "value": 2.0,
-      "source": "Huff 1963; walking distance exponent ~2"
+      "value": 2.0
     },
     "retailM2PerResident": {
-      "value": 1.4,
-      "source": "HDE Zahlenspiegel: ~1.4 m² Verkaufsfläche je Einwohner"
+      "value": 1.4
     },
     "retailReferenceSupply": {
-      "value": 222,
-      "source": "calibration: one commercial tile at 300 m = full score (2000/3²)"
+      "value": 222
     },
     "jobDecayM": {
-      "value": 2000,
-      "source": "MiD 2017: median commute ~ 10 km, but local job access decays within few km (initial estimate)"
+      "value": 2000
     },
     "jobReferenceJobs": {
-      "value": 400,
-      "source": "calibration: ~one commercial + one industry tile within 500 m = full score, T-114"
+      "value": 400
     }
   },
   "habitat": {
     "halfSaturation": {
-      "value": 0.5,
-      "source": "InVEST Habitat Quality: k = 0.5"
+      "value": 0.5
     },
     "scalingZ": {
-      "value": 2.5,
-      "source": "InVEST Habitat Quality: z = 2.5"
+      "value": 2.5
     },
     "speciesAreaZ": {
-      "value": 0.3,
-      "source": "Arrhenius / MacArthur–Wilson: z ≈ 0.25–0.35 for habitat islands"
+      "value": 0.3
     },
     "threats": {
       "road": {
         "weight": {
-          "value": 1.0,
-          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Die Straße ist die stärkste Störquelle und damit der Ankerwert 1,0. Die Beispieltabelle des Handbuchs selbst führt Straßen mit 0,1 (Feldweg) und 0,4 (asphaltiert) und die Landwirtschaft mit 1,0 — die frühere Quellenangabe 'InVEST HQ sample threat table: roads' war also falsch zugeordnet"
+          "value": 1.0
         },
         "maxDistanceM": {
-          "value": 300,
-          "source": "Forman & Deblinger 2000 (Conservation Biology 14, 36–46) messen für eine vierspurige Schnellstraße eine Road-Effect Zone von im Mittel rund 600 m. Reijnen & Foppen leiten aus Verkehrslärm artspezifische Störungsdistanzen von 20–1 700 m bei 5 000 Kfz/Tag und 65–3 530 m bei 50 000 Kfz/Tag ab. Die Spiel-Straße führt 10 000 Kfz/Tag und ist keine vierspurige Schnellstraße; 300 m liegt im unteren Bereich dieser Spannen"
+          "value": 300
         }
       },
       "industry": {
         "weight": {
-          "value": 0.8,
-          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Industrie liegt knapp unter der Straße: dauerhafte Störung durch Lärm, Licht und Betrieb, aber ohne die Barriere- und Tötungswirkung des Verkehrs."
+          "value": 0.8
         },
         "maxDistanceM": {
-          "value": 500,
-          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 500 m für Industrie, die größte Reichweite der Siedlungsquellen, weil Betriebslärm und Beleuchtung nachts weit tragen."
+          "value": 500
         }
       },
       "commercial": {
         "weight": {
-          "value": 0.6,
-          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Gewerbe stört tagsüber wie Industrie, nachts deutlich weniger."
+          "value": 0.6
         },
         "maxDistanceM": {
-          "value": 300,
-          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 300 m für Gewerbe, wie die Straße."
+          "value": 300
         }
       },
       "housing_high": {
         "weight": {
-          "value": 0.5,
-          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Geschosswohnungsbau: viele Menschen, Katzen und Licht auf kleiner Fläche, aber keine gewerbliche Störung. Die frühere Angabe 'InVEST HQ sample: urban' verwies auf eine Zeile, die die Beispieltabelle nicht enthält"
+          "value": 0.5
         },
         "maxDistanceM": {
-          "value": 200,
-          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 200 m für Wohnnutzung, die kürzeste Reichweite: Störung durch Anwesenheit klingt schneller ab als Betriebslärm."
+          "value": 200
         }
       },
       "housing_low": {
         "weight": {
-          "value": 0.3,
-          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Einzelhausgebiete sind die schwächste der fünf Quellen — Gärten sind selbst teilweise Lebensraum."
+          "value": 0.3
         },
         "maxDistanceM": {
-          "value": 200,
-          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 200 m, wie der Geschosswohnungsbau."
+          "value": 200
         }
       }
     }
   },
   "commute": {
     "labourParticipation": {
-      "value": 0.52,
-      "source": "Destatis: Erwerbstätige / Bevölkerung ≈ 0.52 (2023)"
+      "value": 0.52
     },
     "modeShareByDistance": {
-      "source": "MiD 2017 Ergebnisbericht (BMVI/infas) and MiD 2017 Analysen zum Rad- und Fußverkehr: walking dominates below 1 km but car already notable; cycling peaks at 1–1.5 km (21 %); car dominant from 1.5 km; commuting overall ≈ two thirds car, 21 % bike, 14 % walk",
       "bins": [
         {
           "maxKm": 1,
@@ -1528,91 +1155,68 @@ const String defaultParamsJson = r'''
       ]
     },
     "roadSearchRadiusTiles": {
-      "value": 3,
-      "source": "design: 300 m to a main road counts as connected"
+      "value": 3
     },
     "externalCommuteKm": {
-      "value": 15,
-      "source": "MiD 2017: mean commute ~ 16 km for out-commuters (initial estimate)"
+      "value": 15
     },
     "externalCarShare": {
-      "value": 0.8,
-      "source": "MiD 2017: long trips car dominant"
+      "value": 0.8
     },
     "carKgCo2PerKm": {
-      "value": 0.15,
-      "source": "UBA: Pkw ~150 g CO2/km (2023 fleet)"
+      "value": 0.15
     },
     "workingDaysPerMonth": {
-      "value": 20,
-      "source": "convention"
+      "value": 20
     },
     "referenceCommuteKm": {
-      "value": 20,
-      "source": "MiD 2017: mean one-way commute ≈ 16–17 km; a mean of 20 km scores zero on the distance half of the commuting indicator"
+      "value": 20
     },
     "transitWalkRadiusTiles": {
-      "value": 4,
-      "source": "planning practice: the walking catchment of a tram or light-rail stop is usually taken as 400-600 m; 4 tiles is 400 m at this cell size"
+      "value": 4
     },
     "transitCarReduction": {
-      "value": 0.25,
-      "source": "design, anchored on MiD 2017 (BMVI/infas) Ergebnisbericht: national modal split of 22% on foot, 11% bicycle, 43% car driver, 14% car passenger and 10% public transport. That 10% mixes served and unserved places, so a stop within walking distance shifting up to a quarter of a cell's car trips onto public transport puts a fully served map above the national average without reaching the share of a large city",
-      "note": "design value: the model has no public-transport mode of its own, so this is a substitution away from car rather than a measured elasticity"
+      "value": 0.25
     },
     "cyclePathRadiusTiles": {
-      "value": 2,
-      "source": "design: a cycle route is useful if it starts within a couple of hundred metres; 2 tiles is 200 m at this cell size"
+      "value": 2
     },
     "cycleCarReduction": {
-      "value": 0.15,
-      "source": "design, anchored on MiD 2017 (BMVI/infas) Ergebnisbericht: national modal split of 22% on foot, 11% bicycle, 43% car driver, 14% car passenger and 10% public transport: the bicycle share is 11% nationally and this model's own distance bins already peak cycling at 21% between 1 and 1.5 km, so a route in reach shifting up to 0.15 of car trips is of that order",
-      "note": "design value, not a measured elasticity"
+      "value": 0.15
     },
     "cycleCompetitiveKm": {
-      "value": 5.0,
-      "source": "MiD 2017 Analysen zum Rad- und Fussverkehr: cycling competes with the car on short trips and falls away beyond about 5 km, which is also where this model's own bins put the car above 85%"
+      "value": 5.0
     },
     "minCarShareFactor": {
-      "value": 0.5,
-      "source": "design: even with a stop and a route in reach, at most half of a cell's car trips shift; the rest are trips public transport and cycling do not serve"
+      "value": 0.5
     }
   },
   "economy": {
     "incomeTaxPerResidentYear": {
-      "value": 550,
-      "source": "Destatis PM 126/2025: Gemeindeanteil Einkommensteuer 46.1 Mrd € (2024) ÷ 83.6 Mio EW ≈ 550 €"
+      "value": 550
     },
     "propertyTaxPerResidentYear": {
-      "value": 180,
-      "source": "Destatis PM N006/2025: Grundsteuer B 15.1 Mrd € (2023) ÷ 84 Mio EW ≈ 180 €"
+      "value": 180
     },
     "businessTaxPerJobYear": {
-      "value": 2100,
-      "source": "Destatis PM 356/2024: Gewerbesteuer 75.1 Mrd € (2023) ÷ ~35 Mio SV-Beschäftigte ≈ 2 100 €"
+      "value": 2100
     },
     "startBudgetKEur": {
-      "value": 25000,
-      "source": "design: enough for a 12-tile main road plus a mixed quarter of ~25 tiles"
+      "value": 25000
     },
     "demolitionCostKEur": {
-      "value": 50,
-      "source": "initial estimate"
+      "value": 50
     },
     "immigrationRate": {
-      "value": 0.08,
-      "source": "design: new housing fills within ~2 years at high attractiveness"
+      "value": 0.08
     },
     "emigrationRate": {
-      "value": 0.03,
-      "source": "design"
+      "value": 0.03
     },
     "unconnectedAttractivenessFactor": {
-      "value": 0.7,
-      "source": "design: no main road within 300 m"
+      "value": 0.7
     },
     "attractivenessWeights": {
-      "source": "design; relative importance from Wohnzufriedenheit surveys (BBSR) (initial estimate)",
       "noise": 0.25,
       "air": 0.2,
       "green": 0.15,
@@ -1623,11 +1227,9 @@ const String defaultParamsJson = r'''
   },
   "seasons": {
     "amplitude": {
-      "value": 1.0,
-      "source": "design: 0 disables the yearly cycle entirely and reproduces the season-free model; a scenario can turn it down through paramOverrides"
+      "value": 1.0
     },
     "growth": {
-      "source": "DWD: the vegetation period in Germany runs roughly April to October, and evapotranspiration follows it. Monthly factors are scaled to average 1.0 over the year, so only the distribution within a year changes, not the annual total.",
       "monthly": [
         0.278,
         0.333,
@@ -1644,7 +1246,6 @@ const String defaultParamsJson = r'''
       ]
     },
     "heat": {
-      "source": "Urban heat island intensity peaks in summer and is weak in winter (DWD Klimareport / UHI literature). Scaled to average 1.0 over the year.",
       "monthly": [
         0.275,
         0.33,
@@ -1663,35 +1264,27 @@ const String defaultParamsJson = r'''
   },
   "climate": {
     "zeroScoreTonsPerPerson": {
-      "value": 5.0,
-      "source": "UBA, finale Daten 2024: 650 Mt CO2-Äq. in Deutschland, bezogen auf 83,5 Mio. Einwohner und 46,1 Mio. Erwerbstätige (Destatis 2024) = 5,0 t je Einwohner-oder-Arbeitsplatz. Eine Stadt, die emittiert wie Deutschland heute, bekommt damit 0 Punkte, eine klimaneutrale Stadt 100"
+      "value": 5.0
     }
   },
   "water": {
     "designStormMm": {
-      "value": 22.1,
-      "source": "KOSTRA-DWD-2020, grid field Spalte 118 Zeile 81 (INDEX_RC 081118), duration 60 min, return period 5 a: hN = 22.1 mm. A five-year hour is the ordinary heavy shower a drainage system is expected to cope with, not a disaster."
+      "value": 22.1
     },
     "imperviousCurveNumber": {
-      "value": 98,
-      "source": "USDA NRCS TR-55: connected impervious area, CN 98"
+      "value": 98
     },
     "initialAbstractionRatio": {
-      "value": 0.2,
-      "source": "USDA NRCS TR-55: initial abstraction Ia = 0.2 S, the classical ratio"
+      "value": 0.2
     },
     "retentionRadiusTiles": {
-      "value": 2,
-      "source": "design: open water and wetland take runoff from their immediate surroundings; 200 m at this cell size"
+      "value": 2
     },
     "retentionMmPerCell": {
-      "value": 30,
-      "source": "design: a water cell absorbs up to 30 mm of depth from its neighbourhood, above the 22.1 mm design storm so one pond can hold one ordinary shower from about its own area"
+      "value": 30
     },
     "floodRiskMm": {
-      "value": 10,
-      "source": "design: the threshold above which a cell's runoff from the design storm is reported as at risk; roughly half the design storm leaving as surface flow"
+      "value": 10
     }
   }
-}
-''';
+}''';
