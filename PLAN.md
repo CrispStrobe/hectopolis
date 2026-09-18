@@ -635,8 +635,22 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   cards each carry one merged label with their reading, cost and stock, since a bar, a number, a
   smiley and a coloured border convey nothing without one. `app/test/semantics_test.dart` asserts
   the actual semantics tree, including the live-region flag.
-  **Open:** a contrast and focus-order audit against BITV 2.0 / EN 301 549, and testing with a
-  real screen reader — neither of which can be done from here.
+  *Note 2026-09-18:* Contrast audit done, and it found two real failures in shipped UI rather
+  than confirming what we assumed. A met goal was written in a colour measuring **4.14:1** on
+  the light surface and 4.28:1 on the dark one, where WCAG 1.4.3 (which both BITV 2.0 and
+  EN 301 549 point at) wants 4.5:1 for text — close enough to look fine and still short of
+  the line. And the indicator bar measured **2.91:1** against its track at a reading of 0,
+  under the 3:1 that WCAG 1.4.11 asks of a meter. Both now have one colour per theme, each
+  the nearest shade of the same hue that clears the bar, so the warm-poor/cool-good meaning
+  is unchanged. The part worth remembering: **the worst point of the gauge scale is the
+  middle, not an end** — a warm-to-cool lerp passes through a desaturated tone whose
+  luminance sits closest to the track, and in dark mode that midpoint measured 2.73:1 while
+  both endpoints passed. `app/test/contrast_test.dart` therefore sweeps every reading from 0
+  to 100 rather than checking the ends, and the colours are named constants the widgets and
+  the test share, so a test that re-typed the literal cannot keep passing after someone
+  changes the widget. Verified numerically and then looked at, rendered.
+  **Open:** a focus-order audit, and testing with a real screen reader — neither of which can
+  be done from here.
 - [x] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
   *Note 2026-09-17:* The guarantee already held — there is no networking API anywhere in
   first-party code, and the dependency list is seven packages none of which reports anything.
