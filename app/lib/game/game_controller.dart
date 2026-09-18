@@ -877,24 +877,9 @@ class GameController extends ChangeNotifier {
     }
     if (weakest < 0) return null;
     final goal = lvl.goals[weakest];
-    final candidates = switch (goal.indicator) {
-      Indicator.biodiversity ||
-      Indicator.air ||
-      Indicator.climate => const [TileType.forest, TileType.meadow],
-      Indicator.noise => const [TileType.forest, TileType.park],
-      Indicator.housing => const [TileType.housingHigh, TileType.housingLow],
-      Indicator.economy ||
-      Indicator.budget => const [TileType.commercial, TileType.industry],
-      Indicator.shopping => const [TileType.commercial],
-      Indicator.recreation => const [TileType.park, TileType.forest],
-      Indicator.commuting => const [TileType.commercial, TileType.road],
-      null => switch (goal.metric) {
-        'population' => const [TileType.housingHigh, TileType.housingLow],
-        'jobs' ||
-        'budgetKEur' => const [TileType.commercial, TileType.industry],
-        _ => const <TileType>[],
-      },
-    };
+    // The mapping lives in the sim package so tool/learning_audit.dart can
+    // check that a level allows at least one of the tiles its goals point at.
+    final candidates = guidanceCandidatesFor(goal);
     TileType? suggested;
     for (final tile in candidates) {
       final remaining = sim.tileBudget.remaining(tile);

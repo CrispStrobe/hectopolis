@@ -421,6 +421,20 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   German copy is covered by the i18n lint and the existing German widget tests, not visually.
   **The copy is a first pass and wants your voice** — the structure is the durable part.
   Broader playtesting remains open.
+  *Note 2026-09-18:* `packages/stadtbau_sim/tool/learning_audit.dart` audits the whole teaching
+  surface without a browser, and runs in CI. It checks every id the level data produces against
+  the ICU branches in **both** ARB files — the i18n lint compares keys, not the branches inside
+  a `select`, where a missing id renders the generic wording instead of failing — and it replays
+  every mission along randomised paths plus its worked plan from `tool/level_plans.dart` (moved
+  out of the solutions test so both can use it). Copy coverage is clean: 205 ids, both languages,
+  identical branch sets; verified by deleting a German branch and watching the audit catch what
+  the lint missed. `docs/missions.md` has the findings. The largest: **`habitat` and `tuebingen`
+  are won before a single month passes** — on habitat after 124 of the plan's 207 tiles, so the
+  end screen appears mid-build, the 240-month limit and the seasonal cycle never apply, and the
+  maturation model the level exists to teach never decides anything (biodiversity 72 at month 0
+  against a goal of 70, reaching 87 by month 120). Two month-triggered beats are unreachable as a
+  consequence, and `tuebingen` ships with no learning block at all. All of these are authoring
+  decisions, recorded rather than taken.
 - [x] **T-306 Counterfactual experiments.** Pin the current deterministic simulation,
   freely test builds and time, compare live indicator and overlay deltas, then keep or
   discard the branch without affecting the pinned city.
