@@ -8,7 +8,7 @@
     },
     "tickMonths": {
       "value": 1,
-      "source": "design: one tick = one month"
+      "source": "design: one tick = one month. Recorded here as the convention the model is built on, not as a knob — nothing reads this entry. The month is hard-coded wherever it matters: seasons take the month as tick % 12, and the economy divides annual figures by 12. Changing this number would change nothing; changing the convention means changing those."
     }
   },
   "tiles": {

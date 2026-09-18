@@ -106,7 +106,10 @@ List<String> _auditCopy(
   final tileIds = [for (final t in TileType.values) t.id];
   need('tileName', tileIds);
   need('tileDescription', tileIds);
-  need('categoryName', [for (final c in TileCategory.values) c.id]);
+  // TileCategory has no entry here on purpose: `categoryName` was copy for a
+  // grouped palette that never shipped, nothing in the app called it, and the
+  // i18n lint's unused-key check has since removed it. This audit checks that
+  // the copy the app *shows* is complete, not that every enum has a string.
   need('learningModeName', [for (final t in MissionTier.values) t.name]);
   need('learningModeDescription', [for (final t in MissionTier.values) t.name]);
 

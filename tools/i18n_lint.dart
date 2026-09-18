@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // i18n lint (task T-004):
 //  1. every key in app_en.arb exists in app_de.arb and vice versa;
-//  2. no translatable string literal is passed directly to Text(...) or to
+//  2. every key is actually used — `l10n.<key>` somewhere under app/lib or
+//     app/test. A key nobody reads is copy two translators maintain and
+//     nobody sees; eight had accumulated. `// i18n-unused: <key> <why>`
+//     anywhere under app/ keeps one deliberately.
+//  3. no translatable string literal is passed directly to Text(...) or to
 //     `tooltip:` / `message:` / `label:` / `title:` / `hintText:` /
 //     `semanticLabel:` named arguments inside app/lib (generated code
 //     excluded). Literals that only interpolate values ('$count', '$a · $b')
@@ -21,6 +25,33 @@ int main() {
   }
   for (final k in de.difference(en)) {
     stderr.writeln('missing in app_en.arb: $k');
+    failures++;
+  }
+
+  // Keys nothing reads. The generated localizations are excluded, since they
+  // define every key by construction and would make the check vacuous.
+  final dartSources = <String>[];
+  for (final root in ['app/lib', 'app/test']) {
+    final dir = Directory(root);
+    if (!dir.existsSync()) continue;
+    for (final entity in dir.listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      if (entity.path.contains('/l10n/generated/')) continue;
+      dartSources.add(entity.readAsStringSync());
+    }
+  }
+  final allDart = dartSources.join('\n');
+  final keptKeys = RegExp(r'// i18n-unused:\s*(\w+)')
+      .allMatches(allDart)
+      .map((m) => m.group(1)!)
+      .toSet();
+  for (final key in en) {
+    if (keptKeys.contains(key)) continue;
+    if (RegExp('\\.${RegExp.escape(key)}\\b').hasMatch(allDart)) continue;
+    stderr.writeln(
+      'unused key "$key": nothing under app/ reads it. Remove it from both '
+      'ARB files, or mark it with a `// i18n-unused: $key <why>` comment.',
+    );
     failures++;
   }
 

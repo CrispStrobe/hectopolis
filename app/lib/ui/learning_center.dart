@@ -74,6 +74,7 @@ Future<void> showMissionBriefing(
   if (learning == null) return;
   final l10n = AppLocalizations.of(context);
   String? prediction = controller.missionPrediction;
+  var answered = false;
   await showDialog<void>(
     context: context,
     barrierDismissible: false,
@@ -131,6 +132,7 @@ Future<void> showMissionBriefing(
               onPressed: () {
                 if (prediction != null) {
                   controller.answerMissionPrediction(prediction!);
+                  answered = true;
                 }
                 Navigator.pop(context);
               },
@@ -141,6 +143,14 @@ Future<void> showMissionBriefing(
       },
     ),
   );
+  // The predict step ends with the dialog closing and nothing else happening,
+  // which leaves the player unsure the answer was taken. The copy for saying so
+  // was written in both languages and never wired up.
+  if (answered && context.mounted) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.missionPredictionSaved)));
+  }
   controller.acknowledgeMissionBriefing();
 }
 
