@@ -476,6 +476,18 @@ class EconomyParams {
   final AttractivenessWeights attractiveness;
 }
 
+/// How the climate indicator turns tonnes into a score
+/// (docs/model/indicators.md).
+class ClimateParams {
+  ClimateParams(Map<String, dynamic> m)
+    : zeroScoreTonsPerPerson =
+          _p(m, 'zeroScoreTonsPerPerson', 'climate').value;
+
+  /// CO₂ per resident-or-job at which the climate score reaches zero. A net
+  /// sink scores one.
+  final double zeroScoreTonsPerPerson;
+}
+
 /// All simulation parameters, loaded from JSON. Immutable once built.
 class SimParams {
   SimParams._({
@@ -489,6 +501,7 @@ class SimParams {
     required this.habitat,
     required this.commute,
     required this.economy,
+    required this.climate,
     required this.seasons,
     required this.water,
   });
@@ -503,6 +516,7 @@ class SimParams {
   final HabitatParams habitat;
   final CommuteParams commute;
   final EconomyParams economy;
+  final ClimateParams climate;
   final SeasonParams seasons;
   final WaterParams water;
 
@@ -540,6 +554,7 @@ class SimParams {
       seasons: SeasonParams(_map(root['seasons'], 'seasons')),
       water: WaterParams(_map(root['water'], 'water')),
       economy: EconomyParams(_map(root['economy'], 'economy')),
+      climate: ClimateParams(_map(root['climate'], 'climate')),
     );
   }
 }

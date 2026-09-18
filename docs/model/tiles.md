@@ -159,48 +159,52 @@ same number, and there the two agree to two decimals.
 
 Traffic CO₂ is computed separately from car-km (0.15 kg/km, UBA fleet average).
 
-## CO₂ per hectare — buildings (**not** verified; see the warning below)
+## CO₂ per hectare — buildings (corrected in T-103)
 
-housing_low 25, housing_high 50, commercial 60, industry 400. These four are
-still the placeholders T-102 wrote, and T-103 found that **their own source
-strings did not produce them**: `housing_low` cited "≈ 2 t CO₂/EW/a at 45
-EW/ha", which is 90 t/ha, against a stored value of 25.
+The four built values were placeholders that **their own source strings did not
+produce**: `housing_low` cited "≈ 2 t CO₂/EW/a at 45 EW/ha", which is 90 t/ha,
+and stored 25. Checked against the national inventory they were all roughly a
+third of the real figure. They are now derived, each from a published total
+divided by a published denominator:
 
-Checked against UBA, direct CO₂ from private households' combustion plants was
-77 Mt in 2024 across about 83.5 M residents — 0.92 t per resident per year,
-before district heat and electricity, which the energy sector carries. At the
-model's own densities that is roughly **41 t/ha for housing_low and 166 t/ha
-for housing_high**: three times the stored values.
+| Tile | Was | Now | Derivation |
+|---|---|---|---|
+| housing_low | 25 | **42** | UBA: 77 Mt direct CO₂ from private households' combustion plants (2024) ÷ 4.1 bn m² Wohnfläche (Destatis, end 2024) = 18.8 kg/m²·a; × 49.2 m²/resident × 45 residents/ha |
+| housing_high | 50 | **166** | the same 18.8 kg/m²·a × 49.2 × 180 residents/ha |
+| commercial | 60 | **66** | KSG building sector 100 Mt − households 77 Mt = 23 Mt from commercial and service buildings ÷ 34.8 M service employees = 0.66 t/job·a; × 100 jobs/ha |
+| industry | 400 | **1220** | KSG industry sector 149 Mt ÷ 5.5 M employees in manufacturing establishments of 50+ (Destatis, end 2024) = 27.1 t/job·a; × 45 jobs/ha |
+| mixed_use | 55 | **140** | 120 residents and 45 jobs on the two rates above |
+| school | 30 | **33** | twice the commercial rate per job — a school heats far more floor area per employee — at 25 jobs/ha |
 
-They were left alone because raising them is not a parameter fix. The climate
-indicator scores 2.5 t CO₂ per person as zero
-(`indicators.dart`), which is already an aspirational scale rather than a
-German one — the real figure is about 7.8 — so tripling the housing term would
-push every city on every level to a climate score of zero. Correcting the
-table and rescaling the indicator have to happen together, and the level goals
-have to be re-proven winnable afterwards. That is a design decision, recorded
-here rather than taken quietly.
+Three things are worth saying plainly about this table.
 
-## References
+**The two housing tiles use the same emission per square metre.** UBA finds
+detached and apartment buildings differ only slightly per m² once the weather
+is corrected for. So the whole difference between 42 and 166 is density, which
+is the honest answer: an apartment block emits four times as much per hectare
+and the same per resident.
 
-- BKompV Anlage 2: https://www.gesetze-im-internet.de/bkompv/anlage_2.html
-- BfN-Schriften 721, Kartieranleitung für die Biotoptypen nach Anlage 2 BKompV
-- Destatis, Wohnfläche je Einwohner: https://www.destatis.de/DE/Presse/Pressemitteilungen/2025/09/PD25_336_31231.html
-- BauNVO § 17: https://www.gesetze-im-internet.de/baunvo/__17.html
-- Copernicus Land Monitoring Service, Imperviousness
-- GIFPRO Bedarfsprognose, Gewerbeflächenkonzept Bielefeld 2020, Baustein 07: https://www.bielefeld.de/sites/default/files/datei/2020/GewerbeflKonz_7.pdf
-- BauNVO § 19: https://www.gesetze-im-internet.de/baunvo/__19.html
-- Umweltatlas Berlin 01.02 Versiegelung 2021: https://www.berlin.de/umweltatlas/boden/versiegelung/2021/kartenbeschreibung/
-- Umweltatlas Berlin, Abschlussbericht Versiegelung 2021 (Tabelle 19): https://www.berlin.de/umweltatlas/_assets/literatur/ab_versiegelung_2021.pdf
-- InVEST User Guide, Urban Cooling Model
-- UBA, Emissionen der Landnutzung, -änderung und Forstwirtschaft: https://www.umweltbundesamt.de/daten/umweltzustand-trends/klima/treibhausgas-emissionen-in-deutschland/emissionen-der-landnutzung-aenderung
-- UBA, Energieverbrauch privater Haushalte: https://www.umweltbundesamt.de/daten/umweltzustand-trends/private-haushalte-konsum/wohnen/energieverbrauch-privater-haushalte
-- Destatis/Thünen, Waldgesamtrechnung 2021: https://www.destatis.de/DE/Presse/Pressemitteilungen/Zahl-der-Woche/2024/PD24_12_p002.html
-- Thünen, Ergebnisse der Bundeswaldinventur 2022: https://www.thuenen.de/de/themenfelder/waelder/die-bundeswaldinventur/ergebnisse-der-bundeswaldinventur-2022
-- Destatis, Landwirtschaftliche Bodennutzung nach Hauptnutzungsarten: https://www.destatis.de/DE/Themen/Branchen-Unternehmen/Landwirtschaft-Forstwirtschaft-Fischerei/Feldfruechte-Gruenland/Tabellen/flaechen-hauptnutzungsarten.html
-- Poeplau & Don 2013, Geoderma 192, 189–201; Poeplau et al. 2017, Sci. Rep. 7, 11550
-- Nowak et al. 2013, Environmental Pollution 178, 229–236
-- Greifswald Mire Centre, peatland conservation: https://www.greifswaldmoor.de/moore-61.html
+**District heat and electricity are not in these numbers.** They are about 15 %
+of residential heat (dena-Gebäudereport 2025) and the inventory books them to
+the energy sector, not to the building. The tile carries what the building
+burns.
+
+**industry 1220 is the German average, steel and cement included.** A municipal
+light-industry estate emits far less per job, and the 5.5 M denominator leaves
+out establishments under 50 employees, so the figure sits at the upper end of
+what an industrial hectare plausibly does. It was taken anyway, for the same
+reason `solar_field.co2PerHaYear` was: the alternative is a number chosen to be
+convenient rather than true. It makes industry the most expensive tile in the
+game climatically, which is what industry is.
+
+Correcting the table required moving the climate indicator's zero point from a
+hard-coded 2.5 t per person to Germany's own 5.0 t per resident-or-job
+(`climate.zeroScoreTonsPerPerson`, see `indicators.md`). The two changes belong
+together: real emissions judged against a scale calibrated to the old, too-small
+table would have scored every city zero. All six built-in levels remain solvable
+with three stars — `level_solutions_test.dart` is unchanged and passes — and
+`tuebingen`, the only level with a climate goal, now starts at 73.8 against a
+goal of 84.
 
 ## The six tiles added by T-502 (2026-09-17)
 
@@ -220,12 +224,17 @@ German ground-mount PV occupies about 1.4 ha per MWp, so a hectare is roughly
 0.7 MWp; at about 1000 kWh/kWp/yr that is 700 MWh/ha/yr; at the UBA grid
 emission factor of about 380 g CO₂/kWh that displaces 266 t/ha/yr.
 
-That is an order of magnitude larger than any other figure in the table —
-industry emits 400, forest absorbs 10 — and it is an **avoided** emission
-rather than an emitted one, sitting in a column that otherwise holds emissions.
-Both facts are true to the physics, and both have a consequence worth stating
-plainly: **a solar field is by far the strongest climate lever in the game, and
-tiling them would make the climate indicator easy to satisfy.**
+It is an **avoided** emission rather than an emitted one, sitting in a column
+that otherwise holds emissions — still true, and still worth watching: **a
+solar field remains the strongest climate lever a player can pull on the
+negative side, and tiling them makes the climate indicator easy to satisfy.**
+
+*Revised in T-103:* it is no longer an order of magnitude larger than
+everything else. Industry was corrected from 400 to 1220 t/ha/yr, so the
+largest number in the column is now an emission, and a solar field offsets
+about a fifth of an industrial hectare rather than two-thirds of one. The
+question the paragraph below raises is still open, but it is a smaller question
+than it was.
 
 It was left at the derived value rather than quietly scaled, because the
 alternative is a number that is wrong about the world in order to be

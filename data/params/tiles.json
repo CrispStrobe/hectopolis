@@ -450,8 +450,8 @@
         "source": "n/a"
       },
       "co2PerHaYear": {
-        "value": 25,
-        "source": "UBA: ~2 t CO2/EW/a Wohnen bei 45 EW/ha, minus gardens (initial estimate)"
+        "value": 42,
+        "source": "UBA, Energieverbrauch privater Haushalte: direkte CO2-Emissionen der Feuerungsanlagen privater Haushalte 77 Mt (2024) auf 4,1 Mrd. m² Wohnfläche (Destatis, Wohnungsbestand Ende 2024) = 18,8 kg CO2/m²/a. Bei 49,2 m² je Einwohner und 45 EW/ha sind das 41,6 t/ha/a. Fern- und Stromwärme (rund 15 % des Wärmeverbrauchs, dena-Gebäudereport 2025) stecken nicht darin, weil das Inventar sie der Energiewirtschaft zurechnet. Ein- und Mehrfamilienhäuser unterscheiden sich laut UBA je m² nur geringfügig, der Unterschied zwischen den Wohn-Tiles kommt also aus der Dichte"
       },
       "buildCostKEur": {
         "value": 200,
@@ -525,8 +525,8 @@
         "source": "n/a"
       },
       "co2PerHaYear": {
-        "value": 50,
-        "source": "UBA: heating per EW lower in multi-family, 180 EW/ha (initial estimate)"
+        "value": 166,
+        "source": "UBA, Energieverbrauch privater Haushalte: direkte CO2-Emissionen der Feuerungsanlagen privater Haushalte 77 Mt (2024) auf 4,1 Mrd. m² Wohnfläche (Destatis, Wohnungsbestand Ende 2024) = 18,8 kg CO2/m²/a. Bei 49,2 m² je Einwohner und 180 EW/ha sind das 166,5 t/ha/a. Fern- und Stromwärme (rund 15 % des Wärmeverbrauchs, dena-Gebäudereport 2025) stecken nicht darin, weil das Inventar sie der Energiewirtschaft zurechnet. Ein- und Mehrfamilienhäuser unterscheiden sich laut UBA je m² nur geringfügig, der Unterschied zwischen den Wohn-Tiles kommt also aus der Dichte"
       },
       "buildCostKEur": {
         "value": 400,
@@ -604,8 +604,8 @@
         "source": "n/a"
       },
       "co2PerHaYear": {
-        "value": 60,
-        "source": "initial estimate"
+        "value": 66,
+        "source": "UBA, finale Daten 2024: der KSG-Sektor Gebäude emittiert 100 Mt, davon 77 Mt private Haushalte, also rund 23 Mt aus Gebäuden von Gewerbe, Handel und Dienstleistungen. Auf 34,8 Mio. Erwerbstätige in den Dienstleistungsbereichen (Destatis, Erwerbstätige 2024) sind das 0,66 t je Arbeitsplatz und Jahr; bei 100 Arbeitsplätzen/ha ergibt das 66 t/ha/a"
       },
       "buildCostKEur": {
         "value": 300,
@@ -679,8 +679,8 @@
         "source": "n/a"
       },
       "co2PerHaYear": {
-        "value": 400,
-        "source": "UBA Emissionsdaten Industrie je Beschäftigten, scaled to 45 Besch./ha (initial estimate)"
+        "value": 1220,
+        "source": "UBA, finale Daten 2024: der KSG-Sektor Industrie emittiert 149 Mt (Energie und Prozesse). Auf 5,5 Mio. Beschäftigte in Betrieben des verarbeitenden Gewerbes ab 50 Beschäftigten (Destatis, Jahresende 2024) sind das 27,1 t je Arbeitsplatz und Jahr; bei 45 Arbeitsplätzen/ha ergibt das 1 220 t/ha/a. Der Wert ist der deutsche Durchschnitt einschließlich Stahl, Zement und Chemie und liegt damit am oberen Rand dessen, was ein kommunales Gewerbegebiet emittiert; Betriebe unter 50 Beschäftigten fehlen in der Bezugsgröße"
       },
       "buildCostKEur": {
         "value": 300,
@@ -1005,8 +1005,8 @@
         "source": "design: courtyards only, as apartment blocks"
       },
       "co2PerHaYear": {
-        "value": 55,
-        "source": "design: between apartment blocks (50) and commercial (60), reflecting both residents and business"
+        "value": 140,
+        "source": "derived: Wohnanteil 120 EW/ha × 49,2 m² × 18,8 kg = 111 t plus 45 Arbeitsplätze × 0,66 t = 30 t, zusammen rund 140 t/ha/a — dieselben Grundlagen wie housing_high und commercial"
       },
       "buildCostKEur": {
         "value": 450,
@@ -1088,8 +1088,8 @@
         "source": "design: grounds are open out of hours in many places but are not a park"
       },
       "co2PerHaYear": {
-        "value": 30,
-        "source": "design: a heated public building with few processes, above detached housing (25)"
+        "value": 33,
+        "source": "design: ein Schulgebäude heizt je Beschäftigtem deutlich mehr Fläche als ein Büro. Angesetzt ist das Doppelte der gewerblichen Kennzahl (0,66 t je Arbeitsplatz) bei 25 Arbeitsplätzen/ha = 33 t/ha/a"
       },
       "buildCostKEur": {
         "value": 900,
@@ -1658,6 +1658,12 @@
         0.44,
         0.275
       ]
+    }
+  },
+  "climate": {
+    "zeroScoreTonsPerPerson": {
+      "value": 5.0,
+      "source": "UBA, finale Daten 2024: 650 Mt CO2-Äq. in Deutschland, bezogen auf 83,5 Mio. Einwohner und 46,1 Mio. Erwerbstätige (Destatis 2024) = 5,0 t je Einwohner-oder-Arbeitsplatz. Eine Stadt, die emittiert wie Deutschland heute, bekommt damit 0 Punkte, eine klimaneutrale Stadt 100"
     }
   },
   "water": {
