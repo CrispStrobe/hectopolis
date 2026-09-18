@@ -568,6 +568,11 @@ class Authority {
 }
 
 const _authorities = <Authority>[
+  Authority('roadzone', r'Forman|Reijnen', 'Road-effect zone (Forman & Deblinger 2000; Reijnen & Foppen)',
+      'How far a road disturbs the life beside it. A four-lane highway averages '
+          'about 600 m; species-specific disturbance distances derived from '
+          'traffic noise run from tens of metres to over a kilometre. Sets the '
+          'road threat distance in habitat quality.'),
   Authority('invest', r'InVEST', 'InVEST (Natural Capital Project)',
       'Open-source ecosystem-service models. Hectopolis follows the Urban '
           'Cooling and Habitat Quality modules, including their example '
@@ -587,6 +592,11 @@ const _authorities = <Authority>[
       'Technische Anleitung zum Schutz gegen Lärm, the German immission '
           'guidance whose area-type limits (55 dB(A) day in a general '
           'residential area) the noise score uses.'),
+  Authority('din18005', r'DIN 18005', 'DIN 18005-1 area-related sound power',
+      'Ziffer 5.2.3 sets the flächenbezogener Schallleistungspegel a '
+          'commercial (60 dB(A)/m²) or industrial (65) hectare may radiate. '
+          'Spread over a hectare and taken to the 50 m tile reference, it is '
+          'the emission of those two tiles.'),
   Authority('rls19', r'RLS-19', 'RLS-19',
       'Richtlinien für den Lärmschutz an Straßen, published as an '
           'administrative regulation (BayMBl. 2021 Nr. 255). Road emission '
@@ -604,6 +614,15 @@ const _authorities = <Authority>[
   Authority('mid', r'MiD 2017', 'MiD 2017 (Mobilität in Deutschland)',
       'The national travel survey (BMVI/infas): modal split by trip distance, '
           'mean commute length, and the cycling analyses.'),
+  Authority('poeplau', r'Poeplau', 'Poeplau & Don 2013 / Poeplau et al. 2017',
+      'European meta-analyses of soil organic carbon after land-use change. '
+          'Converting cropland to grassland builds about 0.8 t C/ha/yr, with '
+          'the 2017 paper cautioning that highly productive arable land is a '
+          'poor candidate.'),
+  Authority('peat', r'Greifswald', 'Greifswald Mire Centre',
+      'Rewetting drained peat saves at least 20 t CO₂-eq per hectare and '
+          'year against drained grassland, and a rewetted fen turns from '
+          'source to sink over roughly 15 years. Sets the wetland tile.'),
   Authority('destatis', r'Destatis|Zensus 2022', 'Destatis / Zensus 2022',
       'Federal Statistical Office. The 100 m population grid sets the cell '
           'size (1 ha), and the tax press releases set per-resident and '
@@ -618,9 +637,21 @@ const _authorities = <Authority>[
   Authority('copernicus', r'Copernicus', 'Copernicus Imperviousness',
       'The pan-European high-resolution imperviousness layer, used for the '
           'sealed fraction of each land cover.'),
+  Authority('umweltatlas', r'Umweltatlas', 'Umweltatlas Berlin 01.02 Versiegelung',
+      'Berlin measures the sealed fraction of every block from satellite '
+          'imagery, building outlines and street-survey data, and publishes '
+          'the mean per land-use type. It is the only German dataset that '
+          'measures sealing by use rather than assuming it, so the built '
+          'tiles take their sealed fraction from it '
+          '(dl-de/zero-2.0).'),
   Authority('baunvo', r'BauNVO', 'BauNVO',
       'Baunutzungsverordnung: the site-occupancy (GRZ) and floor-area (GFZ) '
           'ceilings from which residents and jobs per hectare are derived.'),
+  Authority('gifpro', r'GIFPRO', 'GIFPRO Flächenkennziffern',
+      'The standard German method for forecasting commercial land demand, in '
+          'square metres of net building land per employee. Inverted, it '
+          'gives jobs per hectare: 225 m² on the standard model, 250 for '
+          'manufacturing, 100 for business services.'),
   Authority('bbsr', r'BBSR', 'BBSR',
       'Bundesinstitut für Bau-, Stadt- und Raumforschung: employment density '
           'per hectare by use, walking catchments for local supply, and '
@@ -640,6 +671,11 @@ const _authorities = <Authority>[
   Authority('dwd', r'\bDWD\b', 'Deutscher Wetterdienst',
       'Prevailing wind direction and speed, the vegetation period, and the '
           '2–4 K urban heat island intensity of German mid-size cities.'),
+  Authority('galk', r'GALK', 'GALK green-space benchmarks',
+      'The Deutsche Gartenamtsleiterkonferenz collects what municipal parks '
+          'departments actually spend: park lawn about €0.40/m² a year for '
+          'mowing alone, a park tree about €52 a year. Sets park and meadow '
+          'upkeep.'),
   Authority('difu', r'Difu|KfW', 'Difu / KfW Kommunalpanel',
       'Municipal infrastructure maintenance backlogs, used for road upkeep '
           'per 100 m section.'),

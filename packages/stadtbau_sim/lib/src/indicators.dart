@@ -201,10 +201,13 @@ IndicatorSnapshot computeIndicators(
       : 0.0;
 
   // CO₂ per person (residents + jobs), floored at a tenth of the cell count
-  // so that empty maps are judged by their absolute balance. 2.5 t/person/a
-  // scores zero; a net sink scores one.
+  // so that empty maps are judged by their absolute balance. The zero point is
+  // Germany's own figure per resident-or-job (climate.zeroScoreTonsPerPerson):
+  // a city that emits like the country scores zero, a net sink scores one.
   final people = math.max(population + f.jobsCapacity, n / 10);
-  final co2Score = clamp01(1 - (co2TonsPerYear / people) / 2.5);
+  final co2Score = clamp01(
+    1 - (co2TonsPerYear / people) / p.climate.zeroScoreTonsPerPerson,
+  );
   final climate = 100 * (0.7 * co2Score + 0.3 * (1 - clamp01(heat / p.heat.uhiMaxC)));
 
   final scores = <Indicator, double>{

@@ -49,7 +49,7 @@
       },
       "airSink": {
         "value": 0.05,
-        "source": "Nowak et al. 2006 deposition magnitudes; grass minor (initial estimate)"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Gras statt Kronen: ein Viertel des Parkwerts."
       },
       "shade": {
         "value": 0.05,
@@ -69,15 +69,15 @@
       },
       "co2PerHaYear": {
         "value": -1.0,
-        "source": "UBA / Thünen: grassland soil carbon sink ~1 t CO2/ha/a (initial estimate)"
+        "source": "Poeplau & Don 2013 (Geoderma 192, 189–201): Umwandlung Acker → Grünland baut im Mittel 0,8 t C/ha/a Bodenkohlenstoff auf, also rund 2,9 t CO2/ha/a; Poeplau et al. 2017 (Sci. Rep. 7, 11550) mahnt für hochproduktive Ackerböden zur Vorsicht, deshalb der konservative Ansatz von 1 t CO2/ha/a. Das ist die Rate einer neu angelegten Wiese, nicht der deutsche Grünlanddurchschnitt: der ist laut UBA-Inventar 2024 mit 24,2 Mt CO2-Äq. auf 4,74 Mio. ha (Destatis 2025) eine Quelle von 5,1 t/ha/a, weil entwässerte Moorböden dominieren"
       },
       "buildCostKEur": {
         "value": 5,
-        "source": "Ansaat Extensivwiese ~0.5 €/m² (initial estimate)"
+        "source": "Difu, Folgekosten der Siedlungsentwicklung (REFINA Band III, 2009), dort nach TMLNU 2003: auf brachgefallenem nassem Grünland kostet die Herstellung einer Feuchtwiese rund 5 000 €/ha — die Größenordnung einer Ansaat ohne Erdbau, die auch für die Extensivwiese gilt"
       },
       "maintenanceKEurYear": {
         "value": 1,
-        "source": "1–2 Mahden/Jahr (initial estimate)"
+        "source": "GALK-Kennzahlen zur Unterhaltung von Grünanlagen (Deutsche Gartenamtsleiterkonferenz, überarbeitet 2012, veröffentlicht in Stadt+Grün): deutlich unter dem Parkrasen (0,40 €/m²/a bei regelmäßiger Mahd), weil die Extensivwiese ein- bis zweimal im Jahr gemäht wird — 0,10 €/m²/a"
       },
       "noiseNightReductionDb": {
         "value": 0,
@@ -120,11 +120,11 @@
       },
       "airEmission": {
         "value": 0.05,
-        "source": "EMEP/EEA Guidebook: agriculture NH3/PM minor at this scale (initial estimate)"
+        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Landwirtschaft trägt 12,1 % der NOx-Emissionen und relevante NH3-Mengen bei, aber verteilt über 11,66 Mio. ha Ackerland — je Hektar wenig. 0,05 ist die kleinste Stufe über null. calibration T-114: der Acker-Archetyp erreicht einen Luftindex von 96, im Zielband über 90"
       },
       "airSink": {
         "value": 0.02,
-        "source": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Offener Acker, überwiegend ohne Bestand außerhalb der Vegetationszeit."
       },
       "shade": {
         "value": 0.02,
@@ -144,7 +144,7 @@
       },
       "co2PerHaYear": {
         "value": 1.5,
-        "source": "UBA: cropland net source incl. fertiliser N2O (initial estimate)"
+        "source": "UBA, Emissionen der Landnutzung (LULUCF), Berichtsjahr 2024: Ackerland 17,5 Mt CO2-Äq.; bezogen auf 11,66 Mio. ha Ackerland (Destatis, Flächen nach Hauptnutzungsarten 2025) sind das 1,50 t/ha/a. 62 % davon stammen aus organischen Böden, mineralische Ackerböden liegen darunter"
       },
       "buildCostKEur": {
         "value": 2,
@@ -201,7 +201,7 @@
       },
       "airSink": {
         "value": 0.2,
-        "source": "Nowak et al. 2006 (i-Tree): urban trees remove up to few % of PM/NO2 locally; scaled to 20 % of local index (initial estimate)"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Der Wald ist die Obergrenze der Skala: 0,20 je Feld im 3-Felder-Mittel."
       },
       "shade": {
         "value": 0.9,
@@ -221,7 +221,7 @@
       },
       "co2PerHaYear": {
         "value": -10.0,
-        "source": "Thünen Bundeswaldinventur: ~10 t CO2/ha/a net sink in growing forest (initial estimate)"
+        "source": "Rate eines neu begründeten, wachsenden Bestandes, nicht des deutschen Waldes im Mittel. Waldgesamtrechnung (Thünen-Institut im Auftrag des Statistischen Bundesamtes): 52,5 Mt CO2 netto auf 10,7 Mio. ha Wald (2021) = 4,9 t/ha/a; die II. Altersklasse (21–40 Jahre) bindet am meisten, ein sich etablierender Mischwald rund 2,4 t C/ha/a = 8,8 t CO2/ha/a. Gegenprobe und Warnung: nach der Bundeswaldinventur 2022 ist der deutsche Wald 2017–2022 durch Kalamitäten zur Quelle geworden (UBA-Inventar 2024: Wald +2,1 Mt), der Spielwert gilt also für eine Aufforstung unter günstigen Bedingungen"
       },
       "buildCostKEur": {
         "value": 20,
@@ -277,7 +277,7 @@
       },
       "airSink": {
         "value": 0.03,
-        "source": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Offene Wasserfläche nimmt nass deponierend etwas auf, ohne Blattoberflächen."
       },
       "shade": {
         "value": 0.0,
@@ -327,8 +327,8 @@
         "source": "Grünflächenamt/Gastronomie (initial estimate)"
       },
       "sealing": {
-        "value": 0.15,
-        "source": "paths and playgrounds (initial estimate)"
+        "value": 0.1,
+        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Typ 53 'Park / Grünfläche' 10,1 %, davon nur 0,7 % bebaut — Wege, Plätze und Spielflächen"
       },
       "biotopeValue": {
         "value": 13,
@@ -354,7 +354,7 @@
       },
       "airSink": {
         "value": 0.1,
-        "source": "Nowak et al. 2006 scaled (initial estimate)"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Halber Waldwert, weil eine Parkhektare nur etwa die halbe Kronenfläche hat (shade 0,5 gegen 0,9)."
       },
       "shade": {
         "value": 0.5,
@@ -374,7 +374,7 @@
       },
       "co2PerHaYear": {
         "value": -3.0,
-        "source": "initial estimate"
+        "source": "Nowak et al. 2013 (Environmental Pollution 178, 229–236): st\u00e4dtische B\u00e4ume binden brutto 0,28 kg C je m\u00b2 Kronenfl\u00e4che und Jahr; bei der Kronenfl\u00e4che 0,5 dieses Tiles sind das 1,4 t C = 5,1 t CO2/ha/a im ausgewachsenen Zustand. Angesetzt sind 3,0, weil co2PerHaYear nicht mit dem Tile altert und ein Park seine ersten zwei Jahrzehnte darunter liegt"
       },
       "buildCostKEur": {
         "value": 400,
@@ -382,7 +382,7 @@
       },
       "maintenanceKEurYear": {
         "value": 20,
-        "source": "Grünflächenpflege 1–3 €/m²/a (initial estimate)"
+        "source": "GALK-Kennzahlen zur Unterhaltung von Grünanlagen (Deutsche Gartenamtsleiterkonferenz, überarbeitet 2012, veröffentlicht in Stadt+Grün): Rasen in einer Parkanlage rund 0,40 €/m²/a allein für die Mahd, ein Parkbaum rund 52 €/Jahr. Eine intensiv genutzte Parkhektare mit Wegen, Beeten, Baumbestand, Spielflächen, Abfall und Verkehrssicherungskontrolle liegt bei rund 2 €/m²/a, also 20 k€/ha/a"
       },
       "noiseNightReductionDb": {
         "value": 0,
@@ -405,7 +405,7 @@
       },
       "sealing": {
         "value": 0.45,
-        "source": "BauNVO WR/WA GRZ 0.4 plus roads (initial estimate)"
+        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Flächentyp 23 'Freistehende Einfamilienhäuser mit Gärten' 34,9 %, Typ 22 'Reihen- und Doppelhäuser mit Gärten' 37,3 %, Typ 25 'Verdichtung in Einzelhausgebieten' 39,9 %; auf die Brutto-Hektare mit Erschließungsstraßen hochgerechnet (Straßenraum 85,2 % bei 11,6 % Flächenanteil): 0,87·0,37 + 0,13·0,85 ≈ 0,44. Deckt sich mit BauNVO § 17 GRZ 0,4 für WR/WA zuzüglich der nach § 19 Abs. 4 zulässigen Überschreitung"
       },
       "biotopeValue": {
         "value": 5,
@@ -421,15 +421,15 @@
       },
       "noiseEmissionDb": {
         "value": 45,
-        "source": "TA Lärm: residential background; own traffic (initial estimate)"
+        "source": "design: ein Wohngebiet ist selbst kaum Schallquelle — sein Verkehr steckt in den Straßen-Tiles. 45 dB(A) in 50 m steht für das Restgeräusch (Haustechnik, Menschen, Anliegerverkehr) und liegt unter dem TA-Lärm-Tagrichtwert für reine Wohngebiete (50 dB(A)). Für Wohngebiete gibt es keinen flächenbezogenen Schallleistungspegel wie für GE und GI; dieser Wert wird sich nicht extern belegen lassen"
       },
       "airEmission": {
         "value": 0.15,
-        "source": "EMEP/EEA: residential heating share (initial estimate)"
+        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Wohnen ist bei PM2,5 groß (Holz- und Ölheizungen), bei NOx klein. 0,15 relativ zur Straße (1,0) ordnet ein Einzelhausgebiet dort ein. calibration T-114: der Dorf-Archetyp erreicht damit einen Luftindex von 92"
       },
       "airSink": {
         "value": 0.03,
-        "source": "gardens (initial estimate)"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Gärten und Straßenbäume eines Einzelhausgebiets."
       },
       "shade": {
         "value": 0.15,
@@ -450,12 +450,12 @@
         "source": "n/a"
       },
       "co2PerHaYear": {
-        "value": 25,
-        "source": "UBA: ~2 t CO2/EW/a Wohnen bei 45 EW/ha, minus gardens (initial estimate)"
+        "value": 42,
+        "source": "UBA, Energieverbrauch privater Haushalte: direkte CO2-Emissionen der Feuerungsanlagen privater Haushalte 77 Mt (2024) auf 4,1 Mrd. m² Wohnfläche (Destatis, Wohnungsbestand Ende 2024) = 18,8 kg CO2/m²/a. Bei 49,2 m² je Einwohner und 45 EW/ha sind das 41,6 t/ha/a. Fern- und Stromwärme (rund 15 % des Wärmeverbrauchs, dena-Gebäudereport 2025) stecken nicht darin, weil das Inventar sie der Energiewirtschaft zurechnet. Ein- und Mehrfamilienhäuser unterscheiden sich laut UBA je m² nur geringfügig, der Unterschied zwischen den Wohn-Tiles kommt also aus der Dichte"
       },
       "buildCostKEur": {
         "value": 200,
-        "source": "Erschließungskosten ~20 €/m² Bruttobauland (initial estimate)"
+        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Einzelhausgebiet liegt mit 20 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
       },
       "maintenanceKEurYear": {
         "value": 2,
@@ -482,7 +482,7 @@
       },
       "sealing": {
         "value": 0.75,
-        "source": "BauNVO WA/MI GRZ 0.6 plus roads (initial estimate)"
+        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Geschosswohnungsbau zwischen Typ 3 'Geschlossene und halboffene Blockbebauung' 65,6 %, Typ 73 'Geschosswohnungsbau der 1990er Jahre und jünger' 64,3 % und Typ 2 'Geschlossene Blockbebauung, 5-geschossig' 77,8 %; mit Erschließungsstraßen (Straßenraum 85,2 % bei 11,6 % Flächenanteil) 0,72–0,79. Entspricht BauNVO § 17 GRZ 0,6 für WA/MI plus § 19 Abs. 4"
       },
       "biotopeValue": {
         "value": 4,
@@ -498,15 +498,15 @@
       },
       "noiseEmissionDb": {
         "value": 50,
-        "source": "TA Lärm: urban residential background (initial estimate)"
+        "source": "design: wie housing_low, aber vierfache Dichte — 5 dB(A) darüber, auf dem TA-Lärm-Tagrichtwert für reine Wohngebiete und unter dem für allgemeine Wohngebiete (55 dB(A))"
       },
       "airEmission": {
         "value": 0.3,
-        "source": "EMEP/EEA: heating + local traffic (initial estimate)"
+        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Geschosswohnungsbau hat die vierfache Dichte von housing_low, aber je Einwohner weniger Einzelfeuerung; angesetzt ist der Faktor 2, nicht 4. calibration T-114: der Archetyp dichtes Quartier erreicht damit einen Luftindex von 80, im Zielband 60–85"
       },
       "airSink": {
         "value": 0.01,
-        "source": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Blockbebauung hat kaum durchgrünte Fläche."
       },
       "shade": {
         "value": 0.1,
@@ -525,12 +525,12 @@
         "source": "n/a"
       },
       "co2PerHaYear": {
-        "value": 50,
-        "source": "UBA: heating per EW lower in multi-family, 180 EW/ha (initial estimate)"
+        "value": 166,
+        "source": "UBA, Energieverbrauch privater Haushalte: direkte CO2-Emissionen der Feuerungsanlagen privater Haushalte 77 Mt (2024) auf 4,1 Mrd. m² Wohnfläche (Destatis, Wohnungsbestand Ende 2024) = 18,8 kg CO2/m²/a. Bei 49,2 m² je Einwohner und 180 EW/ha sind das 166,5 t/ha/a. Fern- und Stromwärme (rund 15 % des Wärmeverbrauchs, dena-Gebäudereport 2025) stecken nicht darin, weil das Inventar sie der Energiewirtschaft zurechnet. Ein- und Mehrfamilienhäuser unterscheiden sich laut UBA je m² nur geringfügig, der Unterschied zwischen den Wohn-Tiles kommt also aus der Dichte"
       },
       "buildCostKEur": {
         "value": 400,
-        "source": "Erschließung + Infrastrukturfolgekosten (initial estimate)"
+        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Geschosswohnungsbau mit höherem Infrastrukturaufwand liegt mit 40 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
       },
       "maintenanceKEurYear": {
         "value": 4,
@@ -553,7 +553,7 @@
       },
       "jobsPerHa": {
         "value": 100,
-        "source": "BBSR Flächenkennwerte: Büro/Einzelhandel 80–150 Beschäftigte/ha (initial estimate)"
+        "source": "GIFPRO-Flächenkennziffern, wie sie in kommunalen Gewerbeflächenkonzepten angewandt werden (Difu-Methodik; TBS-GIFPRO-Tabelle im Gewerbeflächenkonzept Bielefeld 2020, Baustein 07): wirtschaftsnahe Dienstleistungen 100 m² Nettobauland je Beschäftigten = 100 Beschäftigte/ha. Einzelhandel/Kfz-Handel liegt mit 250 m² deutlich darunter (40/ha), sonstige Dienstleistungen mit 50 m² darüber (200/ha); der Tile bildet die Mischung aus Büro und Handel ab"
       },
       "retailFloorM2": {
         "value": 2000,
@@ -561,7 +561,7 @@
       },
       "sealing": {
         "value": 0.85,
-        "source": "BauNVO GE GRZ 0.8 (initial estimate)"
+        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Typ 29 'Kerngebiet' 85,7 %; mit Erschließungsstraßen (Straßenraum 85,2 % bei 11,6 % Flächenanteil) ≈ 0,86. BauNVO § 17 GRZ 0,8 für GE ist die rechtliche Obergrenze"
       },
       "biotopeValue": {
         "value": 2,
@@ -577,11 +577,11 @@
       },
       "noiseEmissionDb": {
         "value": 58,
-        "source": "TA Lärm GE limit 65 day; delivery traffic typical 55–60 at boundary (initial estimate)"
+        "source": "DIN 18005-1 Ziffer 5.2.3 nennt flächenbezogene Schallleistungspegel von 60 dB(A)/m² für Gewerbegebiete und 65 dB(A)/m² für Industriegebiete (Werte wiedergegeben bei Versteyl/Storr/Schiller, Die schalltechnische Überplanung von bebauten Gewerbe- und Industriegebieten mit Emissionskontingenten). Für eine Hektare: L_W = 60 + 10·log10(10 000) = 100 dB(A); über der Halbkugel in 50 m Abstand L = L_W − 10·log10(2π·50²) = 58 dB(A). Die TA-Lärm-Tagrichtwerte (65 dB(A) für GE) sind die Immissionsgrenze, nicht die Emission"
       },
       "airEmission": {
         "value": 0.6,
-        "source": "EMEP/EEA: delivery traffic, HVAC (initial estimate)"
+        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Handel und Dienstleistung emittieren vor allem über Lieferverkehr und Heizung; angesetzt ist rund die Hälfte einer Hauptstraße. calibration T-114"
       },
       "airSink": {
         "value": 0.0,
@@ -604,12 +604,12 @@
         "source": "n/a"
       },
       "co2PerHaYear": {
-        "value": 60,
-        "source": "initial estimate"
+        "value": 66,
+        "source": "UBA, finale Daten 2024: der KSG-Sektor Gebäude emittiert 100 Mt, davon 77 Mt private Haushalte, also rund 23 Mt aus Gebäuden von Gewerbe, Handel und Dienstleistungen. Auf 34,8 Mio. Erwerbstätige in den Dienstleistungsbereichen (Destatis, Erwerbstätige 2024) sind das 0,66 t je Arbeitsplatz und Jahr; bei 100 Arbeitsplätzen/ha ergibt das 66 t/ha/a"
       },
       "buildCostKEur": {
         "value": 300,
-        "source": "Erschließung Gewerbe (initial estimate)"
+        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Gewerbe liegt mit 30 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
       },
       "maintenanceKEurYear": {
         "value": 3,
@@ -632,11 +632,11 @@
       },
       "jobsPerHa": {
         "value": 45,
-        "source": "BBSR Flächenkennwerte: produzierendes Gewerbe 30–60 Beschäftigte/ha (initial estimate)"
+        "source": "GIFPRO-Flächenkennziffern (Difu-Methodik; Gewerbeflächenkonzept Bielefeld 2020, Baustein 07): Standardmodell 225 m² Nettobauland je Beschäftigten = 44 Beschäftigte/ha; nach Vallee et al. 2012 verarbeitendes Gewerbe 250 m² (40/ha), emissionsintensives verarbeitendes Gewerbe 200 m² (50/ha), emissionsarmes 150 m² (67/ha). 45 ist der Standardwert, gerundet"
       },
       "sealing": {
-        "value": 0.9,
-        "source": "BauNVO GI GRZ 0.8 plus yards (initial estimate)"
+        "value": 0.88,
+        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Typ 31 'Gewerbe- und Industriegebiet, dichte Bebauung' 88,4 % (davon 38,0 % unbebaut versiegelt, also Hof- und Lagerflächen); mit Erschließungsstraßen (Straßenraum 85,2 % bei 11,6 % Flächenanteil) ≈ 0,88. Die ganze Nutzungsklasse liegt mit 70,7 % niedriger, weil sie auch gering bebaute Standorte (Typ 30, 66,9 %) enthält; eine voll ausgebaute Industrie-Hektare im Spiel ist der dichte Fall"
       },
       "biotopeValue": {
         "value": 2,
@@ -651,12 +651,12 @@
         "source": "design"
       },
       "noiseEmissionDb": {
-        "value": 65,
-        "source": "TA Lärm GI limit 70 day; typical plant boundary 60–68 (initial estimate)"
+        "value": 63,
+        "source": "DIN 18005-1 Ziffer 5.2.3 nennt flächenbezogene Schallleistungspegel von 60 dB(A)/m² für Gewerbegebiete und 65 dB(A)/m² für Industriegebiete (Werte wiedergegeben bei Versteyl/Storr/Schiller, Die schalltechnische Überplanung von bebauten Gewerbe- und Industriegebieten mit Emissionskontingenten). Für eine Hektare: L_W = 65 + 10·log10(10 000) = 105 dB(A); über der Halbkugel in 50 m Abstand L = L_W − 10·log10(2π·50²) = 63 dB(A). Die TA-Lärm-Tagrichtwerte (70 dB(A) für GI) sind die Immissionsgrenze, nicht die Emission. Der frühere Wert 65 war um 2 dB höher als die Norm hergibt"
       },
       "airEmission": {
         "value": 3.0,
-        "source": "EMEP/EEA: industrial combustion and processes dominate local PM/NOx (initial estimate, relative units)"
+        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Je Hektar gerechnet läge Industrie nach Inventar noch deutlich höher — 149 kt NOx-Größenordnung auf 5,5 Mio. Beschäftigte gegenüber 365 000 Fahrzeugkilometern je Straßen-Hektar. Angesetzt ist 3,0 statt des Inventarverhältnisses, weil das Luftmodell keine Schornsteinhöhe und keinen Abgasauftrieb kennt (docs/model/air.md, Limits): ein Hochkamin und eine Straße verteilen hier identisch, und eine bodennahe Quelle mit Inventarstärke würde die Nachbarschaft maßlos belasten. calibration T-114: der Archetyp Industriegebiet erreicht damit einen Luftindex von 87"
       },
       "airSink": {
         "value": 0.0,
@@ -679,12 +679,12 @@
         "source": "n/a"
       },
       "co2PerHaYear": {
-        "value": 400,
-        "source": "UBA Emissionsdaten Industrie je Beschäftigten, scaled to 45 Besch./ha (initial estimate)"
+        "value": 1220,
+        "source": "UBA, finale Daten 2024: der KSG-Sektor Industrie emittiert 149 Mt (Energie und Prozesse). Auf 5,5 Mio. Beschäftigte in Betrieben des verarbeitenden Gewerbes ab 50 Beschäftigten (Destatis, Jahresende 2024) sind das 27,1 t je Arbeitsplatz und Jahr; bei 45 Arbeitsplätzen/ha ergibt das 1 220 t/ha/a. Der Wert ist der deutsche Durchschnitt einschließlich Stahl, Zement und Chemie und liegt damit am oberen Rand dessen, was ein kommunales Gewerbegebiet emittiert; Betriebe unter 50 Beschäftigten fehlen in der Bezugsgröße"
       },
       "buildCostKEur": {
         "value": 300,
-        "source": "initial estimate"
+        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Industrie liegt mit 30 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
       },
       "maintenanceKEurYear": {
         "value": 3,
@@ -728,7 +728,7 @@
       "noiseEmissionDb": {
         "value": 60,
         "source": "Sound power of one 100 m segment at the 50 m reference, calibrated so that the energetic sum of segments gives L_den ≈ 58 dB(A) at 100 m and ≈ 65 dB(A) at 25 m from a straight road with 10 000 Kfz/24h at 50 km/h (RLS-19 / CNOSSOS-EU orders of magnitude)",
-        "note": "initial estimate"
+        "note": "calibration: the segment level is set so the summed field reproduces the RLS-19 / CNOSSOS orders of magnitude quoted in the source"
       },
       "airEmission": {
         "value": 1.0,
@@ -815,8 +815,7 @@
       },
       "airSink": {
         "value": 0.08,
-        "source": "vegetated surface, below forest (0.20) and near park (0.10); Nowak et al. 2006 scaled",
-        "note": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Bewachsene Fläche zwischen Wiese (0,05) und Park (0,10)."
       },
       "shade": {
         "value": 0.1,
@@ -836,13 +835,11 @@
       },
       "co2PerHaYear": {
         "value": -5.0,
-        "source": "UBA: intact peat and wetland soils are net carbon sinks; set between park (-3) and forest (-10)",
-        "note": "initial estimate"
+        "source": "Greifswald Moor Centrum / Universität Greifswald: Wiedervernässung spart gegenüber entwässerter Grünlandnutzung mindestens 20 t CO2-Äq./ha/a; wiedervernässte Niedermoore gehen von der Quelle zur Senke über, erreichen die Standard-Emissionsfaktoren aber erst 13–16 Jahre nach der Wiedervernässung ('Temporally dynamic carbon dioxide and methane emission factors for rewetted peatlands', Commun. Earth Environ. 2024). 5 t/ha/a ist der konservative Senkenwert, deutlich unter den vermiedenen 20 t"
       },
       "buildCostKEur": {
-        "value": 250,
-        "source": "Renaturierung/Anlage von Feuchtflaechen, near open water (200)",
-        "note": "initial estimate"
+        "value": 20,
+        "source": "Difu, Folgekosten der Siedlungsentwicklung (REFINA Band III, 2009), dort nach TMLNU 2003: Herstellungskosten einer Feuchtwiese auf Acker einschließlich Wiedervernässung rund 20 000 €/ha (auf brachgefallenem nassem Grünland rund 5 000 €/ha). Der frühere Wert von 250 k€/ha war eine Schätzung in der Größenordnung eines ausgebaggerten Teichs, nicht einer Vernässung"
       },
       "maintenanceKEurYear": {
         "value": 1,
@@ -986,8 +983,7 @@
       },
       "airSink": {
         "value": 0.02,
-        "source": "street trees and courtyards",
-        "note": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Straßenbäume und Höfe."
       },
       "shade": {
         "value": 0.35,
@@ -1006,8 +1002,8 @@
         "source": "design: courtyards only, as apartment blocks"
       },
       "co2PerHaYear": {
-        "value": 55,
-        "source": "design: between apartment blocks (50) and commercial (60), reflecting both residents and business"
+        "value": 140,
+        "source": "derived: Wohnanteil 120 EW/ha × 49,2 m² × 18,8 kg = 111 t plus 45 Arbeitsplätze × 0,66 t = 30 t, zusammen rund 140 t/ha/a — dieselben Grundlagen wie housing_high und commercial"
       },
       "buildCostKEur": {
         "value": 450,
@@ -1069,8 +1065,7 @@
       },
       "airSink": {
         "value": 0.05,
-        "source": "grounds planting, as meadow",
-        "note": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Schulgelände mit Rasen und Bäumen, wie die Wiese."
       },
       "shade": {
         "value": 0.4,
@@ -1089,8 +1084,8 @@
         "source": "design: grounds are open out of hours in many places but are not a park"
       },
       "co2PerHaYear": {
-        "value": 30,
-        "source": "design: a heated public building with few processes, above detached housing (25)"
+        "value": 33,
+        "source": "design: ein Schulgebäude heizt je Beschäftigtem deutlich mehr Fläche als ein Büro. Angesetzt ist das Doppelte der gewerblichen Kennzahl (0,66 t je Arbeitsplatz) bei 25 Arbeitsplätzen/ha = 33 t/ha/a"
       },
       "buildCostKEur": {
         "value": 900,
@@ -1231,8 +1226,7 @@
       },
       "airSink": {
         "value": 0.06,
-        "source": "verge planting, between meadow (0.05) and park (0.10)",
-        "note": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Begrünter Seitenraum, zwischen Wiese (0,05) und Park (0,10)."
       },
       "shade": {
         "value": 0.35,
@@ -1291,7 +1285,7 @@
     },
     "buildingScreeningDbPerTile": {
       "value": 5,
-      "source": "CNOSSOS-EU diffraction; dense building row typical 5–10 dB (initial estimate)"
+      "source": "design, anchored on ISO 9613-2 und CNOSSOS-EU: eine geschlossene Bebauungszeile wirkt wie ein Schirm und bringt in der Praxis 5–10 dB Einfügungsdämmung; angesetzt ist der untere Rand, weil eine Spiel-Hektare keine geschlossene Zeile garantiert. ISO 9613-2 deckelt Einfachbeugung bei 20 dB"
     },
     "maxPathAttenuationDb": {
       "value": 20,
@@ -1299,7 +1293,7 @@
     },
     "backgroundDb": {
       "value": 35,
-      "source": "TA Lärm: rural night background (initial estimate)"
+      "source": "TA Lärm Nr. 6.1: Immissionsrichtwert für reine Wohngebiete nachts 35 dB(A) — der niedrigste Wert der Tabelle und damit die ruhigste Umgebung, die die Verwaltungsvorschrift kennt. Das Feld fällt nirgends darunter"
     },
     "radiusTiles": {
       "value": 8,
@@ -1337,7 +1331,7 @@
   "air": {
     "decayLengthM": {
       "value": 300,
-      "source": "simplified Gaussian-plume near-field; EMEP/EEA guidance for street-scale gradients (initial estimate)"
+      "source": "design, anchored on Pasquill-Gifford: das Modell ist ein Ersatz für eine Gaußfahne, keine Lösung einer solchen (docs/model/air.md). 300 m Abklinglänge heißt, dass eine Quelle nach 300 m auf 37 % und nach 600 m auf 14 % abgefallen ist — die Größenordnung, in der Straßenschluchten- und Nahfeldgradienten in der EMEP/EEA-Praxis abklingen. Auf einem 100-m-Raster ist das die Entscheidung, die zählt: drei Felder Abstand halbieren die Belastung mehr als einmal"
     },
     "radiusTiles": {
       "value": 6,
@@ -1345,7 +1339,7 @@
     },
     "sinkRadiusTiles": {
       "value": 3,
-      "source": "Nowak et al.: local deposition effect within ~300 m (initial estimate)"
+      "source": "design, anchored on Nowak et al. 2006: die Deposition an Blattoberflächen wirkt lokal, im Bereich einiger hundert Meter. 3 Felder = 300 m auf diesem Raster"
     },
     "indexScale": {
       "value": 1.0,
@@ -1450,51 +1444,51 @@
       "road": {
         "weight": {
           "value": 1.0,
-          "source": "InVEST HQ sample threat table: roads"
+          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Die Straße ist die stärkste Störquelle und damit der Ankerwert 1,0. Die Beispieltabelle des Handbuchs selbst führt Straßen mit 0,1 (Feldweg) und 0,4 (asphaltiert) und die Landwirtschaft mit 1,0 — die frühere Quellenangabe 'InVEST HQ sample threat table: roads' war also falsch zugeordnet"
         },
         "maxDistanceM": {
           "value": 300,
-          "source": "InVEST HQ sample (initial estimate)"
+          "source": "Forman & Deblinger 2000 (Conservation Biology 14, 36–46) messen für eine vierspurige Schnellstraße eine Road-Effect Zone von im Mittel rund 600 m. Reijnen & Foppen leiten aus Verkehrslärm artspezifische Störungsdistanzen von 20–1 700 m bei 5 000 Kfz/Tag und 65–3 530 m bei 50 000 Kfz/Tag ab. Die Spiel-Straße führt 10 000 Kfz/Tag und ist keine vierspurige Schnellstraße; 300 m liegt im unteren Bereich dieser Spannen"
         }
       },
       "industry": {
         "weight": {
           "value": 0.8,
-          "source": "InVEST HQ sample (initial estimate)"
+          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Industrie liegt knapp unter der Straße: dauerhafte Störung durch Lärm, Licht und Betrieb, aber ohne die Barriere- und Tötungswirkung des Verkehrs."
         },
         "maxDistanceM": {
           "value": 500,
-          "source": "initial estimate"
+          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 500 m für Industrie, die größte Reichweite der Siedlungsquellen, weil Betriebslärm und Beleuchtung nachts weit tragen."
         }
       },
       "commercial": {
         "weight": {
           "value": 0.6,
-          "source": "initial estimate"
+          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Gewerbe stört tagsüber wie Industrie, nachts deutlich weniger."
         },
         "maxDistanceM": {
           "value": 300,
-          "source": "initial estimate"
+          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 300 m für Gewerbe, wie die Straße."
         }
       },
       "housing_high": {
         "weight": {
           "value": 0.5,
-          "source": "InVEST HQ sample: urban"
+          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Geschosswohnungsbau: viele Menschen, Katzen und Licht auf kleiner Fläche, aber keine gewerbliche Störung. Die frühere Angabe 'InVEST HQ sample: urban' verwies auf eine Zeile, die die Beispieltabelle nicht enthält"
         },
         "maxDistanceM": {
           "value": 200,
-          "source": "initial estimate"
+          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 200 m für Wohnnutzung, die kürzeste Reichweite: Störung durch Anwesenheit klingt schneller ab als Betriebslärm."
         }
       },
       "housing_low": {
         "weight": {
           "value": 0.3,
-          "source": "initial estimate"
+          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Einzelhausgebiete sind die schwächste der fünf Quellen — Gärten sind selbst teilweise Lebensraum."
         },
         "maxDistanceM": {
           "value": 200,
-          "source": "initial estimate"
+          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 200 m, wie der Geschosswohnungsbau."
         }
       }
     }
@@ -1659,6 +1653,12 @@
         0.44,
         0.275
       ]
+    }
+  },
+  "climate": {
+    "zeroScoreTonsPerPerson": {
+      "value": 5.0,
+      "source": "UBA, finale Daten 2024: 650 Mt CO2-Äq. in Deutschland, bezogen auf 83,5 Mio. Einwohner und 46,1 Mio. Erwerbstätige (Destatis 2024) = 5,0 t je Einwohner-oder-Arbeitsplatz. Eine Stadt, die emittiert wie Deutschland heute, bekommt damit 0 Punkte, eine klimaneutrale Stadt 100"
     }
   },
   "water": {

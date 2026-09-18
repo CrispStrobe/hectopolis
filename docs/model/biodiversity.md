@@ -19,6 +19,32 @@ Code: `packages/stadtbau_sim/lib/src/model/habitat.dart`. Parameters:
    industry 0.8 / 500 m, commercial 0.6 / 300 m, apartment blocks 0.5 / 200 m,
    detached housing 0.3 / 200 m.
 
+   **Where those ten numbers come from (T-103).** The weights had been cited to
+   an "InVEST HQ sample threat table" that does not say what was claimed: the
+   user guide's example lists a dirt road at 0.1, a paved road at 0.4 and
+   agriculture at 1.0, and has no urban row at all. What the guide does say is
+   the useful part — **weights are normalised before use, so only their ratios
+   carry meaning**; two weight sets behave identically unless the relative
+   differences between them differ. The ordering road > industry > commercial >
+   apartment blocks > detached housing is therefore the whole content of the
+   weight column, and it is a design decision, now labelled as one.
+
+   The distances could not be taken from InVEST either: its example works at
+   landscape scale (2 km, 4 km, 8 km), and a 4 km threat would blanket a whole
+   municipal map on a 100 m grid.
+
+   **road / 300 m is the one that could be grounded.** Forman & Deblinger (2000)
+   measured a road-effect zone averaging about 600 m beside a four-lane suburban
+   highway. Reijnen & Foppen derive species-specific disturbance distances from
+   traffic noise: 20–1700 m at 5 000 vehicles a day, 65–3530 m at 50 000. A game
+   road carries 10 000 a day and is not a four-lane highway, so 300 m sits in
+   the lower part of those spans, which is where it belongs.
+
+   The four settlement distances (500 m industry, 300 m commercial, 200 m
+   housing) remain design: they order operational noise and light above mere
+   human presence, and nothing in the literature transfers directly to a
+   hectare-resolution municipal model.
+
    `Q_i = H_i · (1 − D_i^z / (D_i^z + k^z))`, `z = 2.5`, `k = 0.5` (InVEST
    defaults).
 
@@ -43,6 +69,8 @@ Code: `packages/stadtbau_sim/lib/src/model/habitat.dart`. Parameters:
 
 - BKompV Anlage 2 (biotope values): https://www.gesetze-im-internet.de/bkompv/anlage_2.html
 - InVEST User Guide, Habitat Quality model (threat decay, half-saturation)
+- Forman & Deblinger (2000): The ecological road-effect zone of a Massachusetts (U.S.A.) suburban highway. Conservation Biology 14, 36–46.
+- Reijnen & Foppen: Disturbance by traffic of breeding birds — evaluation of the effect and considerations in planning and managing road corridors. Biodiversity and Conservation.
 - Jaeger (2000): Landscape division, splitting index, and effective mesh size.
   Landscape Ecology 15, 115–130.
 - MacArthur & Wilson (1967): The Theory of Island Biogeography; Arrhenius (1921).
