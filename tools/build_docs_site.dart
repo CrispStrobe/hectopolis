@@ -637,6 +637,11 @@ const _authorities = <Authority>[
   Authority('baunvo', r'BauNVO', 'BauNVO',
       'Baunutzungsverordnung: the site-occupancy (GRZ) and floor-area (GFZ) '
           'ceilings from which residents and jobs per hectare are derived.'),
+  Authority('gifpro', r'GIFPRO', 'GIFPRO Flächenkennziffern',
+      'The standard German method for forecasting commercial land demand, in '
+          'square metres of net building land per employee. Inverted, it '
+          'gives jobs per hectare: 225 m² on the standard model, 250 for '
+          'manufacturing, 100 for business services.'),
   Authority('bbsr', r'BBSR', 'BBSR',
       'Bundesinstitut für Bau-, Stadt- und Raumforschung: employment density '
           'per hectare by use, walking catchments for local supply, and '

@@ -228,6 +228,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   *Note 2026-09-05 (2):* BKompV Anlage 2 codes recorded per tile (`docs/model/tiles.md`); densities derived from Destatis 49.2 m²/EW and BauNVO GFZ; taxes from Destatis 2023/2024 releases; MiD 2017 mode shares. Costs and recovery times remain estimates.
   *Note 2026-09-18:* Sealing verified against Umweltatlas Berlin 01.02 Versiegelung 2021 Tabelle 19 (new source register row, dl-de/zero-2.0), corrected for street share; industry 0.90 → 0.88, park 0.15 → 0.10, the other three confirmed. Costs, CO₂, air and noise emissions still estimates.
   *Note 2026-09-18 (2):* Land-cover CO₂ verified (forest, meadow, cropland, park, wetland): all five values hold, but they are rates of land-use *change*, not national averages of the cover, and `docs/model/tiles.md` now says so — for forest and meadow the national average has the opposite sign. Cropland +1.5 matches UBA/Destatis to two decimals. **The four building CO₂ values are wrong by about 3× and were deliberately not changed**: correcting them requires rescaling the climate indicator's 2.5 t/person zero point and re-proving every level, which is a design decision for the user. Costs, air and noise emissions still estimates.
+  *Note 2026-09-18 (3):* jobsPerHa verified: commercial 100 and industry 45 both fall straight out of the GIFPRO Flächenkennziffern (100 m²/Beschäftigten for business services; 225 m² standard model). The old attribution to "BBSR Flächenkennwerte" was not traceable to any BBSR publication and is gone.
 - [x] **T-104 Kernel engine.** Generic `FieldSolver` that takes emitters (tile → strength)
   and a kernel (function of Chebyshev or Euclidean distance in tiles) and fills a
   `Float32List` field. Support energetic (dB) summation and linear summation. Precompute
@@ -729,6 +730,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 | Population grid | Zensus 2022 100 m grid | dl-de/by-2.0 | Calibration, level generator |
 | Mobility | Mobilität in Deutschland 2017 (aggregated results) | Public report | Mode share by distance |
 | Municipal finance | Destatis kommunale Finanzen | Public | Tax and cost coefficients |
+| Employment density | GIFPRO / Vallee et al. 2012 Flächenkennziffern, as applied in municipal Gewerbeflächenkonzepte (Difu methodology) | Public reports (values only) | Jobs per hectare |
 | Retail | HDE / BBSR Nahversorgung studies | Public reports (values only) | Floor space per resident, radii |
 | Recreation | WHO Urban green spaces (2016/2017); 3-30-300 rule (Konijnendijk 2021) | Public / paper | Access thresholds |
 | Runoff | USDA SCS curve number (NRCS TR-55) | US public domain | Water module |

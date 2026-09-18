@@ -37,9 +37,34 @@ be refined (open in T-103).
 - housing_high: 1.2 × 10 000 m² × 0.8 (net of walls and stairs) = 9 600 m² ÷
   49.2 ≈ 195 residents per net hectare; ≈ 180 gross including local streets.
 - housing_low: 0.4 × 10 000 × 0.8 = 3 200 m² ÷ 49.2 ≈ 65 net; × 0.7 gross ≈ 45.
-- Jobs: commercial 100/ha and industry 45/ha follow BBSR Flächenkennwerte
-  ranges (office/retail 80–150, manufacturing 30–60 employees per ha);
-  ground-floor services in apartment blocks 15/ha. Initial estimates.
+- Jobs (verified in T-103): German land-demand forecasting works the other way
+  round, in square metres of net building land per employee — the GIFPRO
+  Flächenkennziffer, used in every municipal Gewerbeflächenkonzept. Inverted it
+  gives jobs per hectare directly, and it lands on both stored values:
+
+  | Wirtschaftsgruppe | m²/Beschäftigten | Jobs/ha |
+  |---|---|---|
+  | GIFPRO standard model | 225 | 44 |
+  | Verarbeitendes Gewerbe (Vallee et al. 2012) | 250 | 40 |
+  | Emissionsintensives verarbeitendes Gewerbe | 200 | 50 |
+  | Emissionsarmes verarbeitendes Gewerbe | 150 | 67 |
+  | Logistik, Lagerhaltung | 250–300 | 33–40 |
+  | Einzelhandel, Kfz-Handel | 250 | 40 |
+  | Wirtschaftsnahe Dienstleistungen | 100 | **100** |
+  | Sonstige Dienstleistungen | 50 | 200 |
+
+  **industry 45** is the standard model rounded; **commercial 100** is business
+  services exactly, with retail below it and other services above, which is the
+  mixture the tile stands for. The earlier attribution to "BBSR Flächenkennwerte"
+  was not traceable to a BBSR publication and has been replaced.
+
+  The Kennziffer is *net* building land, so a gross hectare including internal
+  access roads carries slightly fewer jobs than the table says. The tile is one
+  hectare of land use, and the rounding absorbs it.
+
+- housing_high 15/ha and housing_low 3/ha (ground-floor services, home offices
+  and local trades) remain estimates: the Kennziffer method covers commercial
+  land, not jobs incidental to housing.
 
 ## Sealing (Umweltatlas Berlin 01.02, verified in T-103)
 
@@ -163,6 +188,7 @@ here rather than taken quietly.
 - Destatis, Wohnfläche je Einwohner: https://www.destatis.de/DE/Presse/Pressemitteilungen/2025/09/PD25_336_31231.html
 - BauNVO § 17: https://www.gesetze-im-internet.de/baunvo/__17.html
 - Copernicus Land Monitoring Service, Imperviousness
+- GIFPRO Bedarfsprognose, Gewerbeflächenkonzept Bielefeld 2020, Baustein 07: https://www.bielefeld.de/sites/default/files/datei/2020/GewerbeflKonz_7.pdf
 - BauNVO § 19: https://www.gesetze-im-internet.de/baunvo/__19.html
 - Umweltatlas Berlin 01.02 Versiegelung 2021: https://www.berlin.de/umweltatlas/boden/versiegelung/2021/kartenbeschreibung/
 - Umweltatlas Berlin, Abschlussbericht Versiegelung 2021 (Tabelle 19): https://www.berlin.de/umweltatlas/_assets/literatur/ab_versiegelung_2021.pdf

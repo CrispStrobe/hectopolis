@@ -553,7 +553,7 @@
       },
       "jobsPerHa": {
         "value": 100,
-        "source": "BBSR Flächenkennwerte: Büro/Einzelhandel 80–150 Beschäftigte/ha (initial estimate)"
+        "source": "GIFPRO-Flächenkennziffern, wie sie in kommunalen Gewerbeflächenkonzepten angewandt werden (Difu-Methodik; TBS-GIFPRO-Tabelle im Gewerbeflächenkonzept Bielefeld 2020, Baustein 07): wirtschaftsnahe Dienstleistungen 100 m² Nettobauland je Beschäftigten = 100 Beschäftigte/ha. Einzelhandel/Kfz-Handel liegt mit 250 m² deutlich darunter (40/ha), sonstige Dienstleistungen mit 50 m² darüber (200/ha); der Tile bildet die Mischung aus Büro und Handel ab"
       },
       "retailFloorM2": {
         "value": 2000,
@@ -632,7 +632,7 @@
       },
       "jobsPerHa": {
         "value": 45,
-        "source": "BBSR Flächenkennwerte: produzierendes Gewerbe 30–60 Beschäftigte/ha (initial estimate)"
+        "source": "GIFPRO-Flächenkennziffern (Difu-Methodik; Gewerbeflächenkonzept Bielefeld 2020, Baustein 07): Standardmodell 225 m² Nettobauland je Beschäftigten = 44 Beschäftigte/ha; nach Vallee et al. 2012 verarbeitendes Gewerbe 250 m² (40/ha), emissionsintensives verarbeitendes Gewerbe 200 m² (50/ha), emissionsarmes 150 m² (67/ha). 45 ist der Standardwert, gerundet"
       },
       "sealing": {
         "value": 0.88,
