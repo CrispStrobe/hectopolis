@@ -129,11 +129,42 @@ centre): road 60 dB(A) per 100 m segment at 10 000 vehicles/day, industry 65,
 commercial 58, apartment blocks 50, detached housing 45. The TA Lärm daytime
 limits (WA 55, MI 60, GE 65, GI 70 dB(A)) anchor the scale.
 
-## Costs and maintenance
+## Costs and maintenance (partly verified in T-103)
 
 Build costs are development costs borne by the municipality in the game
-(Erschließung, park construction, afforestation), in k€ per hectare. All are
-initial estimates; sources to be added per task T-103.
+(Erschließung, park construction, afforestation), in k€ per hectare.
+
+**What T-103 could ground:**
+
+| Parameter | Was | Now | Source |
+|---|---|---|---|
+| wetland build | 250 | **20** | Difu, Folgekosten der Siedlungsentwicklung (REFINA III, 2009), after TMLNU 2003: a Feuchtwiese on cropland including rewetting costs about €20 000/ha |
+| meadow build | 5 | 5 ✔ | the same source's low-intervention case — a Feuchtwiese on fallow wet grassland, about €5 000/ha, which is what sowing without earthworks costs |
+| park maintenance | 20 | 20 ✔ | GALK benchmarks: park lawn €0.40/m²·a for mowing alone, a park tree €52/a; a hectare of used park with paths, beds, trees, playgrounds, litter and safety inspection lands near €2/m²·a |
+| meadow maintenance | 1 | 1 ✔ | the same benchmarks, well under the park lawn because an extensive meadow is cut once or twice a year |
+| road maintenance | 10 | 10 ✔ | Difu/KfW Kommunalpanel, unchanged |
+
+wetland at 250 k€/ha had been an estimate in the order of an excavated pond.
+Rewetting is not excavation, and the correction is a factor of twelve. It makes
+wetland much the cheapest way to buy biotope value — worth watching in level
+design, and the reason the change is called out here rather than buried.
+
+**What T-103 could not ground, and why.** The four Erschließung costs
+(housing_low 200, housing_high 400, commercial 300, industry 300, i.e. 20–40
+€/m²) stay estimates. **There is no open, citable dataset of German
+Erschließungskosten per square metre.** The established tools — the Difu
+FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, all out of the
+REFINA programme — carry their Kostenkennwerte internally and publish the
+method, not the numbers, and the cost manuals that do publish them (BKI) are
+proprietary and cannot be copied into an AGPL project. Building practice
+reports 15–40 €/m² of plot area for Erschließung, up to €100/m² including house
+connections; all four values sit inside that band, which is the most that can
+honestly be said. `forest`, `water`, `park` and `solar_field` build costs and
+`economy.demolitionCostKEur` are in the same position.
+
+Settling these needs either a licensable Kennwert set or a municipality willing
+to publish a worked Baulandkalkulation. Until then they are the least grounded
+numbers in the table, and they are marked as such in `tiles.json`.
 
 ## CO₂ per hectare — land cover (verified in T-103)
 
@@ -205,6 +236,29 @@ table would have scored every city zero. All six built-in levels remain solvable
 with three stars — `level_solutions_test.dart` is unchanged and passes — and
 `tuebingen`, the only level with a climate goal, now starts at 73.8 against a
 goal of 84.
+
+## References
+
+- BKompV Anlage 2: https://www.gesetze-im-internet.de/bkompv/anlage_2.html
+- BfN-Schriften 721, Kartieranleitung für die Biotoptypen nach Anlage 2 BKompV
+- Destatis, Wohnfläche je Einwohner: https://www.destatis.de/DE/Presse/Pressemitteilungen/2025/09/PD25_336_31231.html
+- BauNVO § 17: https://www.gesetze-im-internet.de/baunvo/__17.html
+- Copernicus Land Monitoring Service, Imperviousness
+- Difu, Folgekosten der Siedlungsentwicklung (REFINA Band III, 2009): https://difu.de/sites/default/files/media_files/publikationen/Band%20III%20Folgekosten-web-end%20neu.pdf
+- GALK-Kennzahlen zur Unterhaltung von Grünanlagen (Stadt+Grün): https://stadtundgruen.de/artikel/daten-fuer-die-erstellung-und-unterhaltung-von-gruenanlagen-ueberarbeitet-neue-kennzahlen-7914
+- GIFPRO Bedarfsprognose, Gewerbeflächenkonzept Bielefeld 2020, Baustein 07: https://www.bielefeld.de/sites/default/files/datei/2020/GewerbeflKonz_7.pdf
+- BauNVO § 19: https://www.gesetze-im-internet.de/baunvo/__19.html
+- Umweltatlas Berlin 01.02 Versiegelung 2021: https://www.berlin.de/umweltatlas/boden/versiegelung/2021/kartenbeschreibung/
+- Umweltatlas Berlin, Abschlussbericht Versiegelung 2021 (Tabelle 19): https://www.berlin.de/umweltatlas/_assets/literatur/ab_versiegelung_2021.pdf
+- InVEST User Guide, Urban Cooling Model
+- UBA, Emissionen der Landnutzung, -änderung und Forstwirtschaft: https://www.umweltbundesamt.de/daten/umweltzustand-trends/klima/treibhausgas-emissionen-in-deutschland/emissionen-der-landnutzung-aenderung
+- UBA, Energieverbrauch privater Haushalte: https://www.umweltbundesamt.de/daten/umweltzustand-trends/private-haushalte-konsum/wohnen/energieverbrauch-privater-haushalte
+- Destatis/Thünen, Waldgesamtrechnung 2021: https://www.destatis.de/DE/Presse/Pressemitteilungen/Zahl-der-Woche/2024/PD24_12_p002.html
+- Thünen, Ergebnisse der Bundeswaldinventur 2022: https://www.thuenen.de/de/themenfelder/waelder/die-bundeswaldinventur/ergebnisse-der-bundeswaldinventur-2022
+- Destatis, Landwirtschaftliche Bodennutzung nach Hauptnutzungsarten: https://www.destatis.de/DE/Themen/Branchen-Unternehmen/Landwirtschaft-Forstwirtschaft-Fischerei/Feldfruechte-Gruenland/Tabellen/flaechen-hauptnutzungsarten.html
+- Poeplau & Don 2013, Geoderma 192, 189–201; Poeplau et al. 2017, Sci. Rep. 7, 11550
+- Nowak et al. 2013, Environmental Pollution 178, 229–236
+- Greifswald Mire Centre, peatland conservation: https://www.greifswaldmoor.de/moore-61.html
 
 ## The six tiles added by T-502 (2026-09-17)
 

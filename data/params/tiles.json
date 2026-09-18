@@ -73,11 +73,11 @@
       },
       "buildCostKEur": {
         "value": 5,
-        "source": "Ansaat Extensivwiese ~0.5 €/m² (initial estimate)"
+        "source": "Difu, Folgekosten der Siedlungsentwicklung (REFINA Band III, 2009), dort nach TMLNU 2003: auf brachgefallenem nassem Grünland kostet die Herstellung einer Feuchtwiese rund 5 000 €/ha — die Größenordnung einer Ansaat ohne Erdbau, die auch für die Extensivwiese gilt"
       },
       "maintenanceKEurYear": {
         "value": 1,
-        "source": "1–2 Mahden/Jahr (initial estimate)"
+        "source": "GALK-Kennzahlen zur Unterhaltung von Grünanlagen (Deutsche Gartenamtsleiterkonferenz, überarbeitet 2012, veröffentlicht in Stadt+Grün): deutlich unter dem Parkrasen (0,40 €/m²/a bei regelmäßiger Mahd), weil die Extensivwiese ein- bis zweimal im Jahr gemäht wird — 0,10 €/m²/a"
       },
       "noiseNightReductionDb": {
         "value": 0,
@@ -382,7 +382,7 @@
       },
       "maintenanceKEurYear": {
         "value": 20,
-        "source": "Grünflächenpflege 1–3 €/m²/a (initial estimate)"
+        "source": "GALK-Kennzahlen zur Unterhaltung von Grünanlagen (Deutsche Gartenamtsleiterkonferenz, überarbeitet 2012, veröffentlicht in Stadt+Grün): Rasen in einer Parkanlage rund 0,40 €/m²/a allein für die Mahd, ein Parkbaum rund 52 €/Jahr. Eine intensiv genutzte Parkhektare mit Wegen, Beeten, Baumbestand, Spielflächen, Abfall und Verkehrssicherungskontrolle liegt bei rund 2 €/m²/a, also 20 k€/ha/a"
       },
       "noiseNightReductionDb": {
         "value": 0,
@@ -455,7 +455,7 @@
       },
       "buildCostKEur": {
         "value": 200,
-        "source": "Erschließungskosten ~20 €/m² Bruttobauland (initial estimate)"
+        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Einzelhausgebiet liegt mit 20 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
       },
       "maintenanceKEurYear": {
         "value": 2,
@@ -530,7 +530,7 @@
       },
       "buildCostKEur": {
         "value": 400,
-        "source": "Erschließung + Infrastrukturfolgekosten (initial estimate)"
+        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Geschosswohnungsbau mit höherem Infrastrukturaufwand liegt mit 40 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
       },
       "maintenanceKEurYear": {
         "value": 4,
@@ -609,7 +609,7 @@
       },
       "buildCostKEur": {
         "value": 300,
-        "source": "Erschließung Gewerbe (initial estimate)"
+        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Gewerbe liegt mit 30 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
       },
       "maintenanceKEurYear": {
         "value": 3,
@@ -684,7 +684,7 @@
       },
       "buildCostKEur": {
         "value": 300,
-        "source": "initial estimate"
+        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Industrie liegt mit 30 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
       },
       "maintenanceKEurYear": {
         "value": 3,
@@ -839,9 +839,8 @@
         "source": "Greifswald Moor Centrum / Universität Greifswald: Wiedervernässung spart gegenüber entwässerter Grünlandnutzung mindestens 20 t CO2-Äq./ha/a; wiedervernässte Niedermoore gehen von der Quelle zur Senke über, erreichen die Standard-Emissionsfaktoren aber erst 13–16 Jahre nach der Wiedervernässung ('Temporally dynamic carbon dioxide and methane emission factors for rewetted peatlands', Commun. Earth Environ. 2024). 5 t/ha/a ist der konservative Senkenwert, deutlich unter den vermiedenen 20 t"
       },
       "buildCostKEur": {
-        "value": 250,
-        "source": "Renaturierung/Anlage von Feuchtflaechen, near open water (200)",
-        "note": "initial estimate"
+        "value": 20,
+        "source": "Difu, Folgekosten der Siedlungsentwicklung (REFINA Band III, 2009), dort nach TMLNU 2003: Herstellungskosten einer Feuchtwiese auf Acker einschließlich Wiedervernässung rund 20 000 €/ha (auf brachgefallenem nassem Grünland rund 5 000 €/ha). Der frühere Wert von 250 k€/ha war eine Schätzung in der Größenordnung eines ausgebaggerten Teichs, nicht einer Vernässung"
       },
       "maintenanceKEurYear": {
         "value": 1,

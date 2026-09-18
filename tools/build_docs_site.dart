@@ -661,6 +661,11 @@ const _authorities = <Authority>[
   Authority('dwd', r'\bDWD\b', 'Deutscher Wetterdienst',
       'Prevailing wind direction and speed, the vegetation period, and the '
           '2–4 K urban heat island intensity of German mid-size cities.'),
+  Authority('galk', r'GALK', 'GALK green-space benchmarks',
+      'The Deutsche Gartenamtsleiterkonferenz collects what municipal parks '
+          'departments actually spend: park lawn about €0.40/m² a year for '
+          'mowing alone, a park tree about €52 a year. Sets park and meadow '
+          'upkeep.'),
   Authority('difu', r'Difu|KfW', 'Difu / KfW Kommunalpanel',
       'Municipal infrastructure maintenance backlogs, used for road upkeep '
           'per 100 m section.'),
