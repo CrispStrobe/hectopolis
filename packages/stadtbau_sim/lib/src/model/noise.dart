@@ -30,14 +30,38 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
   final maxAttenuation = np.maxPathAttenuationDb;
   final noiseEmissionOf = TileLookup.of(p).noiseEmissionDb;
 
-  // Per-tile attenuation contribution, looked up by tile type.
-  final attenuationOf = Float64List(TileType.values.length);
+  // A cell on the path attenuates as foliage, as a building row, or not at
+  // all — three classes, never a continuum. Each is counted rather than
+  // summed in decibels, so the whole path collapses to one small integer and
+  // the attenuation factor comes out of a table instead of a call to exp.
+  // Foliage counts as 1 and a building row as `attStride`, so a single
+  // accumulator carries both counts: code = foliageCells + buildingCells *
+  // attStride.
+  final maxPathCells = offsets.maxPathCells;
+  final attStride = maxPathCells + 1;
+  // A building row is counted as `attStride` in a Uint8 cell, so a radius
+  // beyond 254 tiles would wrap it. Nothing comes close (the shipped radius is
+  // 6), but a scenario can override the radius, and a silent wrap here would
+  // read the wrong attenuation rather than fail.
+  assert(attStride <= 255, 'noise radius too large for the attenuation table');
+  final attCodeOf = Uint8List(TileType.values.length);
   for (final t in TileType.values) {
     final cat = p.tile(t).category;
     if (t == TileType.forest || t == TileType.park) {
-      attenuationOf[t.index] = np.foliageAttenuationDbPerTile;
+      attCodeOf[t.index] = 1;
     } else if (cat == TileCategory.work || t == TileType.housingHigh) {
-      attenuationOf[t.index] = np.buildingScreeningDbPerTile;
+      attCodeOf[t.index] = attStride;
+    }
+  }
+  final attFactor = Float64List(attStride * attStride);
+  for (var buildings = 0; buildings <= maxPathCells; buildings++) {
+    for (var foliage = 0; foliage <= maxPathCells; foliage++) {
+      final db = math.min(
+        maxAttenuation,
+        foliage * np.foliageAttenuationDbPerTile +
+            buildings * np.buildingScreeningDbPerTile,
+      );
+      attFactor[buildings * attStride + foliage] = _dbToEnergy(-db);
     }
   }
 
@@ -50,12 +74,12 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
   for (final t in TileType.values) {
     nightReductionOf[t.index] = p.tile(t).noiseNightReductionDb.value;
   }
-  final attenuation = Float64List(n);
+  final attCode = Uint8List(n);
   final sources = <int>[];
   final trafficReference = np.trafficReferenceVehiclesPerDay;
   for (var i = 0; i < n; i++) {
     final t = w.tiles[i];
-    attenuation[i] = attenuationOf[t.index];
+    attCode[i] = attCodeOf[t.index];
     final base = noiseEmissionOf[t.index];
     if (base <= 0) continue;
     final e = t == TileType.road
@@ -75,6 +99,25 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
         np.areaDecayDbPerDecade * _log10(math.max(dM, np.areaReferenceDistanceM) / np.areaReferenceDistanceM);
   }
   final cutoff = np.backgroundDb - 15;
+  // The cutoff test is on the level in dB and the accumulation is in energy;
+  // both are monotone in the other, so comparing energies decides it without
+  // turning the energy back into a level.
+  final cutoffEnergy = _dbToEnergy(cutoff);
+
+  // A contribution is `source energy × divergence × path attenuation`. All
+  // three factors are now table lookups: the source term is one exp per cell,
+  // the divergence one per offset, and the path one per (foliage, building)
+  // pair. Before this, every source-receiver pair called exp up to four times.
+  final divFactor = Float64List(offsets.length);
+  for (var k = 0; k < offsets.length; k++) {
+    divFactor[k] = _dbToEnergy(-divergence[k]);
+  }
+  final srcEnergy = Float64List(n);
+  final srcNightEnergy = Float64List(n);
+  for (final s in sources) {
+    srcEnergy[s] = _dbToEnergy(emission[s]);
+    if (nightEmission[s] > 0) srcNightEnergy[s] = _dbToEnergy(nightEmission[s]);
+  }
 
   final energy = Float64List(n)..fillRange(0, n, _dbToEnergy(np.backgroundDb));
   // The night level rides along in the same pass: the geometry and the path
@@ -83,8 +126,8 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
   final nightEnergy = Float64List(n)
     ..fillRange(0, n, _dbToEnergy(np.backgroundDb));
   for (final s in sources) {
-    energy[s] += _dbToEnergy(emission[s]);
-    if (nightEmission[s] > 0) nightEnergy[s] += _dbToEnergy(nightEmission[s]);
+    energy[s] += srcEnergy[s];
+    nightEnergy[s] += srcNightEnergy[s];
   }
 
   // Path attenuation is reciprocal, so each unordered pair of cells is visited
@@ -110,30 +153,26 @@ void computeNoise(WorldState w, SimParams p, Fields f) {
       if (loudest <= 0) continue;
       final divergenceDb = divergence[k];
       if (loudest - divergenceDb <= cutoff) continue;
-      var att = 0.0;
+      var code = 0;
       final path = paths[k];
       for (var q = 0; q < path.length; q += 2) {
-        att += attenuation[(sy + path[q + 1]) * width + sx + path[q]];
-        if (att >= maxAttenuation) {
-          att = maxAttenuation;
-          break;
-        }
+        code += attCode[(sy + path[q + 1]) * width + sx + path[q]];
       }
-      final drop = divergenceDb + att;
+      final drop = divFactor[k] * attFactor[code];
       if (es > 0) {
-        final level = es - drop;
-        if (level > cutoff) energy[r] += _dbToEnergy(level);
-        final nightLevel = ns - drop;
-        if (ns > 0 && nightLevel > cutoff) {
-          nightEnergy[r] += _dbToEnergy(nightLevel);
+        final day = srcEnergy[s] * drop;
+        if (day > cutoffEnergy) energy[r] += day;
+        if (ns > 0) {
+          final night = srcNightEnergy[s] * drop;
+          if (night > cutoffEnergy) nightEnergy[r] += night;
         }
       }
       if (er > 0) {
-        final level = er - drop;
-        if (level > cutoff) energy[s] += _dbToEnergy(level);
-        final nightLevel = nr - drop;
-        if (nr > 0 && nightLevel > cutoff) {
-          nightEnergy[s] += _dbToEnergy(nightLevel);
+        final day = srcEnergy[r] * drop;
+        if (day > cutoffEnergy) energy[s] += day;
+        if (nr > 0) {
+          final night = srcNightEnergy[r] * drop;
+          if (night > cutoffEnergy) nightEnergy[s] += night;
         }
       }
     }

@@ -31,10 +31,46 @@ only in `data/params/tiles.json`.
 
 ## Performance (T-115)
 
-Dense 24×24 map, 18 700 residents, 16 300 jobs: 38 ms per tick on a heavily
-loaded 4-core VPS (load average ≈ 17), down from 180 ms before routing trips
-per road pair, pruning noise paths and computing fields once per tick.
-Commute (22 ms) and noise (7 ms) dominate; see `benchmark/tick_benchmark.dart`.
+Dense 24×24 map, 18 800 residents, 16 300 jobs. `benchmark/tick_benchmark.dart`
+gives the total; `benchmark/field_profile.dart` says which field to look at,
+reporting the **minimum** over many batches, because this machine runs at load
+10 and a mean is mostly other people's work.
+
+| Stage | ms (2026-09-18) |
+|---|---|
+| commute | 2.12 |
+| noise | 2.42 |
+| access | 1.84 |
+| air | 0.64 |
+| habitat | 0.24 |
+| heat | 0.14 |
+| water, attractiveness, indicators | 0.03 together |
+| **sum** | **7.43** |
+
+A full tick measures 9–11 ms on the same box — the field pass plus stocks and
+the copy the tick makes. **The 16 ms desktop target is met**, on a loaded VPS
+rather than a desktop.
+
+The 38 ms recorded here before was a reading taken at load ≈ 17 and is not
+comparable; the route to it (routing trips per road pair, pruning noise paths,
+computing fields once per tick) still stands.
+
+**Noise, 3.60 → 2.42 ms (2026-09-18).** It was the most expensive field and
+about a third of its time was `exp`. A contribution is
+`source energy × divergence × path attenuation`, and each source-receiver pair
+called `exp` up to four times to turn a level in decibels into an energy. All
+three factors are now table lookups:
+
+- the **source** term, one `exp` per cell rather than per pair;
+- the **divergence** term, one per offset;
+- the **path** term, one per (foliage cells, building cells) pair. A cell on
+  the path attenuates as foliage, as a building row, or not at all — three
+  classes, never a continuum — so the path collapses to two small counts.
+  Foliage counts as 1 and a building row as `attStride`, so a single integer
+  accumulator carries both and indexes the table directly.
+
+The cutoff test moved from decibels to energy, which is the same test (each is
+monotone in the other) without turning the energy back into a level.
 
 ## Open calibration questions
 

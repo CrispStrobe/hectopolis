@@ -30,6 +30,20 @@ commercial tile at 300 m gives a full score.
 The 2 km decay is a local-access scale (MiD 2017 median commute is longer, but
 the indicator is about jobs reachable without a long trip).
 
+**`access.jobDecayM` does double duty**, and anyone retuning it should know:
+the same kernel is the destination-choice gravity of the commute model
+(`commute.md`), where it decides how far a worker is willing to look for a job.
+So a larger decay does not only widen the job-access overlay — it lengthens
+every commute and shifts the mode split with it. The two roles are defensible
+on the same number, but they are not the same question, and splitting them into
+two parameters is the honest move if they ever need to move apart.
+
+`computeAccess` and `computeCommute` therefore evaluate the same sum over the
+same job cells, twice per tick. Sharing it would save roughly a tenth of the
+field pass and couple the two modules to an invariant nothing enforces; at
+7.4 ms for the whole pass it is not worth the coupling today, and this note
+exists so the option is a choice rather than an oversight.
+
 ## References
 
 - WHO Regional Office for Europe (2016): Urban green spaces and health.

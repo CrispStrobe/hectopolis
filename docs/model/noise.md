@@ -96,6 +96,21 @@ from the guideline text itself; a polynomial from memory is not.
 - No wind, no ground effect, no reflections.
 - Traffic depends on the commute model (`commute.md`).
 
+## How it is computed (T-115)
+
+The field is a sum over unordered pairs of cells within the radius: path
+attenuation is reciprocal, so each pair is visited once from the canonical end
+of its axis and the shared attenuation serves both directions. The night level
+rides along in the same pass, because the geometry and the attenuation are
+identical and only the source term differs.
+
+Contributions are accumulated as **energies**, and each one is
+`source × divergence × path attenuation` where all three are table lookups
+rather than `exp` of a level in decibels. The path term is the interesting one:
+a cell either attenuates as foliage, as a building row, or not at all, so a
+path collapses to two small counts and indexes a table built once per call.
+`docs/model/calibration.md` has the numbers.
+
 ## References
 
 - WHO, *Environmental Noise Guidelines for the European Region* (2018)
