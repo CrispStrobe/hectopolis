@@ -83,6 +83,34 @@ void main(List<String> args) {
     final ind = sim.indicators;
     final f = sim.fields;
 
+    // Everything above is read at tick 60, which is a January: 60 is a whole
+    // number of years and tick 0 is January. That is fine for the quantities
+    // that do not move with the month, and wrong for the ones that do. ΔT at
+    // the January snapshot is 0.18 K for the dense quarter against the 1.6 K
+    // this file used to record from the season-free model — not a regression,
+    // a reading taken in the coldest month. So the seasonal quantities are
+    // swept over the following twelve months and reported as an annual mean
+    // and a summer peak, which is the shape the plausibility ranges are in:
+    // an urban heat island is a summer statement.
+    final probe = sim.copy();
+    var heatSum = 0.0;
+    var heatPeak = 0.0;
+    var peakMonth = 0;
+    final recreation = <double>[];
+    final climate = <double>[];
+    for (var m = 1; m <= 12; m++) {
+      probe.apply(const AdvanceTick());
+      final pi = probe.indicators;
+      heatSum += pi.meanHeatDeltaC;
+      if (pi.meanHeatDeltaC > heatPeak) {
+        heatPeak = pi.meanHeatDeltaC;
+        peakMonth = probe.state.tick % 12;
+      }
+      recreation.add(pi.scores[Indicator.recreation]!);
+      climate.add(pi.scores[Indicator.climate]!);
+    }
+    double meanOf(List<double> v) => v.reduce((a, b) => a + b) / v.length;
+
     // Resident-weighted noise exposure and share above the WA limit.
     var pop = 0.0;
     var above = 0.0;
@@ -113,6 +141,14 @@ void main(List<String> args) {
       'maxTraffic': maxTraffic.round(),
       'co2TonsPerYear': ind.co2TonsPerYear.round(),
       'meanHeatDeltaC': ind.meanHeatDeltaC.toStringAsFixed(2),
+      'heatDeltaCYearMean': (heatSum / 12).toStringAsFixed(2),
+      'heatDeltaCSummerPeak': '${heatPeak.toStringAsFixed(2)} (month $peakMonth)',
+      'recreationYearMean': meanOf(recreation).toStringAsFixed(0),
+      'recreationSpread': '${recreation.reduce((a, b) => a < b ? a : b).toStringAsFixed(0)}'
+          '–${recreation.reduce((a, b) => a > b ? a : b).toStringAsFixed(0)}',
+      'climateYearMean': meanOf(climate).toStringAsFixed(0),
+      'climateSpread': '${climate.reduce((a, b) => a < b ? a : b).toStringAsFixed(0)}'
+          '–${climate.reduce((a, b) => a > b ? a : b).toStringAsFixed(0)}',
       'habitatConnectivity': ind.habitatConnectivity.toStringAsFixed(2),
       'scores': {for (final e in ind.scores.entries) e.key.name: e.value.round()},
     };

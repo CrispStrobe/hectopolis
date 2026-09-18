@@ -147,7 +147,7 @@ IndicatorSnapshot computeIndicators(
     green += wt * f.greenAccess[i];
     retail += wt * f.retailAccess[i];
     heat += wt * f.heatDeltaC[i];
-    heatScore += wt * (1 - clamp01(f.heatDeltaC[i] / p.heat.uhiMaxC));
+    heatScore += wt * f.heatScoreOf(f.heatDeltaC[i]);
     if (w.population[i] > 0) {
       commuteWeight += w.population[i];
       commuteKm += w.population[i] * f.meanCommuteKm[i];
@@ -208,7 +208,7 @@ IndicatorSnapshot computeIndicators(
   final co2Score = clamp01(
     1 - (co2TonsPerYear / people) / p.climate.zeroScoreTonsPerPerson,
   );
-  final climate = 100 * (0.7 * co2Score + 0.3 * (1 - clamp01(heat / p.heat.uhiMaxC)));
+  final climate = 100 * (0.7 * co2Score + 0.3 * f.heatScoreOf(heat));
 
   final scores = <Indicator, double>{
     Indicator.biodiversity: f.biodiversityIndex,

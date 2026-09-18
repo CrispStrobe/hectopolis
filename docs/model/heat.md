@@ -29,10 +29,47 @@ base terrain (meadow) has ΔT = 0 and the least cooling land cover (road) has
 with `UHI_max = 3 °C` (user input in InVEST; DWD reports 2–4 K for German
 mid-size cities).
 
-## Calibration (T-114)
+## The ceiling moves with the month, and so must anything that divides by it
 
-Mean resident ΔT: village 0.5 °C, suburb 0.7 °C, dense quarter 1.6 °C, all-road
-3.0 °C. Forest and water 0 °C.
+`UHI_max` in that formula is not the parameter `heat.uhiMaxC`. It is that
+parameter times the month's heat factor (`docs/model/seasons.md`), which runs
+from 0.275 in January to 1.927 in July. A dense quarter therefore reaches
+about 4.1 K in July against a `uhiMaxC` of 3.0.
+
+**`computeHeat` publishes the ceiling it used as `fields.uhiMaxNowC`, and
+everything that turns a ΔT into a 0–1 score divides by that** — the climate and
+recreation indicators, and the heat term of residential attractiveness, all
+through `fields.heatScoreOf(ΔT)`.
+
+They used to divide by `heat.uhiMaxC` instead, and the consequence was not
+subtle: `1 − 4.1/3.0` clamps to zero, so **for three months a year the climate
+indicator could not tell a dense quarter with sixteen hectares of park from one
+with none** — both scored 53.8 — and the heat term of attractiveness went to
+zero for every residential cell regardless of what had been built. With the
+month's own ceiling the same comparison reads 64.0 against 62.5, and
+recreation 25.7 against 8.7.
+
+Summer still costs a city points, and for the right reason: open country
+transpires hardest in the growing season, so a built quarter falls further
+behind the rural reference in July than in January. That signal lives in the
+`growth` factor, in the numerator, where it belongs. What is gone is the part
+that came from measuring a summer number against an annual yardstick.
+
+The map's terrain tint (`_warmth` in `map_view.dart`) is the deliberate
+exception: it keeps the absolute scale, because a tint should say "this place
+is hot right now" and a July city ought to look hotter than the same city in
+January.
+
+## Calibration (T-114, re-run 2026-09-18)
+
+Mean resident ΔT **as an annual mean**: village 0.6 °C, suburb 0.8 °C, dense
+quarter 1.7 °C. Forest and water 0 °C. July peaks: village 1.6, suburb 2.1,
+dense quarter 3.7 — the top of the DWD 2–4 K band, for a hectare-dense quarter
+of apartment blocks.
+
+The older figures in this file (dense quarter 1.6 °C) were recorded before
+seasons existed and are annual means, which is why the annual column
+reproduces them.
 
 ## References
 

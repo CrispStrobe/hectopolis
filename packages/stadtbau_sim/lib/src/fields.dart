@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import 'dart:typed_data';
 
+import 'geometry.dart';
+
 /// Spatial fields derived from the world state, one value per cell.
 /// Recomputed every tick; never serialised.
 class Fields {
@@ -120,6 +122,7 @@ class Fields {
     habitatConnectivity = other.habitatConnectivity;
     meanRunoffMm = other.meanRunoffMm;
     floodRiskCells = other.floodRiskCells;
+    uhiMaxNowC = other.uhiMaxNowC;
   }
 
   /// Aggregates produced while computing the fields.
@@ -141,4 +144,20 @@ class Fields {
   /// the flood-risk threshold.
   double meanRunoffMm = 0;
   int floodRiskCells = 0;
+
+  /// The heat-island ceiling **for the month just computed**: `heat.uhiMaxC`
+  /// scaled by the seasonal factor (`docs/model/seasons.md`).
+  ///
+  /// `heatDeltaC` is scaled by this, so anything that turns a ΔT into a score
+  /// has to divide by this and not by `heat.uhiMaxC`. Dividing by the annual
+  /// parameter made every summer score saturate: a July ΔT of 4.1 K over a
+  /// 3.0 K denominator clamps to 1, and sixteen hectares of park stopped
+  /// registering at all. Keeping the ceiling next to the field it scales is
+  /// what makes the two impossible to mismatch.
+  double uhiMaxNowC = 0;
+
+  /// A ΔT as a 0–1 score, 1 where the cell is as cool as open country and 0
+  /// at the month's ceiling.
+  double heatScoreOf(double deltaC) =>
+      uhiMaxNowC <= 0 ? 1 : clamp01(1 - deltaC / uhiMaxNowC);
 }

@@ -65,6 +65,72 @@ void main() {
     expect(_heatAfter(off, 12), closeTo(_heatAfter(off, 18), 1e-12));
   });
 
+  /// A dense quarter of apartment blocks with roads, optionally with a park
+  /// in the middle, run to [tick].
+  Simulation quarter(SimParams params, {required bool withPark, required int tick}) {
+    final w = WorldState.empty(width: 16, height: 16, budgetKEur: 1e9);
+    for (var i = 0; i < w.cellCount; i++) {
+      w.tiles[i] = TileType.housingHigh;
+    }
+    for (var k = 0; k < 16; k++) {
+      w.tiles[w.index(k, 5)] = TileType.road;
+      w.tiles[w.index(k, 10)] = TileType.road;
+      w.tiles[w.index(5, k)] = TileType.road;
+      w.tiles[w.index(10, k)] = TileType.road;
+    }
+    if (withPark) {
+      for (var y = 6; y < 10; y++) {
+        for (var x = 6; x < 10; x++) {
+          w.tiles[w.index(x, y)] = TileType.park;
+        }
+      }
+    }
+    w.populateExisting(params);
+    final sim = Simulation(state: w, params: params);
+    sim.apply(AdvanceTick(tick));
+    return sim;
+  }
+
+  test('the heat ceiling reported with the field is the month that made it', () {
+    for (final tick in [60, 63, 66, 69]) {
+      final sim = quarter(params, withPark: true, tick: tick);
+      expect(
+        sim.fields.uhiMaxNowC,
+        closeTo(params.heat.uhiMaxC * params.seasons.heatAt(sim.state.tick), 1e-12),
+        reason: 'tick $tick',
+      );
+    }
+  });
+
+  test('a summer score still tells a park from no park', () {
+    // Scores divide ΔT by the month's ceiling, not by the annual uhiMaxC.
+    // Dividing by the annual figure clamped every July score to zero: a
+    // dense quarter reaches 4.1 K against a 3.0 K parameter, so sixteen
+    // hectares of park moved the climate score by nothing at all.
+    for (final month in [0, 6]) {
+      final bare = quarter(params, withPark: false, tick: 60 + month).indicators;
+      final green = quarter(params, withPark: true, tick: 60 + month).indicators;
+      expect(green.meanHeatDeltaC, lessThan(bare.meanHeatDeltaC), reason: 'month $month');
+      for (final indicator in [Indicator.climate, Indicator.recreation]) {
+        expect(
+          green.scores[indicator]!,
+          greaterThan(bare.scores[indicator]! + 0.5),
+          reason: '$indicator in month $month',
+        );
+      }
+    }
+  });
+
+  test('July heat costs a score without pinning it to zero', () {
+    final january = quarter(params, withPark: false, tick: 60).indicators;
+    final july = quarter(params, withPark: false, tick: 66).indicators;
+    // Summer is worse: the open-country reference cools harder in the growing
+    // season, so the built quarter falls further behind it.
+    expect(july.scores[Indicator.climate]!, lessThan(january.scores[Indicator.climate]!));
+    // But it has not bottomed out, which is what leaves room to improve it.
+    expect(july.scores[Indicator.recreation]!, greaterThan(0.0));
+  });
+
   test('amplitude flattens towards the mean, not towards zero', () {
     final half = _withAmplitude(0.5);
     for (final tick in [0, 3, 6, 9]) {

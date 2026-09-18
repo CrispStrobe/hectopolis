@@ -37,6 +37,24 @@ The monthly numbers are normalised to make that exact rather than approximate.
 A first draft averaged 0.900 and 0.908 while its `source` field claimed 1.0; a
 test now asserts the mean, so the claim and the numbers cannot drift apart.
 
+## Reading a seasonal quantity
+
+Two traps, both paid for once:
+
+**A single tick is a month, not a year.** The calibration harness ran 60 ticks
+and printed the result; 60 is a whole number of years and tick 0 is January, so
+every seasonal quantity it reported was a January reading. `calibration.md`
+recorded a dense-quarter ΔT of 1.6 K from the season-free model and the harness
+then printed 0.18, which looked like a regression and was a reading taken in
+the coldest month — the annual mean is 1.71. The harness now sweeps the
+following twelve months and reports an annual mean and a summer peak.
+
+**A seasonal numerator needs a seasonal denominator.** `heat.uhiMaxC` is the
+annual-mean ceiling; the ceiling in force is that times the month's factor, and
+scores that divided by the parameter saturated every summer. `computeHeat`
+publishes the ceiling it used as `fields.uhiMaxNowC` so the two cannot drift
+apart. See `heat.md`.
+
 ## What acts, and what does not
 
 Shade and albedo are properties of the surface, so they do not move with the
