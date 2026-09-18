@@ -35,7 +35,7 @@
       },
       {
         "id": "village_quiet_left",
-        "afterMonths": 24
+        "afterTilesPlaced": 16
       }
     ]
   },

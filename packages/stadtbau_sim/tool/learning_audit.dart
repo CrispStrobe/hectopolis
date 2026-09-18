@@ -223,10 +223,31 @@ List<String> _auditPaths(
     // tell a hard challenge from an impossible one.
     final plan = planFor(level.id);
     final planned = plan == null ? null : _playPlan(level, plan);
+    // Variants of the plan written to earn one medal each. Without them a
+    // medal the worked plan happens not to earn reads as "possibly
+    // impossible", which is a different claim from "nobody tried".
+    final medalRuns = {
+      for (final entry in medalPlansFor(level.id).entries)
+        entry.key: _playPlan(level, entry.value),
+    };
     final awardable = <String>{
       ...?planned?.challengesAtEnd,
       ...awardableFromRandom,
+      for (final run in medalRuns.values) ...run.challengesAtEnd,
     };
+    for (final entry in medalRuns.entries) {
+      if (!entry.value.solved) {
+        problems.add(
+          '${level.id}: the plan variant for "${entry.key}" no longer solves '
+          'the level',
+        );
+      } else if (!entry.value.challengesAtEnd.contains(entry.key)) {
+        problems.add(
+          '${level.id}: the plan variant for "${entry.key}" solves the level '
+          'but does not earn the medal it exists to earn',
+        );
+      }
+    }
 
     if (!quiet) {
       final planLength = plan?.length ?? 0;
@@ -235,7 +256,8 @@ List<String> _auditPaths(
           : 'plan ${planned.solved ? 'solves in ${planned.months}/${level.turnLimitMonths} mo '
                         'after ${planned.placementsBeforeEnd}/$planLength tiles' : 'FAILS'}, '
                 'beats ${planned.beats.length}, '
-                'medals ${planned.challengesAtEnd.length}';
+                'medals ${planned.challengesAtEnd.length}'
+                '${medalRuns.isEmpty ? '' : ' (+${medalRuns.length} variant)'}';
       stdout.writeln(
         '   ${level.id.padRight(10)} random $solved/$paths solved   '
         'beats ${beatsSeen.length}/${learning?.beats.length ?? 0}   '
@@ -280,7 +302,9 @@ List<String> _auditPaths(
     }
     for (final challenge in learning.challenges) {
       final byRandom = challengesMet.containsKey(challenge.id);
-      final byPlan = planned?.challenges.contains(challenge.id) ?? false;
+      final byPlan =
+          (planned?.challenges.contains(challenge.id) ?? false) ||
+          medalRuns.values.any((run) => run.challenges.contains(challenge.id));
       if (!byRandom && !byPlan) {
         notes.add(
           '${level.id}: challenge "${challenge.id}" was met neither in $paths '

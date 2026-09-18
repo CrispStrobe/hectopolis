@@ -62,8 +62,10 @@ the two files carry identical branch sets. Nothing silently falls back today.
 (The check was verified by deleting one German branch: the audit reported it
 while `i18n_lint` still said ok.)
 
-The reachability half produced no problems and six notes. Three of them are one
-finding:
+The reachability half produced no problems and six notes. Four have since been
+acted on — the habitat threshold, the village beat trigger, and the two medals
+now proven by plan variants — leaving two, both of which need authoring rather
+than engineering. What follows is the finding and what was done about it.
 
 ### Levels could be won before a single month passed
 
@@ -106,16 +108,25 @@ entirely by what the player removes, and it happens instantly. Making time
 matter there needs a different lever than a threshold, and it wants the
 project's judgement.
 
-### One beat is still unreachable for a competent player
+### Two beats were unreachable for a competent player; both are fixed
 
-`village_quiet_left` fires `afterMonths: 24` and the worked plan finishes
-village in 3 months, so only a player who dawdles ever meets it.
+`habitat_maturity` fired `afterMonths: 36` against a level decided at month 0.
+The goal change above fixed it, and its copy ("Give it time" / "Gib ihm Zeit")
+was written for exactly this and had never been reachable.
 
-`habitat_maturity` had the same problem — `afterMonths: 36` against a level
-decided at month 0 — and the goal change fixed it: the audit now reports both
-habitat beats firing on the worked solution. The beat's own copy ("Give it
-time" / "Gib ihm Zeit") was written for exactly this and had never been
-reachable.
+`village_quiet_left` fired `afterMonths: 24` and the worked plan finishes
+village in 3 months. Here the fix was the trigger, not the level: village is
+the tutorial, and making the first mission take two years of clicking to
+deliver one card would be worse than the problem. The beat says *"Look at what
+is still meadow and forest. A village that reaches everything but keeps nothing
+quiet has only solved half the task."* That is a thing to notice once the
+village has taken shape, not after two years of waiting — so it now fires at
+`afterTilesPlaced: 16`, half the level's tile budget, matching
+`village_first_homes` at 4.
+
+**Every beat in every mission now fires on the worked solution.** The lesson
+generalises: a month-based trigger only works in a mission whose outcome takes
+months, and two of the five were not.
 
 ### The habitat hint has nothing to suggest
 
@@ -127,16 +138,29 @@ true but not actionable). In 12 paths that happened 976 times. Either the hint
 wants a "protect what is there" stage, or preservation goals want marking as
 such in the level schema.
 
-### The two water tiles in the habitat plan are decorative
+### A constraint medal only means something if the constraint costs something
 
-The audit reports `habitat_no_water` — solve without placing water — as met by
-neither random play nor the worked plan, which places two ponds. That reads as
-"possibly impossible" and is not: replaying the plan with the two water tiles
-removed reaches the same 87.1 biodiversity and crosses the goal in the same
-month 60. The medal is free to anyone who simply leaves the water out, and the
-ponds change nothing. Either the level wants a reason to build water — a
-recreation or runoff benefit the biodiversity score does not capture — or the
-medal wants retiring.
+Two medals — `habitat_no_water` and `noise_no_roads` — were reported as met by
+neither random play nor the worked plan, which reads as *possibly impossible*
+and was the opposite. `tool/level_plans.dart` now carries a **variant of each
+plan that exists to earn one medal**, derived from the plan by filtering rather
+than written out, so it cannot fall out of step with it. The audit replays them
+and fails if a variant stops solving or stops earning its medal, which turns
+"nobody tried" into a machine-checked claim.
+
+What they proved is worth recording:
+
+| Medal | Plan as written | Plan with the constraint |
+|---|---|---|
+| `habitat_no_water` | solves month 60, 87.1 biodiversity | solves month 60, 87.1 biodiversity |
+| `noise_no_roads` | solves month 18 | solves month 21 |
+
+The constrained solutions are as good as the originals. The two ponds in the
+habitat plan and the side road in the noise plan **cost budget and earn
+nothing**. A constraint medal is a reward for giving something up; when there
+is nothing to give up, it is a reward for noticing. Either those levels want a
+reason to build water and side roads that the indicators do not currently
+capture, or the medals want retiring.
 
 ### tuebingen teaches nothing
 

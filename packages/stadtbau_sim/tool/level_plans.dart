@@ -29,6 +29,35 @@ const plannedLevelIds = <String>[
   'tuebingen',
 ];
 
+/// Variants of the worked plan that exist to prove an optional medal can be
+/// earned, keyed by the challenge id they earn.
+///
+/// They are derived from the plan rather than written out, so they cannot fall
+/// out of step with it. Both of the ones here are the plan with something
+/// simply left out, and in both cases the level still solves — the side road
+/// in `noise` and the ponds in `habitat` cost budget and earn nothing, which is
+/// worth knowing about a constraint medal: it only means something if the
+/// constrained solution costs something.
+Map<String, List<Move>> medalPlansFor(String levelId) {
+  final plan = planFor(levelId);
+  if (plan == null) return const {};
+  return switch (levelId) {
+    'noise' => {
+      'noise_no_roads': [
+        for (final move in plan)
+          if (move.$3 != TileType.road) move,
+      ],
+    },
+    'habitat' => {
+      'habitat_no_water': [
+        for (final move in plan)
+          if (move.$3 != TileType.water) move,
+      ],
+    },
+    _ => const {},
+  };
+}
+
 /// The plan for [levelId], or null if none is written.
 List<Move>? planFor(String levelId) => switch (levelId) {
   'village' => () {
