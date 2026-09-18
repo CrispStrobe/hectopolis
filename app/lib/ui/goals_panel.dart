@@ -6,6 +6,21 @@ import 'package:stadtbau_sim/stadtbau_sim.dart';
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
 
+/// The colour a met goal is written in.
+///
+/// This is text, so it owes 4.5:1 against the surface (WCAG 1.4.3), not the
+/// 3:1 a graphic would. The single colour it used to be measured 4.14:1 in
+/// the light theme and 4.28:1 in the dark one -- close enough to look fine
+/// and still short of the line -- so there is now one per theme, each the
+/// nearest shade of the same hue that clears it.
+///
+/// Named rather than inline because `app/test/contrast_test.dart` checks it,
+/// and a test that re-typed the literal would keep passing after someone
+/// changed the widget.
+Color goalMetColor(Brightness brightness) => brightness == Brightness.dark
+    ? const Color(0xFF2E85C0)
+    : const Color(0xFF2976AC);
+
 /// Level goals with live progress and the remaining time.
 class GoalsPanel extends StatelessWidget {
   const GoalsPanel({super.key, required this.controller, this.compact = false});
@@ -119,9 +134,8 @@ class _GoalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = met
-        ? const Color(0xFF2C7FB8)
-        : theme.colorScheme.onSurfaceVariant;
+    final color =
+        met ? goalMetColor(theme.brightness) : theme.colorScheme.onSurfaceVariant;
     return Row(
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [

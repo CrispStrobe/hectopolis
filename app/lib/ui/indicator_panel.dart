@@ -8,6 +8,26 @@ import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'doc_links.dart';
 
+/// The fill of an indicator's bar at [value] (0-100): warm when a reading is
+/// poor, cool when it is good.
+///
+/// The endpoints differ by theme because the bar has to stay distinguishable
+/// from the track behind it (WCAG 1.4.11, 3:1), and the track is light in one
+/// theme and dark in the other. One pair of colours could not do both: the
+/// original single pair measured 2.91:1 on the light track at a reading of 0.
+///
+/// The endpoints were chosen by sweeping the *whole* scale, not by checking
+/// the two ends, because the worst point is in the middle: a warm-to-cool
+/// lerp passes through a desaturated tone whose luminance sits closest to the
+/// track, and in dark mode that midpoint measured 2.73:1 while both ends
+/// passed. `app/test/contrast_test.dart` sweeps every reading for this
+/// reason.
+Color indicatorBarColor(double value, {required bool dark}) => Color.lerp(
+      dark ? const Color(0xFFF06D16) : const Color(0xFFCF5B0D),
+      dark ? const Color(0xFF3490CE) : const Color(0xFF2A79B0),
+      value.clamp(0, 100) / 100,
+    )!;
+
 /// Opens the detail sheet of one indicator: name, hint, current detail line,
 /// how the score is computed and a link into `docs/model` (T-204).
 Future<void> showIndicatorDetails(
@@ -183,10 +203,10 @@ class _Gauge extends StatelessWidget {
   void _open(BuildContext context) =>
       showIndicatorDetails(context, indicator: indicator, detail: detail);
 
-  Color _color(BuildContext context) {
-    final v = value.clamp(0, 100) / 100;
-    return Color.lerp(const Color(0xFFD95F0E), const Color(0xFF2C7FB8), v)!;
-  }
+  Color _color(BuildContext context) => indicatorBarColor(
+        value,
+        dark: Theme.of(context).brightness == Brightness.dark,
+      );
 
   String _smiley(double v) {
     if (v >= 0.8) return '😄';
