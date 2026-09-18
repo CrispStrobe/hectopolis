@@ -110,12 +110,51 @@ Build costs are development costs borne by the municipality in the game
 (Erschließung, park construction, afforestation), in k€ per hectare. All are
 initial estimates; sources to be added per task T-103.
 
-## CO₂ per hectare
+## CO₂ per hectare — land cover (verified in T-103)
 
-Forest −10 t/ha/a (Thünen, Bundeswaldinventur, growing stands), grassland
-−1, cropland +1.5 (incl. N₂O), buildings by heating per resident (UBA), industry
-+400 t/ha/a for 45 jobs. Traffic CO₂ is computed from car-km (0.15 kg/km, UBA
-fleet average). Initial estimates.
+`co2PerHaYear` is real tonnes of CO₂ per hectare per year, positive for a
+source. It does not age with the tile: a forest emits its number the month it
+is planted.
+
+That fixes what the land-cover values have to mean. **They are rates of
+land-use change, not national averages of the land cover.** The player converts
+a hectare; the number is what that conversion does. The distinction is not
+pedantic, because for three of the five tiles the two differ in sign:
+
+| Tile | Value | What it is | National average of that cover |
+|---|---|---|---|
+| forest | −10 | a newly established, growing stand: age class II (21–40 a) binds most, an establishing Mischwald about 2.4 t C/ha/a = 8.8 t CO₂ | German forest 2021: 52.5 Mt over 10.7 M ha = **−4.9**; and since 2017 a *source* (BWI 2022; UBA 2024: +2.1 Mt) after the calamity years |
+| meadow | −1 | soil carbon built after conversion from cropland: 0.8 t C/ha/a ≈ 2.9 t CO₂ (Poeplau & Don 2013), taken conservatively because Poeplau et al. 2017 finds productive arable a poor candidate | German grassland 2024: 24.2 Mt over 4.74 M ha = **+5.1**, a source, because drained peat dominates it |
+| cropland | +1.5 | the national average, which is what a cropland tile is | UBA 2024: 17.5 Mt over 11.66 M ha = **+1.50** ✔ |
+| park | −3 | Nowak et al. 2013: 0.28 kg C/m² of canopy; at this tile's canopy fraction of 0.5 that is 5.1 t CO₂/ha once mature, and a park spends two decades below it | — |
+| wetland | −5 | conservative sink for a created wetland; rewetting drained peat saves ≥ 20 t CO₂-eq/ha/a against drained grassland, and a rewetted fen needs 13–16 years to reach the standard factors | — |
+
+Only cropland is a case where the tile value and the national average are the
+same number, and there the two agree to two decimals.
+
+Traffic CO₂ is computed separately from car-km (0.15 kg/km, UBA fleet average).
+
+## CO₂ per hectare — buildings (**not** verified; see the warning below)
+
+housing_low 25, housing_high 50, commercial 60, industry 400. These four are
+still the placeholders T-102 wrote, and T-103 found that **their own source
+strings did not produce them**: `housing_low` cited "≈ 2 t CO₂/EW/a at 45
+EW/ha", which is 90 t/ha, against a stored value of 25.
+
+Checked against UBA, direct CO₂ from private households' combustion plants was
+77 Mt in 2024 across about 83.5 M residents — 0.92 t per resident per year,
+before district heat and electricity, which the energy sector carries. At the
+model's own densities that is roughly **41 t/ha for housing_low and 166 t/ha
+for housing_high**: three times the stored values.
+
+They were left alone because raising them is not a parameter fix. The climate
+indicator scores 2.5 t CO₂ per person as zero
+(`indicators.dart`), which is already an aspirational scale rather than a
+German one — the real figure is about 7.8 — so tripling the housing term would
+push every city on every level to a climate score of zero. Correcting the
+table and rescaling the indicator have to happen together, and the level goals
+have to be re-proven winnable afterwards. That is a design decision, recorded
+here rather than taken quietly.
 
 ## References
 
@@ -128,6 +167,14 @@ fleet average). Initial estimates.
 - Umweltatlas Berlin 01.02 Versiegelung 2021: https://www.berlin.de/umweltatlas/boden/versiegelung/2021/kartenbeschreibung/
 - Umweltatlas Berlin, Abschlussbericht Versiegelung 2021 (Tabelle 19): https://www.berlin.de/umweltatlas/_assets/literatur/ab_versiegelung_2021.pdf
 - InVEST User Guide, Urban Cooling Model
+- UBA, Emissionen der Landnutzung, -änderung und Forstwirtschaft: https://www.umweltbundesamt.de/daten/umweltzustand-trends/klima/treibhausgas-emissionen-in-deutschland/emissionen-der-landnutzung-aenderung
+- UBA, Energieverbrauch privater Haushalte: https://www.umweltbundesamt.de/daten/umweltzustand-trends/private-haushalte-konsum/wohnen/energieverbrauch-privater-haushalte
+- Destatis/Thünen, Waldgesamtrechnung 2021: https://www.destatis.de/DE/Presse/Pressemitteilungen/Zahl-der-Woche/2024/PD24_12_p002.html
+- Thünen, Ergebnisse der Bundeswaldinventur 2022: https://www.thuenen.de/de/themenfelder/waelder/die-bundeswaldinventur/ergebnisse-der-bundeswaldinventur-2022
+- Destatis, Landwirtschaftliche Bodennutzung nach Hauptnutzungsarten: https://www.destatis.de/DE/Themen/Branchen-Unternehmen/Landwirtschaft-Forstwirtschaft-Fischerei/Feldfruechte-Gruenland/Tabellen/flaechen-hauptnutzungsarten.html
+- Poeplau & Don 2013, Geoderma 192, 189–201; Poeplau et al. 2017, Sci. Rep. 7, 11550
+- Nowak et al. 2013, Environmental Pollution 178, 229–236
+- Greifswald Mire Centre, peatland conservation: https://www.greifswaldmoor.de/moore-61.html
 
 ## The six tiles added by T-502 (2026-09-17)
 

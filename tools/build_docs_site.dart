@@ -604,6 +604,15 @@ const _authorities = <Authority>[
   Authority('mid', r'MiD 2017', 'MiD 2017 (Mobilität in Deutschland)',
       'The national travel survey (BMVI/infas): modal split by trip distance, '
           'mean commute length, and the cycling analyses.'),
+  Authority('poeplau', r'Poeplau', 'Poeplau & Don 2013 / Poeplau et al. 2017',
+      'European meta-analyses of soil organic carbon after land-use change. '
+          'Converting cropland to grassland builds about 0.8 t C/ha/yr, with '
+          'the 2017 paper cautioning that highly productive arable land is a '
+          'poor candidate.'),
+  Authority('peat', r'Greifswald', 'Greifswald Mire Centre',
+      'Rewetting drained peat saves at least 20 t CO₂-eq per hectare and '
+          'year against drained grassland, and a rewetted fen turns from '
+          'source to sink over roughly 15 years. Sets the wetland tile.'),
   Authority('destatis', r'Destatis|Zensus 2022', 'Destatis / Zensus 2022',
       'Federal Statistical Office. The 100 m population grid sets the cell '
           'size (1 ha), and the tax press releases set per-resident and '

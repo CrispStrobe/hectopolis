@@ -227,6 +227,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   `tiles.json` sources. Write `docs/model/tiles.md` with the citations. No code.
   *Note 2026-09-05 (2):* BKompV Anlage 2 codes recorded per tile (`docs/model/tiles.md`); densities derived from Destatis 49.2 m²/EW and BauNVO GFZ; taxes from Destatis 2023/2024 releases; MiD 2017 mode shares. Costs and recovery times remain estimates.
   *Note 2026-09-18:* Sealing verified against Umweltatlas Berlin 01.02 Versiegelung 2021 Tabelle 19 (new source register row, dl-de/zero-2.0), corrected for street share; industry 0.90 → 0.88, park 0.15 → 0.10, the other three confirmed. Costs, CO₂, air and noise emissions still estimates.
+  *Note 2026-09-18 (2):* Land-cover CO₂ verified (forest, meadow, cropland, park, wetland): all five values hold, but they are rates of land-use *change*, not national averages of the cover, and `docs/model/tiles.md` now says so — for forest and meadow the national average has the opposite sign. Cropland +1.5 matches UBA/Destatis to two decimals. **The four building CO₂ values are wrong by about 3× and were deliberately not changed**: correcting them requires rescaling the climate indicator's 2.5 t/person zero point and re-proving every level, which is a design decision for the user. Costs, air and noise emissions still estimates.
 - [x] **T-104 Kernel engine.** Generic `FieldSolver` that takes emitters (tile → strength)
   and a kernel (function of Chebyshev or Euclidean distance in tiles) and fills a
   `Float32List` field. Support energetic (dB) summation and linear summation. Precompute
@@ -723,7 +724,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 | Habitat quality, urban cooling, nature access | InVEST user guide and code (Natural Capital Project) | Apache-2.0 | Formulas and defaults |
 | Noise | Directive (EU) 2015/996 Annex II (CNOSSOS-EU); TA Lärm | EU law; German administrative rule | Emission, propagation, limits |
 | Air | EMEP/EEA air pollutant emission inventory guidebook; UBA | Free, EEA standard re-use | Emission factors |
-| Deposition by trees | Nowak et al. (i-Tree publications) | Scientific papers (values only) | Sink coefficients |
+| Deposition and carbon, urban trees | Nowak et al. (i-Tree publications), incl. Nowak et al. 2013 (Environ. Pollut. 178) | Scientific papers (values only) | Sink coefficients; park CO₂ |
 | Density | BBSR, BauNVO, Destatis (living space per person) | Public | Residents and jobs per ha |
 | Population grid | Zensus 2022 100 m grid | dl-de/by-2.0 | Calibration, level generator |
 | Mobility | Mobilität in Deutschland 2017 (aggregated results) | Public report | Mode share by distance |
@@ -731,6 +732,9 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 | Retail | HDE / BBSR Nahversorgung studies | Public reports (values only) | Floor space per resident, radii |
 | Recreation | WHO Urban green spaces (2016/2017); 3-30-300 rule (Konijnendijk 2021) | Public / paper | Access thresholds |
 | Runoff | USDA SCS curve number (NRCS TR-55) | US public domain | Water module |
+| Land-use carbon | UBA, Emissionen der Landnutzung (LULUCF); Waldgesamtrechnung (Thünen für Destatis); Bundeswaldinventur 2022 | Public federal reporting | CO₂ per hectare of forest, grassland, cropland |
+| Soil carbon after land-use change | Poeplau & Don 2013 (Geoderma 192); Poeplau et al. 2017 (Sci. Rep. 7) | Scientific papers (values only) | Meadow sink after conversion |
+| Peatland carbon | Greifswald Mire Centre; Commun. Earth Environ. 2024, emission factors for rewetted peatlands | Public / papers (values only) | Wetland sink |
 | Soil sealing by land use | Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt Berlin) | dl-de/zero-2.0 (no attribution required; we attribute anyway) | Sealed fraction of the built tiles |
 | Land use maps | Copernicus Urban Atlas, CORINE, ATKIS (open Länder) | Copernicus free; dl-de/by-2.0 | Level generator |
 | Land cover, Germany | Landbedeckungsmodell LBM-DE2021 (BKG) | CC BY 4.0, prescribed Quellenvermerk and modification notice | Level generator (T-303); the `tuebingen` level |

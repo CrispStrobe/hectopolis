@@ -75,7 +75,7 @@ const String defaultParamsJson = r'''
       },
       "co2PerHaYear": {
         "value": -1.0,
-        "source": "UBA / Thünen: grassland soil carbon sink ~1 t CO2/ha/a (initial estimate)"
+        "source": "Poeplau & Don 2013 (Geoderma 192, 189–201): Umwandlung Acker → Grünland baut im Mittel 0,8 t C/ha/a Bodenkohlenstoff auf, also rund 2,9 t CO2/ha/a; Poeplau et al. 2017 (Sci. Rep. 7, 11550) mahnt für hochproduktive Ackerböden zur Vorsicht, deshalb der konservative Ansatz von 1 t CO2/ha/a. Das ist die Rate einer neu angelegten Wiese, nicht der deutsche Grünlanddurchschnitt: der ist laut UBA-Inventar 2024 mit 24,2 Mt CO2-Äq. auf 4,74 Mio. ha (Destatis 2025) eine Quelle von 5,1 t/ha/a, weil entwässerte Moorböden dominieren"
       },
       "buildCostKEur": {
         "value": 5,
@@ -150,7 +150,7 @@ const String defaultParamsJson = r'''
       },
       "co2PerHaYear": {
         "value": 1.5,
-        "source": "UBA: cropland net source incl. fertiliser N2O (initial estimate)"
+        "source": "UBA, Emissionen der Landnutzung (LULUCF), Berichtsjahr 2024: Ackerland 17,5 Mt CO2-Äq.; bezogen auf 11,66 Mio. ha Ackerland (Destatis, Flächen nach Hauptnutzungsarten 2025) sind das 1,50 t/ha/a. 62 % davon stammen aus organischen Böden, mineralische Ackerböden liegen darunter"
       },
       "buildCostKEur": {
         "value": 2,
@@ -227,7 +227,7 @@ const String defaultParamsJson = r'''
       },
       "co2PerHaYear": {
         "value": -10.0,
-        "source": "Thünen Bundeswaldinventur: ~10 t CO2/ha/a net sink in growing forest (initial estimate)"
+        "source": "Rate eines neu begründeten, wachsenden Bestandes, nicht des deutschen Waldes im Mittel. Waldgesamtrechnung (Thünen-Institut im Auftrag des Statistischen Bundesamtes): 52,5 Mt CO2 netto auf 10,7 Mio. ha Wald (2021) = 4,9 t/ha/a; die II. Altersklasse (21–40 Jahre) bindet am meisten, ein sich etablierender Mischwald rund 2,4 t C/ha/a = 8,8 t CO2/ha/a. Gegenprobe und Warnung: nach der Bundeswaldinventur 2022 ist der deutsche Wald 2017–2022 durch Kalamitäten zur Quelle geworden (UBA-Inventar 2024: Wald +2,1 Mt), der Spielwert gilt also für eine Aufforstung unter günstigen Bedingungen"
       },
       "buildCostKEur": {
         "value": 20,
@@ -380,7 +380,7 @@ const String defaultParamsJson = r'''
       },
       "co2PerHaYear": {
         "value": -3.0,
-        "source": "initial estimate"
+        "source": "Nowak et al. 2013 (Environmental Pollution 178, 229–236): st\u00e4dtische B\u00e4ume binden brutto 0,28 kg C je m\u00b2 Kronenfl\u00e4che und Jahr; bei der Kronenfl\u00e4che 0,5 dieses Tiles sind das 1,4 t C = 5,1 t CO2/ha/a im ausgewachsenen Zustand. Angesetzt sind 3,0, weil co2PerHaYear nicht mit dem Tile altert und ein Park seine ersten zwei Jahrzehnte darunter liegt"
       },
       "buildCostKEur": {
         "value": 400,
@@ -842,8 +842,7 @@ const String defaultParamsJson = r'''
       },
       "co2PerHaYear": {
         "value": -5.0,
-        "source": "UBA: intact peat and wetland soils are net carbon sinks; set between park (-3) and forest (-10)",
-        "note": "initial estimate"
+        "source": "Greifswald Moor Centrum / Universität Greifswald: Wiedervernässung spart gegenüber entwässerter Grünlandnutzung mindestens 20 t CO2-Äq./ha/a; wiedervernässte Niedermoore gehen von der Quelle zur Senke über, erreichen die Standard-Emissionsfaktoren aber erst 13–16 Jahre nach der Wiedervernässung ('Temporally dynamic carbon dioxide and methane emission factors for rewetted peatlands', Commun. Earth Environ. 2024). 5 t/ha/a ist der konservative Senkenwert, deutlich unter den vermiedenen 20 t"
       },
       "buildCostKEur": {
         "value": 250,
