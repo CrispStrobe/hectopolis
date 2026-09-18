@@ -230,26 +230,75 @@ bool hasPredictionChoices(String predictionId) =>
 
 /// Tiles worth suggesting for a goal that is not yet met, most direct first.
 ///
+/// Every tile that moves the indicator belongs here, not just the ones that
+/// existed when the mapping was written: the six tiles T-502 added were
+/// missing, so a level built from them could be told its budget needed
+/// commercial and industry when its own palette offered mixed use and a
+/// school. `tram_stop` and `cycle_path` are in the commuting list because they
+/// shift mode share through `transitAccess` and `cycleAccess`, which
+/// `_modeFactor` reads.
+///
 /// The app turns this into the hint under the goals panel; the audit uses it
 /// to check that a level actually allows at least one of the tiles its own
 /// goals point at. A goal whose candidates a level forbids leaves the player
 /// with a hint that names nothing.
 List<TileType> guidanceCandidatesFor(LevelGoal goal) =>
     switch (goal.indicator) {
-      Indicator.biodiversity ||
-      Indicator.air ||
-      Indicator.climate => const [TileType.forest, TileType.meadow],
+      Indicator.biodiversity => const [
+        TileType.wetland,
+        TileType.forest,
+        TileType.meadow,
+      ],
+      Indicator.air => const [
+        TileType.forest,
+        TileType.park,
+        TileType.meadow,
+      ],
+      Indicator.climate => const [
+        TileType.solarField,
+        TileType.forest,
+        TileType.wetland,
+        TileType.meadow,
+      ],
       Indicator.noise => const [TileType.forest, TileType.park],
-      Indicator.housing => const [TileType.housingHigh, TileType.housingLow],
+      Indicator.housing => const [
+        TileType.housingHigh,
+        TileType.mixedUse,
+        TileType.housingLow,
+      ],
       Indicator.economy ||
-      Indicator.budget => const [TileType.commercial, TileType.industry],
-      Indicator.shopping => const [TileType.commercial],
-      Indicator.recreation => const [TileType.park, TileType.forest],
-      Indicator.commuting => const [TileType.commercial, TileType.road],
+      Indicator.budget => const [
+        TileType.commercial,
+        TileType.mixedUse,
+        TileType.industry,
+        TileType.school,
+      ],
+      Indicator.shopping => const [TileType.commercial, TileType.mixedUse],
+      Indicator.recreation => const [
+        TileType.park,
+        TileType.forest,
+        TileType.wetland,
+      ],
+      Indicator.commuting => const [
+        TileType.tramStop,
+        TileType.cyclePath,
+        TileType.mixedUse,
+        TileType.commercial,
+        TileType.road,
+      ],
       null => switch (goal.metric) {
-        'population' => const [TileType.housingHigh, TileType.housingLow],
+        'population' => const [
+          TileType.housingHigh,
+          TileType.mixedUse,
+          TileType.housingLow,
+        ],
         'jobs' ||
-        'budgetKEur' => const [TileType.commercial, TileType.industry],
+        'budgetKEur' => const [
+          TileType.commercial,
+          TileType.mixedUse,
+          TileType.industry,
+          TileType.school,
+        ],
         _ => const <TileType>[],
       },
     };

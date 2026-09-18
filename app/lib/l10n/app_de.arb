@@ -64,6 +64,7 @@
   "guidanceThinkCause": "Welche nahe Quelle, Barriere oder welches fehlende Ziel könnte das Muster erklären?",
   "guidanceTryTile": "Versuche {tile} zu setzen. Andere Wege können auch funktionieren.",
   "guidanceExplore": "Erkunde die Karte und probiere eine andere Mischung.",
+  "guidanceProtect": "Hier lässt sich {goal} nicht dazubauen. Schütze, was schon da ist.",
   "inspectorTitle": "Zelle {x}, {y}",
   "inspectorEmpty": "Zelle antippen, um Details zu sehen.",
   "costLabel": "Kosten {amount}",

@@ -320,6 +320,42 @@ void main() {
     c.dispose();
   });
 
+  test('a goal with nothing to build toward gets the protect hint', () {
+    // habitat carries a housing goal and allows no housing tile: the goal is
+    // there to stop the player bulldozing the village. Before this, the hint
+    // walked its stages and ended on "explore the map", which is true and
+    // useless.
+    final level = Level.byId('habitat')!;
+    final c = GameController(size: level.width);
+    c.startLevel(level);
+    final housing = level.goals.firstWhere(
+      (g) => g.indicator == Indicator.housing,
+    );
+    expect(
+      guidanceCandidatesFor(housing).any(c.sim.tileBudget.allowed),
+      isFalse,
+      reason: 'the level is supposed to offer no housing tile',
+    );
+
+    // Bulldoze homes until housing is the goal furthest from its target.
+    for (var i = 0; i < level.map.length && c.goalGuidance?.indicator != Indicator.housing; i++) {
+      if (level.map[i] == TileType.housingLow ||
+          level.map[i] == TileType.housingHigh) {
+        c.place(i % level.width, i ~/ level.width, TileType.meadow);
+      }
+    }
+    expect(c.goalGuidance?.indicator, Indicator.housing);
+    expect(c.goalGuidance?.tile, isNull);
+    expect(c.guidanceHasNoBuildableTile, isTrue);
+
+    // And a goal that can be built toward keeps the tile suggestion.
+    final village = GameController(size: Level.byId('village')!.width);
+    village.startLevel(Level.byId('village')!);
+    expect(village.guidanceHasNoBuildableTile, isFalse);
+    village.dispose();
+    c.dispose();
+  });
+
   test('controller undo and redo restore complete build state', () {
     final c = GameController(size: 8);
     c.sim = Simulation(

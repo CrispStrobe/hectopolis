@@ -206,14 +206,19 @@ class _GuidanceCard extends StatelessWidget {
         : l10n.indicatorName(guidance.indicator!.name);
     final tile = guidance.tile;
     final stage = controller.guidanceStage;
+    // A goal the level gives you nothing to build toward - habitat's housing,
+    // which is there to stop you bulldozing the village - used to end on
+    // "explore the map", which is true and useless. Say what is actually being
+    // asked instead.
+    final protectOnly = tile == null && controller.guidanceHasNoBuildableTile;
     final subtitle = switch (stage) {
       0 => l10n.guidanceQuestion(target),
       1 => l10n.guidanceSeeOverlay,
       2 => l10n.guidanceThinkCause,
-      _ =>
-        tile == null
-            ? l10n.guidanceExplore
-            : l10n.guidanceTryTile(l10n.tileName(tile.id)),
+      _ => switch (tile) {
+        null => protectOnly ? l10n.guidanceProtect(target) : l10n.guidanceExplore,
+        final t => l10n.guidanceTryTile(l10n.tileName(t.id)),
+      },
     };
     return Card(
       color: Theme.of(context).colorScheme.primaryContainer,

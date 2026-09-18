@@ -896,6 +896,26 @@ class GameController extends ChangeNotifier {
     );
   }
 
+  /// Whether the goal the hint is talking about is one the level offers no way
+  /// to build toward at all — as opposed to one whose tiles are merely used
+  /// up. `habitat` carries a housing goal and allows no housing tile, because
+  /// the goal is there to stop the player bulldozing the village.
+  bool get guidanceHasNoBuildableTile {
+    final lvl = level;
+    final guidance = goalGuidance;
+    if (lvl == null || guidance == null) return false;
+    for (final goal in lvl.goals) {
+      if (goal.indicator != guidance.indicator ||
+          goal.metric != guidance.metric) {
+        continue;
+      }
+      return !guidanceCandidatesFor(
+        goal,
+      ).any((tile) => sim.tileBudget.allowed(tile));
+    }
+    return false;
+  }
+
   /// Value of the active overlay at [cell], normalised to 0–1 for colouring.
   double overlayValue(int cell) {
     final baseline = _experimentBaseline;
