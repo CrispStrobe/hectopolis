@@ -42,7 +42,7 @@ const List<String> defaultLevelsJson = [
       },
       {
         "id": "village_quiet_left",
-        "afterMonths": 24
+        "afterTilesPlaced": 16
       }
     ]
   },

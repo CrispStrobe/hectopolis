@@ -445,6 +445,19 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   imperfect plan and would make the `habitat_fast` medal (≤ 120 months) nearly impossible.
   **`tuebingen` is still won at month 0** and is a different problem — biodiversity there moves
   39 → 41 over 240 months, so no threshold makes time matter.
+  *Note 2026-09-18 (3):* Three more of the audit's notes closed. `village_quiet_left` fired
+  `afterMonths: 24` against a tutorial solved in 3 months; here the trigger was wrong, not the
+  level — the beat says "look at what is still meadow and forest", which is a thing to notice once
+  the village has taken shape — so it fires at `afterTilesPlaced: 16`, half the tile budget.
+  **Every beat in every mission now fires on the worked solution.** And `tool/level_plans.dart`
+  carries a variant of the noise and habitat plans that earns `noise_no_roads` and
+  `habitat_no_water`, derived by filtering the plan so it cannot drift from it; the audit fails if
+  a variant stops solving or stops earning its medal. They proved something worth knowing: the
+  constrained solutions are as good as the originals (habitat identical, noise 3 months slower),
+  so the two ponds and the side road cost budget and earn nothing. **A constraint medal is only
+  meaningful if the constraint costs something.** Two notes remain, both authoring: the habitat
+  housing goal is a preservation constraint the tactical hint cannot express, and `tuebingen`
+  still has no learning block.
 - [x] **T-306 Counterfactual experiments.** Pin the current deterministic simulation,
   freely test builds and time, compare live indicator and overlay deltas, then keep or
   discard the branch without affecting the pinned city.

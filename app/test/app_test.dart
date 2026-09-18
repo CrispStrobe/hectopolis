@@ -81,16 +81,28 @@ void main() {
     expect(c.activeBeat, isNull);
     c.acknowledgeMissionBriefing();
 
+    // Both village beats are keyed to tiles placed, so the test follows the
+    // data rather than a number that has to be kept in step with it.
+    final firstAt = beats.first.afterTilesPlaced!;
+    final secondAt = beats[1].afterTilesPlaced!;
+
     var placed = 0;
-    for (var i = 0; placed < 4 && i < level.map.length; i++) {
-      if (c.place(i % level.width, i ~/ level.width, TileType.housingLow)) {
-        placed++;
+    var cell = 0;
+    void buildTo(int target) {
+      for (; placed < target && cell < level.map.length; cell++) {
+        if (c.place(cell % level.width, cell ~/ level.width, TileType.housingLow)) {
+          placed++;
+        }
       }
     }
-    expect(placed, 4, reason: 'needs four homes to reach the first beat');
+
+    buildTo(firstAt);
+    expect(placed, firstAt, reason: 'needs $firstAt homes for the first beat');
     expect(c.activeBeat?.id, beats.first.id);
 
     // Only one beat is offered at a time, even once a later one would qualify.
+    buildTo(secondAt);
+    expect(placed, secondAt, reason: 'needs $secondAt homes for the second');
     for (var i = 0; i < 30; i++) {
       c.step();
     }
