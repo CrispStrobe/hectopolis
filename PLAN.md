@@ -649,8 +649,19 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   to 100 rather than checking the ends, and the colours are named constants the widgets and
   the test share, so a test that re-typed the literal cannot keep passing after someone
   changes the widget. Verified numerically and then looked at, rendered.
-  **Open:** a focus-order audit, and testing with a real screen reader — neither of which can
-  be done from here.
+  *Note 2026-09-18:* Focus-order audit done — which was wrongly written off earlier as
+  impossible here. Traversal order is a property of the widget tree, so a widget test can
+  walk it; only a *screen reader* needs hardware this box does not have.
+  `app/test/focus_order_test.dart` tabs through the game screen and asserts that the
+  traversal closes (WCAG 2.1.2, no keyboard trap), that focus never falls off the tree, and
+  that every app-bar action is reachable by Tab, plus that Shift-Tab exactly undoes a Tab.
+  It found **nothing wrong**, which is the honest result: the order was already sound, and
+  the value is that a refactor stranding a control now fails a test instead of shipping.
+  Two notes for whoever extends it: the map runs a repeating animation controller, so the
+  test needs the same reduce-motion `MediaQuery` that `render_map_png.dart` documents or
+  `pumpAndSettle` never returns; and what a test cannot check is whether the order *makes
+  sense to a person*, only that nothing is unreachable.
+  **Open:** testing with a real screen reader, which cannot be done from here.
 - [x] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
   *Note 2026-09-17:* The guarantee already held — there is no networking API anywhere in
   first-party code, and the dependency list is seven packages none of which reports anything.
