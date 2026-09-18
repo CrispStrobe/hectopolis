@@ -122,12 +122,56 @@ Shade, albedo and ETI are the InVEST Urban Cooling biophysical inputs
 (canopy fraction, surface albedo, crop coefficient scaled 0–1); see
 `heat.md`.
 
-## Noise emission
+## Noise emission (verified in T-103 where a source exists)
 
-See `noise.md`. Tile values are L_eq at the tile boundary (50 m from the
-centre): road 60 dB(A) per 100 m segment at 10 000 vehicles/day, industry 65,
-commercial 58, apartment blocks 50, detached housing 45. The TA Lärm daytime
-limits (WA 55, MI 60, GE 65, GI 70 dB(A)) anchor the scale.
+See `noise.md`. Tile values are L_eq at the tile boundary, 50 m from the centre.
+
+The values had been anchored on the **TA Lärm daytime limits** (WR 50, WA 55,
+MI 60, GE 65, GI 70 dB(A)). Those are *immission* limits at a protected
+building — what may arrive — not what a hectare radiates, so they were the
+wrong quantity, much as the GRZ was for sealing.
+
+German planning does have the right quantity: the **flächenbezogener
+Schallleistungspegel**, the sound power a square metre of a use may radiate,
+which DIN 18005-1 Ziffer 5.2.3 puts at 60 dB(A)/m² for a Gewerbegebiet and
+65 dB(A)/m² for an Industriegebiet. Over a hectare and out to the tile
+reference:
+
+```
+L_W  = L_W" + 10·log10(10 000 m²)
+L₅₀  = L_W  − 10·log10(2π · 50²)      (hemispherical, source on the ground)
+```
+
+| Tile | L_W" | L_W (1 ha) | L at 50 m | Tile value |
+|---|---|---|---|---|
+| commercial | 60 | 100 | 58.0 | **58** ✔ unchanged |
+| industry | 65 | 105 | 63.0 | **63** (was 65) |
+
+commercial came out exactly right; industry had been 2 dB above what the norm
+gives, which is a factor of 1.6 in sound energy.
+
+**road 60** is a calibration, not an estimate, and is now marked as one: the
+per-segment level is set so that the energetic sum of segments reproduces
+L_den ≈ 58 dB(A) at 100 m and ≈ 65 at 25 m from a straight road carrying
+10 000 vehicles a day — the RLS-19 / CNOSSOS orders of magnitude.
+
+**housing_low 45 and housing_high 50** are design values and will stay that
+way. There is no flächenbezogener Schallleistungspegel for residential land,
+because a residential area is not treated as a noise source in German
+planning — its traffic is, and in this model that traffic lives in the road
+tiles. The two numbers stand for residual noise, 5 dB apart for a fourfold
+difference in density, below the TA Lärm daytime limits for the corresponding
+area types. They are now labelled `design:` rather than "initial estimate",
+because no source is going to settle them.
+
+**noise.backgroundDb 35** is TA Lärm Nr. 6.1's night limit for a reine
+Wohngebiet — the quietest environment the rule recognises, and the floor the
+field never falls below.
+
+**noise.buildingScreeningDbPerTile 5** is design anchored on ISO 9613-2 and
+CNOSSOS: a closed row of buildings gives 5–10 dB of insertion loss in practice,
+and the lower end is taken because a game hectare does not guarantee a closed
+row. ISO 9613-2 caps single diffraction at 20 dB.
 
 ## Costs and maintenance (partly verified in T-103)
 
@@ -244,6 +288,7 @@ goal of 84.
 - Destatis, Wohnfläche je Einwohner: https://www.destatis.de/DE/Presse/Pressemitteilungen/2025/09/PD25_336_31231.html
 - BauNVO § 17: https://www.gesetze-im-internet.de/baunvo/__17.html
 - Copernicus Land Monitoring Service, Imperviousness
+- DIN 18005-1 flächenbezogene Schallleistungspegel, values as reported in Versteyl/Storr/Schiller, Die schalltechnische Überplanung von bebauten Gewerbe- und Industriegebieten mit Emissionskontingenten: https://bekon-akustik.de/wp-content/uploads/2021/03/Die_schalltechnische_Ueberplanung_von_bebauten_GE_und_GI.pdf
 - Difu, Folgekosten der Siedlungsentwicklung (REFINA Band III, 2009): https://difu.de/sites/default/files/media_files/publikationen/Band%20III%20Folgekosten-web-end%20neu.pdf
 - GALK-Kennzahlen zur Unterhaltung von Grünanlagen (Stadt+Grün): https://stadtundgruen.de/artikel/daten-fuer-die-erstellung-und-unterhaltung-von-gruenanlagen-ueberarbeitet-neue-kennzahlen-7914
 - GIFPRO Bedarfsprognose, Gewerbeflächenkonzept Bielefeld 2020, Baustein 07: https://www.bielefeld.de/sites/default/files/datei/2020/GewerbeflKonz_7.pdf

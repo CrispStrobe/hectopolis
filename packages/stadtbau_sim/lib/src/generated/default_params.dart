@@ -427,7 +427,7 @@ const String defaultParamsJson = r'''
       },
       "noiseEmissionDb": {
         "value": 45,
-        "source": "TA Lärm: residential background; own traffic (initial estimate)"
+        "source": "design: ein Wohngebiet ist selbst kaum Schallquelle — sein Verkehr steckt in den Straßen-Tiles. 45 dB(A) in 50 m steht für das Restgeräusch (Haustechnik, Menschen, Anliegerverkehr) und liegt unter dem TA-Lärm-Tagrichtwert für reine Wohngebiete (50 dB(A)). Für Wohngebiete gibt es keinen flächenbezogenen Schallleistungspegel wie für GE und GI; dieser Wert wird sich nicht extern belegen lassen"
       },
       "airEmission": {
         "value": 0.15,
@@ -504,7 +504,7 @@ const String defaultParamsJson = r'''
       },
       "noiseEmissionDb": {
         "value": 50,
-        "source": "TA Lärm: urban residential background (initial estimate)"
+        "source": "design: wie housing_low, aber vierfache Dichte — 5 dB(A) darüber, auf dem TA-Lärm-Tagrichtwert für reine Wohngebiete und unter dem für allgemeine Wohngebiete (55 dB(A))"
       },
       "airEmission": {
         "value": 0.3,
@@ -583,7 +583,7 @@ const String defaultParamsJson = r'''
       },
       "noiseEmissionDb": {
         "value": 58,
-        "source": "TA Lärm GE limit 65 day; delivery traffic typical 55–60 at boundary (initial estimate)"
+        "source": "DIN 18005-1 Ziffer 5.2.3 nennt flächenbezogene Schallleistungspegel von 60 dB(A)/m² für Gewerbegebiete und 65 dB(A)/m² für Industriegebiete (Werte wiedergegeben bei Versteyl/Storr/Schiller, Die schalltechnische Überplanung von bebauten Gewerbe- und Industriegebieten mit Emissionskontingenten). Für eine Hektare: L_W = 60 + 10·log10(10 000) = 100 dB(A); über der Halbkugel in 50 m Abstand L = L_W − 10·log10(2π·50²) = 58 dB(A). Die TA-Lärm-Tagrichtwerte (65 dB(A) für GE) sind die Immissionsgrenze, nicht die Emission"
       },
       "airEmission": {
         "value": 0.6,
@@ -657,8 +657,8 @@ const String defaultParamsJson = r'''
         "source": "design"
       },
       "noiseEmissionDb": {
-        "value": 65,
-        "source": "TA Lärm GI limit 70 day; typical plant boundary 60–68 (initial estimate)"
+        "value": 63,
+        "source": "DIN 18005-1 Ziffer 5.2.3 nennt flächenbezogene Schallleistungspegel von 60 dB(A)/m² für Gewerbegebiete und 65 dB(A)/m² für Industriegebiete (Werte wiedergegeben bei Versteyl/Storr/Schiller, Die schalltechnische Überplanung von bebauten Gewerbe- und Industriegebieten mit Emissionskontingenten). Für eine Hektare: L_W = 65 + 10·log10(10 000) = 105 dB(A); über der Halbkugel in 50 m Abstand L = L_W − 10·log10(2π·50²) = 63 dB(A). Die TA-Lärm-Tagrichtwerte (70 dB(A) für GI) sind die Immissionsgrenze, nicht die Emission. Der frühere Wert 65 war um 2 dB höher als die Norm hergibt"
       },
       "airEmission": {
         "value": 3.0,
@@ -734,7 +734,7 @@ const String defaultParamsJson = r'''
       "noiseEmissionDb": {
         "value": 60,
         "source": "Sound power of one 100 m segment at the 50 m reference, calibrated so that the energetic sum of segments gives L_den ≈ 58 dB(A) at 100 m and ≈ 65 dB(A) at 25 m from a straight road with 10 000 Kfz/24h at 50 km/h (RLS-19 / CNOSSOS-EU orders of magnitude)",
-        "note": "initial estimate"
+        "note": "calibration: the segment level is set so the summed field reproduces the RLS-19 / CNOSSOS orders of magnitude quoted in the source"
       },
       "airEmission": {
         "value": 1.0,
@@ -1295,7 +1295,7 @@ const String defaultParamsJson = r'''
     },
     "buildingScreeningDbPerTile": {
       "value": 5,
-      "source": "CNOSSOS-EU diffraction; dense building row typical 5–10 dB (initial estimate)"
+      "source": "design, anchored on ISO 9613-2 und CNOSSOS-EU: eine geschlossene Bebauungszeile wirkt wie ein Schirm und bringt in der Praxis 5–10 dB Einfügungsdämmung; angesetzt ist der untere Rand, weil eine Spiel-Hektare keine geschlossene Zeile garantiert. ISO 9613-2 deckelt Einfachbeugung bei 20 dB"
     },
     "maxPathAttenuationDb": {
       "value": 20,
@@ -1303,7 +1303,7 @@ const String defaultParamsJson = r'''
     },
     "backgroundDb": {
       "value": 35,
-      "source": "TA Lärm: rural night background (initial estimate)"
+      "source": "TA Lärm Nr. 6.1: Immissionsrichtwert für reine Wohngebiete nachts 35 dB(A) — der niedrigste Wert der Tabelle und damit die ruhigste Umgebung, die die Verwaltungsvorschrift kennt. Das Feld fällt nirgends darunter"
     },
     "radiusTiles": {
       "value": 8,

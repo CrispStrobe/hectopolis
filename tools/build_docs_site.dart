@@ -587,6 +587,11 @@ const _authorities = <Authority>[
       'Technische Anleitung zum Schutz gegen Lärm, the German immission '
           'guidance whose area-type limits (55 dB(A) day in a general '
           'residential area) the noise score uses.'),
+  Authority('din18005', r'DIN 18005', 'DIN 18005-1 area-related sound power',
+      'Ziffer 5.2.3 sets the flächenbezogener Schallleistungspegel a '
+          'commercial (60 dB(A)/m²) or industrial (65) hectare may radiate. '
+          'Spread over a hectare and taken to the 50 m tile reference, it is '
+          'the emission of those two tiles.'),
   Authority('rls19', r'RLS-19', 'RLS-19',
       'Richtlinien für den Lärmschutz an Straßen, published as an '
           'administrative regulation (BayMBl. 2021 Nr. 255). Road emission '
