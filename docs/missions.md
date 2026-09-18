@@ -65,40 +65,57 @@ while `i18n_lint` still said ok.)
 The reachability half produced no problems and six notes. Three of them are one
 finding:
 
-### Levels can be won before a single month passes
+### Levels could be won before a single month passed
 
 | Mission | Goals all met | Time limit |
 |---|---|---|
-| habitat | after 124 of the plan's 207 tiles, month 0 | 240 months |
+| habitat | **month 60**, after all 207 tiles (was: month 0, after 124) | 240 months |
 | tuebingen | after 78 of 118 tiles, month 0 | 120 months |
 | village | month 3 | 120 months |
 | noise | month 18 | 96 months |
 | quarter | month 27 | 180 months |
 | budget | month 41 | 72 months |
 
-On `habitat` and `tuebingen` **the end screen appears while the player is still
-building**. Everything the mission is nominally about then has no bearing on
-the outcome:
+On `habitat` and `tuebingen` **the end screen appeared while the player was
+still building**, and everything the mission is nominally about had no bearing
+on the outcome: the time limit and the seasonal cycle never came into play, and
+neither did the maturation model.
 
-- the 240-month limit and the seasonal cycle never come into play;
-- the maturation model does not either — on `habitat` biodiversity runs 72 at
-  month 0 to 87 at month 120 against a goal of **70**, so `recoveryMonths` and
-  `biotopeStart`, the parameters that level exists to teach, never decide
-  anything. A goal near **80** would make the wait the mission;
-- on `tuebingen` biodiversity moves 39 → 41 over 240 months against a goal of
-  38; the level is decided entirely by what the player removes, instantly.
+**`habitat` is fixed.** Its biodiversity goal was 70, and the worked plan
+starts at 71.8 — met before a month passed. Biodiversity then climbs by
+maturation alone:
 
-This is a level-design question, not a model defect: the thresholds are
-reachable by construction alone. It is recorded here rather than adjusted,
-because choosing how long a mission should take is an authoring decision.
+| month | 0 | 15 | 29 | 44 | 60 | 76 | 94 | 113 | plateau |
+|---|---|---|---|---|---|---|---|---|---|
+| biodiversity | 71.8 | 74 | 76 | 78 | **80** | 82 | 84 | 86 | 86.8 |
 
-### Two beats are unreachable for a competent player
+The goal is now **80**, which the worked plan reaches at **month 60** — a
+quarter of the level's 240-month limit, and only by waiting. That single number
+fixes three things at once: the level is no longer won mid-build, the
+`recoveryMonths` and `biotopeStart` parameters the mission exists to teach now
+decide it, and the `habitat_maturity` beat (below) finally fires.
 
-`village_quiet_left` fires `afterMonths: 24` and the worked plan finishes in 3.
-`habitat_maturity` fires `afterMonths: 36` and the worked plan finishes at
-month 0. Both teaching moments exist only for a player who dawdles. They follow
-from the finding above: a month-based trigger cannot fire in a mission decided
-in the first month.
+80 rather than 84 or 86 because the ceiling is 86.8: a threshold nearer the
+plateau leaves no headroom for a plan worse than the worked one, and would make
+the `habitat_fast` medal (≤ 120 months) nearly impossible rather than merely
+demanding.
+
+**`tuebingen` is not fixed**, because it is not the same problem. Biodiversity
+there moves 39 → 41 over 240 months against a goal of 38: the level is decided
+entirely by what the player removes, and it happens instantly. Making time
+matter there needs a different lever than a threshold, and it wants the
+project's judgement.
+
+### One beat is still unreachable for a competent player
+
+`village_quiet_left` fires `afterMonths: 24` and the worked plan finishes
+village in 3 months, so only a player who dawdles ever meets it.
+
+`habitat_maturity` had the same problem — `afterMonths: 36` against a level
+decided at month 0 — and the goal change fixed it: the audit now reports both
+habitat beats firing on the worked solution. The beat's own copy ("Give it
+time" / "Gib ihm Zeit") was written for exactly this and had never been
+reachable.
 
 ### The habitat hint has nothing to suggest
 
@@ -109,6 +126,17 @@ stages, and arrives with no tile to name (it falls back to "explore", which is
 true but not actionable). In 12 paths that happened 976 times. Either the hint
 wants a "protect what is there" stage, or preservation goals want marking as
 such in the level schema.
+
+### The two water tiles in the habitat plan are decorative
+
+The audit reports `habitat_no_water` — solve without placing water — as met by
+neither random play nor the worked plan, which places two ponds. That reads as
+"possibly impossible" and is not: replaying the plan with the two water tiles
+removed reaches the same 87.1 biodiversity and crosses the goal in the same
+month 60. The medal is free to anyone who simply leaves the water out, and the
+ponds change nothing. Either the level wants a reason to build water — a
+recreation or runoff benefit the biodiversity score does not capture — or the
+medal wants retiring.
 
 ### tuebingen teaches nothing
 

@@ -435,6 +435,16 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   against a goal of 70, reaching 87 by month 120). Two month-triggered beats are unreachable as a
   consequence, and `tuebingen` ships with no learning block at all. All of these are authoring
   decisions, recorded rather than taken.
+  *Note 2026-09-18 (2):* The habitat threshold was taken, on request. Its biodiversity goal moves
+  70 → **80**, which the worked plan reaches at month 60 of 240 — by maturation alone, since it
+  starts at 71.8 and climbs to a 86.8 plateau. One number fixes three things: the level is no
+  longer won mid-build (the plan now places all 207 tiles before winning, where it used to end
+  after 124), `recoveryMonths` and `biotopeStart` finally decide the mission that exists to teach
+  them, and the `habitat_maturity` beat — copy already written as "Gib ihm Zeit" — fires for the
+  first time. 80 rather than 84: the ceiling is 86.8, so a higher bar leaves no headroom for an
+  imperfect plan and would make the `habitat_fast` medal (≤ 120 months) nearly impossible.
+  **`tuebingen` is still won at month 0** and is a different problem — biodiversity there moves
+  39 → 41 over 240 months, so no threshold makes time matter.
 - [x] **T-306 Counterfactual experiments.** Pin the current deterministic simulation,
   freely test builds and time, compare live indicator and overlay deltas, then keep or
   discard the branch without affecting the pinned city.
