@@ -9,9 +9,15 @@ import 'dart:io';
 void main() {
   final src = File('data/params/tiles.json');
   final out = File('packages/stadtbau_sim/lib/src/generated/default_params.dart');
-  final raw = src.readAsStringSync();
-  // Validate that it is JSON before embedding.
-  jsonDecode(raw);
+  final rawWithSources = src.readAsStringSync();
+  // Validate that it is JSON before embedding, and drop the prose while doing
+  // it. Every parameter carries a `source` (and sometimes a `note`) because
+  // that is the point of the table, but nothing at run time reads either one:
+  // `Param` parses them into fields no widget touches, and the Quellen page is
+  // generated from the JSON on disk at build time. Shipping them put 50 KB of
+  // citations — 15 KB gzipped, most of it German — into every first load, and
+  // the run that added the T-103 citations grew it by a third.
+  final raw = _withoutProse(jsonDecode(rawWithSources));
   if (raw.contains("'''")) {
     stderr.writeln('tiles.json must not contain triple quotes');
     exit(1);
@@ -21,12 +27,22 @@ void main() {
     ..writeln('// GENERATED FILE - do not edit. Source: data/params/tiles.json')
     ..writeln('// Regenerate with: dart run tools/gen_params.dart')
     ..writeln()
-    ..writeln('/// Default simulation parameters as JSON (mirror of data/params/tiles.json).')
+    ..writeln('/// Default simulation parameters as JSON.')
+    ///
+    ..writeln('///')
+    ..writeln('/// Values only: the `source` and `note` fields of')
+    ..writeln('/// data/params/tiles.json are stripped here, because nothing')
+    ..writeln('/// reads them at run time and they are 15 KB gzipped of every')
+    ..writeln('/// first load. The citations live in the JSON, and the')
+    ..writeln('/// generated Quellen page renders them from it.')
     ..writeln("const String defaultParamsJson = r'''")
     ..write(raw)
     ..writeln("''';");
   out.writeAsStringSync(buffer.toString());
-  stdout.writeln('wrote ${out.path} (${raw.length} bytes)');
+  stdout.writeln(
+    'wrote ${out.path} (${raw.length} bytes, '
+    '${rawWithSources.length - raw.length} of prose left behind)',
+  );
 
   final levelFiles = Directory('data/levels')
       .listSync()
@@ -58,3 +74,19 @@ void main() {
   levelsOut.writeAsStringSync(levels.toString());
   stdout.writeln('wrote ${levelsOut.path} (${levelFiles.length} levels)');
 }
+
+/// The parameter tree with every `source` and `note` removed, as compact JSON.
+Object? _stripProse(Object? node) {
+  if (node is Map<String, dynamic>) {
+    return {
+      for (final entry in node.entries)
+        if (entry.key != 'source' && entry.key != 'note')
+          entry.key: _stripProse(entry.value),
+    };
+  }
+  if (node is List) return [for (final item in node) _stripProse(item)];
+  return node;
+}
+
+String _withoutProse(Object? json) =>
+    const JsonEncoder.withIndent('  ').convert(_stripProse(json));

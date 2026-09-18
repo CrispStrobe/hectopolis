@@ -26,6 +26,9 @@ JOBS="${CHECK_JOBS:-2}"
 
 STAGES=(params licenses l10n analyze-sim analyze-net analyze-app \
         test-sim test-net test-app i18n learning docs license privacy)
+# Not in STAGES: it needs `flutter build web` first and a Chrome, so it is run
+# by name (tools/check.sh origin) and in CI after the web build.
+EXTRA_STAGES=(origin)
 
 # Memory available to a new process: free RAM plus free swap, in MiB.
 headroom_mib() {
@@ -73,12 +76,14 @@ run_stage() {
     docs)        dart run tools/build_docs_site.dart --check ;;
     license)     tools/license_audit.sh ;;
     privacy)     tools/privacy_audit.sh ;;
+    origin)      python3 tools/web_origin_check.py --build app/build/web ;;
     *)           echo "unknown stage: $1" >&2; echo "stages: ${STAGES[*]}" >&2; exit 2 ;;
   esac
 }
 
 if [ "${1:-}" = "--list" ]; then
   printf '%s\n' "${STAGES[@]}"
+  printf '%s (needs a web build)\n' "${EXTRA_STAGES[@]}"
   exit 0
 fi
 
