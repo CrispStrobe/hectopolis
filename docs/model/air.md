@@ -70,6 +70,43 @@ uses a larger local effect for legibility).
 
 Index: `AQI_i = 100 · exp(−C_i / 1.0)`.
 
+## Where the emission numbers come from (T-103)
+
+They are relative, with a main road at 10 000 vehicles a day fixed at 1.0, so
+what has to hold is the *ordering and the ratios*, not an absolute rate. UBA's
+2024 emission data sets them:
+
+- **NOx 810 kt**, of which transport is almost 36 % — by far the largest single
+  source — and energy plus industry together about 42 %.
+- **PM2.5 74 kt**, of which nearly 60 % is combustion, with the largest shares
+  from households and small consumers and from road traffic including
+  abrasion.
+
+So road first, household heating a real but smaller term, agriculture small per
+hectare because it is spread over 11.66 M ha. That is the shape the table has.
+
+**industry 3.0 is deliberately below what the inventory implies.** Per hectare,
+national industry emissions against 45 jobs would put an industrial hectare
+around ten times a road hectare, not three. The reason it is not modelled that
+way is in the Limits above: **this model has no stack height and no plume
+rise**, so a tall chimney and a kerbside exhaust disperse identically. Giving
+industry its inventory strength at ground level would poison its neighbours in
+a way real industrial estates, whose emissions leave at 30–80 m, do not. 3.0 is
+the ground-level equivalent, and the calibration run confirms it: the
+industrial-park archetype lands at an air index of 87.
+
+The deposition coefficients are design values anchored on Nowak et al. 2006,
+and the amplification is deliberate and already stated above: real urban trees
+remove a few percent of local PM and NO₂, and the game uses a larger local
+effect so that planting a wood is visible on a 100 m grid. They are labelled
+`design, anchored on…` rather than "initial estimate", because no further
+reading will settle a number the game has chosen to exaggerate on purpose.
+
+`air.decayLengthM = 300` and `air.sinkRadiusTiles = 3` are the same kind of
+value: the decay length says a source is at 37 % after 300 m and 14 % after
+600 m, which on a 100 m grid is the decision that matters — three cells of
+distance more than halve the load twice over.
+
 ## Calibration (T-114)
 
 | Archetype | Mean resident index |
@@ -82,6 +119,8 @@ Index: `AQI_i = 100 · exp(−C_i / 1.0)`.
 
 ## References
 
+- UBA, Stickstoffoxid-Emissionen: https://www.umweltbundesamt.de/daten/luft/luftschadstoff-emissionen-in-deutschland/stickstoffoxid-emissionen
+- UBA, Emission von Feinstaub PM2,5: https://www.umweltbundesamt.de/daten/umweltzustand-trends/luft/luftschadstoff-emissionen-in-deutschland/emission-von-feinstaub-der-partikelgroesse-pm25
 - EMEP/EEA air pollutant emission inventory guidebook 2023, chapters 1.A.3.b
   (road transport), 1.A.4 (small combustion), 2 (industrial processes)
 - Nowak, Crane, Stevens (2006): Air pollution removal by urban trees and shrubs

@@ -55,7 +55,7 @@ const String defaultParamsJson = r'''
       },
       "airSink": {
         "value": 0.05,
-        "source": "Nowak et al. 2006 deposition magnitudes; grass minor (initial estimate)"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Gras statt Kronen: ein Viertel des Parkwerts."
       },
       "shade": {
         "value": 0.05,
@@ -126,11 +126,11 @@ const String defaultParamsJson = r'''
       },
       "airEmission": {
         "value": 0.05,
-        "source": "EMEP/EEA Guidebook: agriculture NH3/PM minor at this scale (initial estimate)"
+        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Landwirtschaft trägt 12,1 % der NOx-Emissionen und relevante NH3-Mengen bei, aber verteilt über 11,66 Mio. ha Ackerland — je Hektar wenig. 0,05 ist die kleinste Stufe über null. calibration T-114: der Acker-Archetyp erreicht einen Luftindex von 96, im Zielband über 90"
       },
       "airSink": {
         "value": 0.02,
-        "source": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Offener Acker, überwiegend ohne Bestand außerhalb der Vegetationszeit."
       },
       "shade": {
         "value": 0.02,
@@ -207,7 +207,7 @@ const String defaultParamsJson = r'''
       },
       "airSink": {
         "value": 0.2,
-        "source": "Nowak et al. 2006 (i-Tree): urban trees remove up to few % of PM/NO2 locally; scaled to 20 % of local index (initial estimate)"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Der Wald ist die Obergrenze der Skala: 0,20 je Feld im 3-Felder-Mittel."
       },
       "shade": {
         "value": 0.9,
@@ -283,7 +283,7 @@ const String defaultParamsJson = r'''
       },
       "airSink": {
         "value": 0.03,
-        "source": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Offene Wasserfläche nimmt nass deponierend etwas auf, ohne Blattoberflächen."
       },
       "shade": {
         "value": 0.0,
@@ -360,7 +360,7 @@ const String defaultParamsJson = r'''
       },
       "airSink": {
         "value": 0.1,
-        "source": "Nowak et al. 2006 scaled (initial estimate)"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Halber Waldwert, weil eine Parkhektare nur etwa die halbe Kronenfläche hat (shade 0,5 gegen 0,9)."
       },
       "shade": {
         "value": 0.5,
@@ -431,11 +431,11 @@ const String defaultParamsJson = r'''
       },
       "airEmission": {
         "value": 0.15,
-        "source": "EMEP/EEA: residential heating share (initial estimate)"
+        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Wohnen ist bei PM2,5 groß (Holz- und Ölheizungen), bei NOx klein. 0,15 relativ zur Straße (1,0) ordnet ein Einzelhausgebiet dort ein. calibration T-114: der Dorf-Archetyp erreicht damit einen Luftindex von 92"
       },
       "airSink": {
         "value": 0.03,
-        "source": "gardens (initial estimate)"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Gärten und Straßenbäume eines Einzelhausgebiets."
       },
       "shade": {
         "value": 0.15,
@@ -508,11 +508,11 @@ const String defaultParamsJson = r'''
       },
       "airEmission": {
         "value": 0.3,
-        "source": "EMEP/EEA: heating + local traffic (initial estimate)"
+        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Geschosswohnungsbau hat die vierfache Dichte von housing_low, aber je Einwohner weniger Einzelfeuerung; angesetzt ist der Faktor 2, nicht 4. calibration T-114: der Archetyp dichtes Quartier erreicht damit einen Luftindex von 80, im Zielband 60–85"
       },
       "airSink": {
         "value": 0.01,
-        "source": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Blockbebauung hat kaum durchgrünte Fläche."
       },
       "shade": {
         "value": 0.1,
@@ -587,7 +587,7 @@ const String defaultParamsJson = r'''
       },
       "airEmission": {
         "value": 0.6,
-        "source": "EMEP/EEA: delivery traffic, HVAC (initial estimate)"
+        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Handel und Dienstleistung emittieren vor allem über Lieferverkehr und Heizung; angesetzt ist rund die Hälfte einer Hauptstraße. calibration T-114"
       },
       "airSink": {
         "value": 0.0,
@@ -662,7 +662,7 @@ const String defaultParamsJson = r'''
       },
       "airEmission": {
         "value": 3.0,
-        "source": "EMEP/EEA: industrial combustion and processes dominate local PM/NOx (initial estimate, relative units)"
+        "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Je Hektar gerechnet läge Industrie nach Inventar noch deutlich höher — 149 kt NOx-Größenordnung auf 5,5 Mio. Beschäftigte gegenüber 365 000 Fahrzeugkilometern je Straßen-Hektar. Angesetzt ist 3,0 statt des Inventarverhältnisses, weil das Luftmodell keine Schornsteinhöhe und keinen Abgasauftrieb kennt (docs/model/air.md, Limits): ein Hochkamin und eine Straße verteilen hier identisch, und eine bodennahe Quelle mit Inventarstärke würde die Nachbarschaft maßlos belasten. calibration T-114: der Archetyp Industriegebiet erreicht damit einen Luftindex von 87"
       },
       "airSink": {
         "value": 0.0,
@@ -821,8 +821,7 @@ const String defaultParamsJson = r'''
       },
       "airSink": {
         "value": 0.08,
-        "source": "vegetated surface, below forest (0.20) and near park (0.10); Nowak et al. 2006 scaled",
-        "note": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Bewachsene Fläche zwischen Wiese (0,05) und Park (0,10)."
       },
       "shade": {
         "value": 0.1,
@@ -990,8 +989,7 @@ const String defaultParamsJson = r'''
       },
       "airSink": {
         "value": 0.02,
-        "source": "street trees and courtyards",
-        "note": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Straßenbäume und Höfe."
       },
       "shade": {
         "value": 0.35,
@@ -1073,8 +1071,7 @@ const String defaultParamsJson = r'''
       },
       "airSink": {
         "value": 0.05,
-        "source": "grounds planting, as meadow",
-        "note": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Schulgelände mit Rasen und Bäumen, wie die Wiese."
       },
       "shade": {
         "value": 0.4,
@@ -1235,8 +1232,7 @@ const String defaultParamsJson = r'''
       },
       "airSink": {
         "value": 0.06,
-        "source": "verge planting, between meadow (0.05) and park (0.10)",
-        "note": "initial estimate"
+        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Begrünter Seitenraum, zwischen Wiese (0,05) und Park (0,10)."
       },
       "shade": {
         "value": 0.35,
@@ -1341,7 +1337,7 @@ const String defaultParamsJson = r'''
   "air": {
     "decayLengthM": {
       "value": 300,
-      "source": "simplified Gaussian-plume near-field; EMEP/EEA guidance for street-scale gradients (initial estimate)"
+      "source": "design, anchored on Pasquill-Gifford: das Modell ist ein Ersatz für eine Gaußfahne, keine Lösung einer solchen (docs/model/air.md). 300 m Abklinglänge heißt, dass eine Quelle nach 300 m auf 37 % und nach 600 m auf 14 % abgefallen ist — die Größenordnung, in der Straßenschluchten- und Nahfeldgradienten in der EMEP/EEA-Praxis abklingen. Auf einem 100-m-Raster ist das die Entscheidung, die zählt: drei Felder Abstand halbieren die Belastung mehr als einmal"
     },
     "radiusTiles": {
       "value": 6,
@@ -1349,7 +1345,7 @@ const String defaultParamsJson = r'''
     },
     "sinkRadiusTiles": {
       "value": 3,
-      "source": "Nowak et al.: local deposition effect within ~300 m (initial estimate)"
+      "source": "design, anchored on Nowak et al. 2006: die Deposition an Blattoberflächen wirkt lokal, im Bereich einiger hundert Meter. 3 Felder = 300 m auf diesem Raster"
     },
     "indexScale": {
       "value": 1.0,
