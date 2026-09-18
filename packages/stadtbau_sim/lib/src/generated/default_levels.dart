@@ -243,7 +243,7 @@ const List<String> defaultLevelsJson = [
   "goals": [
     {
       "indicator": "biodiversity",
-      "min": 70
+      "min": 80
     },
     {
       "indicator": "housing",
