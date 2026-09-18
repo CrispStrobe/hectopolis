@@ -224,6 +224,16 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   one language, string literals inside `Text(`/`Tooltip(`/`SnackBar(` widgets under
   `app/lib/` (allow-list annotation `// i18n-ignore` for identifiers).
   *Note 2026-09-05:* ARB files with ~90 keys in DE and EN, `flutter gen-l10n`, `tools/i18n_lint.dart` (key parity + literal detection).
+  *Note 2026-09-18:* The lint now also fails on a **key nothing reads**. Eight had accumulated of
+  260 — copy two translators maintain and nobody sees. Seven were deleted; the eighth,
+  `missionPredictionSaved`, turned out to be missing UI rather than dead copy: answering a
+  mission's prediction closed the dialog and said nothing, so the player could not tell the answer
+  was taken. It is wired now, at zero new copy. `// i18n-unused: <key> <why>` keeps one
+  deliberately. Verified by adding a key nothing reads and watching it fail, and by marking it and
+  watching it pass. Removing `categoryName` — copy for a grouped palette that never shipped —
+  then made `tool/learning_audit.dart` fail, because it required a branch per `TileCategory`; that
+  requirement was aspirational, and the audit now checks the copy the app *shows*. The two lints
+  keeping each other honest is the point of having both.
 - [x] **T-005 CI.** GitHub Actions (or Woodpecker) workflow: analyze, test, i18n lint,
   license audit, web build artifact. Cache pub. Runs on push and PR.
   *Note 2026-09-05 (2):* `.github/workflows/check.yml`: analyze, tests, i18n lint, license audit, params mirror check, web build artifact.

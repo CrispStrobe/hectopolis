@@ -22,7 +22,6 @@
       }
     }
   },
-  "categoryName": "{id, select, nature{Landscape} green_urban{Urban green} residential{Housing} work{Work} infrastructure{Infrastructure} other{Other}}",
   "@categoryName": {
     "placeholders": {
       "id": {
@@ -222,8 +221,6 @@
   "budgetLabel": "Budget",
   "populationLabel": "Residents",
   "townMood": "How the town feels",
-  "jobsLabel": "Jobs",
-  "monthLabel": "Month {tick}",
   "@monthLabel": {
     "placeholders": {
       "tick": {
@@ -250,7 +247,6 @@
       }
     }
   },
-  "perMonth": "{amount} / month",
   "@perMonth": {
     "placeholders": {
       "amount": {
@@ -429,7 +425,6 @@
   },
   "experienceTitle": "Make it your game",
   "experienceDescription": "Choose a calm, simple map or add detail and movement. These settings never change the simulation or score.",
-  "settingSimpleDescription": "Friendly faces and plain language instead of management values.",
   "settingCleanVisuals": "Clean map",
   "settingCleanVisualsDescription": "Remove decorative activity while keeping every land use clear.",
   "settingAmbientAnimations": "Living city",
@@ -460,7 +455,6 @@
   "cancel": "Cancel",
   "ok": "OK",
   "errorOutOfBounds": "Outside the map.",
-  "errorSameTile": "This cell already has that tile.",
   "errorInsufficientBudget": "Not enough budget.",
   "errorTileNotAllowed": "This tile is not available in this level.",
   "errorTileExhausted": "No more tiles of this type.",
@@ -582,7 +576,6 @@
       }
     }
   },
-  "statsCo2": "{value}",
   "@statsCo2": {
     "placeholders": {
       "value": {
