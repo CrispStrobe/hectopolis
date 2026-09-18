@@ -568,6 +568,11 @@ class Authority {
 }
 
 const _authorities = <Authority>[
+  Authority('roadzone', r'Forman|Reijnen', 'Road-effect zone (Forman & Deblinger 2000; Reijnen & Foppen)',
+      'How far a road disturbs the life beside it. A four-lane highway averages '
+          'about 600 m; species-specific disturbance distances derived from '
+          'traffic noise run from tens of metres to over a kilometre. Sets the '
+          'road threat distance in habitat quality.'),
   Authority('invest', r'InVEST', 'InVEST (Natural Capital Project)',
       'Open-source ecosystem-service models. Hectopolis follows the Urban '
           'Cooling and Habitat Quality modules, including their example '

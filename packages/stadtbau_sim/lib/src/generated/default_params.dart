@@ -1450,51 +1450,51 @@ const String defaultParamsJson = r'''
       "road": {
         "weight": {
           "value": 1.0,
-          "source": "InVEST HQ sample threat table: roads"
+          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Die Straße ist die stärkste Störquelle und damit der Ankerwert 1,0. Die Beispieltabelle des Handbuchs selbst führt Straßen mit 0,1 (Feldweg) und 0,4 (asphaltiert) und die Landwirtschaft mit 1,0 — die frühere Quellenangabe 'InVEST HQ sample threat table: roads' war also falsch zugeordnet"
         },
         "maxDistanceM": {
           "value": 300,
-          "source": "InVEST HQ sample (initial estimate)"
+          "source": "Forman & Deblinger 2000 (Conservation Biology 14, 36–46) messen für eine vierspurige Schnellstraße eine Road-Effect Zone von im Mittel rund 600 m. Reijnen & Foppen leiten aus Verkehrslärm artspezifische Störungsdistanzen von 20–1 700 m bei 5 000 Kfz/Tag und 65–3 530 m bei 50 000 Kfz/Tag ab. Die Spiel-Straße führt 10 000 Kfz/Tag und ist keine vierspurige Schnellstraße; 300 m liegt im unteren Bereich dieser Spannen"
         }
       },
       "industry": {
         "weight": {
           "value": 0.8,
-          "source": "InVEST HQ sample (initial estimate)"
+          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Industrie liegt knapp unter der Straße: dauerhafte Störung durch Lärm, Licht und Betrieb, aber ohne die Barriere- und Tötungswirkung des Verkehrs."
         },
         "maxDistanceM": {
           "value": 500,
-          "source": "initial estimate"
+          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 500 m für Industrie, die größte Reichweite der Siedlungsquellen, weil Betriebslärm und Beleuchtung nachts weit tragen."
         }
       },
       "commercial": {
         "weight": {
           "value": 0.6,
-          "source": "initial estimate"
+          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Gewerbe stört tagsüber wie Industrie, nachts deutlich weniger."
         },
         "maxDistanceM": {
           "value": 300,
-          "source": "initial estimate"
+          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 300 m für Gewerbe, wie die Straße."
         }
       },
       "housing_high": {
         "weight": {
           "value": 0.5,
-          "source": "InVEST HQ sample: urban"
+          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Geschosswohnungsbau: viele Menschen, Katzen und Licht auf kleiner Fläche, aber keine gewerbliche Störung. Die frühere Angabe 'InVEST HQ sample: urban' verwies auf eine Zeile, die die Beispieltabelle nicht enthält"
         },
         "maxDistanceM": {
           "value": 200,
-          "source": "initial estimate"
+          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 200 m für Wohnnutzung, die kürzeste Reichweite: Störung durch Anwesenheit klingt schneller ab als Betriebslärm."
         }
       },
       "housing_low": {
         "weight": {
           "value": 0.3,
-          "source": "initial estimate"
+          "source": "design, anchored on InVEST Habitat Quality: das Handbuch sagt ausdrücklich, dass die Gewichte normiert werden und nur ihre Verhältnisse zueinander zählen — zwei Gewichtssätze unterscheiden sich nur, wenn sich die relativen Abstände unterscheiden. Die Reihenfolge Straße 1,0 > Industrie 0,8 > Gewerbe 0,6 > Geschosswohnungsbau 0,5 > Einzelhäuser 0,3 ist damit die eigentliche Aussage. Einzelhausgebiete sind die schwächste der fünf Quellen — Gärten sind selbst teilweise Lebensraum."
         },
         "maxDistanceM": {
           "value": 200,
-          "source": "initial estimate"
+          "source": "design: die Beispieltabelle des InVEST-Handbuchs arbeitet in Landschaftsmaßstäben (Feldweg 2 km, asphaltierte Straße 4 km, Landwirtschaft 8 km) und lässt sich auf ein 100-m-Raster über einer Gemeinde nicht übertragen — 4 km deckten die ganze Karte zu. 200 m, wie der Geschosswohnungsbau."
         }
       }
     }
