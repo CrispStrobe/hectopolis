@@ -458,6 +458,24 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   meaningful if the constraint costs something.** Two notes remain, both authoring: the habitat
   housing goal is a preservation constraint the tactical hint cannot express, and `tuebingen`
   still has no learning block.
+  *Note 2026-09-18 (4):* Both taken, on the user's choice from a written options brief.
+  (1) A `guidanceProtect` stage for goals the level gives nothing to build toward — "Nothing you
+  can build here raises {goal}. Protect what is already on the map." Two strings, no schema
+  change: the test is `guidanceCandidatesFor` against the palette, which the audit already ran.
+  (2) `tuebingen` gains `budgetKEur ≥ 50 000`, reached at month 23 of 120 — it spends 29 090 of
+  its 34 000 k€ and recovers ~2 000/month, and the threshold was checked against four plan
+  variants (12–23 months) before committing. Population was rejected: a 613-person window between
+  trivial and impossible. (3) `tuebingen` gains a tier-1 learning block — concepts `mixed_city`,
+  `tradeoffs`, `resilience` plus causalView/experiment/debrief — at **zero new copy**, since all
+  three concept ids already carry Name/Cause/Model/Law in both languages. Beats and a prediction
+  are deliberately absent rather than stubbed; ids without copy render the ICU fallback, which is
+  the failure the audit exists to catch, and `level_test` now requires concepts rather than beats
+  and says why.
+  **A real bug fell out of (2):** `guidanceCandidatesFor` had never been updated for the six
+  T-502 tiles, so the hint could not suggest `mixed_use` for housing, `school` for the budget,
+  `wetland` for biodiversity, `solar_field` for climate, or `tram_stop`/`cycle_path` for
+  commuting. Adding one goal to a level with a modern palette surfaced it. The audit is down to
+  one note, and that one is informational.
 - [x] **T-306 Counterfactual experiments.** Pin the current deterministic simulation,
   freely test builds and time, compare live indicator and overlay deltas, then keep or
   discard the branch without affecting the pinned city.

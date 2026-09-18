@@ -4,6 +4,19 @@
   "budgetKEur": 34000,
   "turnLimitMonths": 120,
   "attribution": "© BKG (2026) CC BY 4.0 — Landbedeckungsmodell LBM-DE2021, sampled onto a 1 ha grid and reduced to 16 tile types by Hectopolis. Datenquellen: https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_lbm-de2021.pdf",
+  "learning": {
+    "tier": "explorer",
+    "concepts": [
+      "mixed_city",
+      "tradeoffs",
+      "resilience"
+    ],
+    "features": [
+      "causalView",
+      "experiment",
+      "debrief"
+    ]
+  },
   "tiles": {
     "meadow": null,
     "park": 40,
@@ -33,6 +46,10 @@
     {
       "indicator": "housing",
       "min": 88
+    },
+    {
+      "metric": "budgetKEur",
+      "min": 50000
     }
   ],
   "map": [

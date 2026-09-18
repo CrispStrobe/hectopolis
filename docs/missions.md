@@ -102,11 +102,29 @@ plateau leaves no headroom for a plan worse than the worked one, and would make
 the `habitat_fast` medal (≤ 120 months) nearly impossible rather than merely
 demanding.
 
-**`tuebingen` is not fixed**, because it is not the same problem. Biodiversity
-there moves 39 → 41 over 240 months against a goal of 38: the level is decided
-entirely by what the player removes, and it happens instantly. Making time
-matter there needs a different lever than a threshold, and it wants the
-project's judgement.
+**`tuebingen` needed a different lever**, because nothing in it matures:
+biodiversity moves 38.6 → 39.8 over 120 months, climate and recreation are
+flat. The two things that do move are population and the budget — and the
+worked plan spends 29 090 of the level's 34 000 k€, leaving the town on 4 910
+and recovering about 2 000 k€ a month.
+
+So the level gained a fifth goal, `budgetKEur ≥ 50 000`, which the worked plan
+reaches at **month 23 of 120**. It makes the level's own story — a town that
+spends its reserves to undo its sealed surfaces — the thing you have to
+survive. The threshold was checked against four variants of the plan before it
+was committed:
+
+| Variant | spent | reaches 50 000 k€ |
+|---|---|---|
+| worked plan | 29 090 | month 23 |
+| parks replaced by forest | 11 840 | month 12 |
+| half the plan | 11 350 | month 12 |
+| no tram or cycle path | 21 100 | month 19 |
+
+The recovery is a straight line at ~2 000 k€/month, so every variant lands well
+inside the limit. `population` was the alternative and was rejected: the
+ceiling is 22 281 against a start of 21 668, a window of 613 — about 3 % —
+which is far too brittle for a goal threshold.
 
 ### Two beats were unreachable for a competent player; both are fixed
 
@@ -128,15 +146,48 @@ village has taken shape, not after two years of waiting — so it now fires at
 generalises: a month-based trigger only works in a mission whose outcome takes
 months, and two of the five were not.
 
-### The habitat hint has nothing to suggest
+### The habitat hint had nothing to suggest — fixed
 
-`habitat` carries a `housing ≥ 50` goal and allows no housing tile — the goal
-is there to stop the player bulldozing the village, which is a good design. But
-the tactical hint treats every unmet goal as something to build, walks its four
-stages, and arrives with no tile to name (it falls back to "explore", which is
-true but not actionable). In 12 paths that happened 976 times. Either the hint
-wants a "protect what is there" stage, or preservation goals want marking as
-such in the level schema.
+`habitat` carries a `housing ≥ 50` goal and allows no housing tile: the goal is
+there to stop the player bulldozing the village, which is good design. But the
+tactical hint treated every unmet goal as something to build, walked its four
+stages, and arrived with no tile to name — falling back to *"Explore the map
+and try a different balance"*, which is true and useless.
+
+There is now a stage for it. When none of a goal's candidate tiles is in the
+level's palette, the hint ends on:
+
+> **EN** Nothing you can build here raises {goal}. Protect what is already on
+> the map.
+> **DE** Hier lässt sich {goal} nicht dazubauen. Schütze, was schon da ist.
+
+No schema change was needed: `guidanceCandidatesFor(goal)` against the level's
+palette is the same test the audit already ran to find the problem. The audit
+keeps reporting the situation as a note, so a new level of this shape is
+noticed rather than silently inheriting the wording.
+
+### The hint did not know about six of the sixteen tiles
+
+Adding the budget goal to `tuebingen` immediately produced a second
+preservation-goal note — for `budgetKEur`, whose candidates were `commercial`
+and `industry`, neither of which tuebingen allows. But tuebingen *does* allow
+`mixed_use` (45 jobs/ha) and `school` (25), both of which raise the budget.
+
+`guidanceCandidatesFor` had never been updated for the six tiles T-502 added,
+so the hint could not suggest them for any goal. It now can:
+
+| Goal | Added |
+|---|---|
+| biodiversity | `wetland` — biotope value 22, the highest in the game |
+| climate | `solar_field` — −266 t CO₂/ha/yr |
+| housing, population | `mixed_use` — 120 residents/ha |
+| economy, budget, jobs | `mixed_use`, `school` |
+| shopping | `mixed_use` |
+| recreation | `wetland` |
+| commuting | `tram_stop`, `cycle_path` — they shift mode share through `transitAccess` and `cycleAccess`, which `_modeFactor` reads |
+
+This was a real bug hiding behind a level that never exercised it, and it took
+adding one goal to a level with a modern palette to surface it.
 
 ### A constraint medal only means something if the constraint costs something
 
@@ -162,11 +213,28 @@ is nothing to give up, it is a reward for noticing. Either those levels want a
 reason to build water and side roads that the indicators do not currently
 capture, or the medals want retiring.
 
-### tuebingen teaches nothing
+### tuebingen taught nothing — partly fixed
 
-The newest and largest level ships with goals and no `learning` block at all:
-no concepts, no prediction, no beats, no challenges. Every other mission has
-them. This is authoring work, and the copy wants the project's voice.
+The newest and largest level shipped with goals and no `learning` block at all.
+It now carries a **tier 1** block — concepts and features, no authored moments:
+
+```json
+"learning": {
+  "tier": "explorer",
+  "concepts": ["mixed_city", "tradeoffs", "resilience"],
+  "features": ["causalView", "experiment", "debrief"]
+}
+```
+
+That cost **no new copy**: all three concept ids already have Name, Cause,
+Model and Law written in both languages, and it switches on the learning
+notebook, the causal view, the experiment mode and the debrief.
+
+Beats and a prediction are still to come, and they are deliberately absent
+rather than stubbed. **Declaring beat ids before their copy exists would be
+worse than having none**: the ICU `select` would render the generic wording,
+which is precisely the failure this audit exists to catch. The test that used
+to require beats of every mission now requires concepts instead, and says why.
 
 ## References
 

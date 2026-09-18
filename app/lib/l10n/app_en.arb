@@ -182,6 +182,14 @@
     }
   },
   "guidanceExplore": "Explore the map and try a different balance.",
+  "guidanceProtect": "Nothing you can build here raises {goal}. Protect what is already on the map.",
+  "@guidanceProtect": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
   "inspectorTitle": "Cell {x}, {y}",
   "@inspectorTitle": {
     "placeholders": {

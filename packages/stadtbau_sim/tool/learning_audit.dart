@@ -348,8 +348,9 @@ List<String> _auditPaths(
         notes.add(
           '${level.id}: goal "$label" points at '
           '${_list(candidates.map((t) => t.id))} and the level allows none of '
-          'them, so the hint reaches its last stage with no tile to name '
-          '(it falls back to "explore", which is true but not actionable)',
+          'them — a preservation goal. The tactical hint recognises this and '
+          'ends on `guidanceProtect` rather than a tile suggestion; the note '
+          'stays so a new level of this shape is noticed',
         );
       }
     }
