@@ -26,6 +26,17 @@ class Offsets {
   /// traced from the canonical end of its axis and mirrored for the other.
   late final List<Int32List> pathOffsets = _buildPaths();
 
+  /// The longest Bresenham path in [pathOffsets], in cells. Sizes the
+  /// attenuation table a kernel builds over (foliage, building) counts.
+  late final int maxPathCells = () {
+    var most = 0;
+    for (final path in pathOffsets) {
+      final cells = path.length >> 1;
+      if (cells > most) most = cells;
+    }
+    return most;
+  }();
+
   /// One index per (k, −k) pair, so that iterating these offsets over every
   /// cell visits each unordered pair of cells exactly once. Path attenuation
   /// is reciprocal, so a kernel that needs it in both directions computes it
