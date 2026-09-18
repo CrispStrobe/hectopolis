@@ -29,6 +29,7 @@ flutter pub get                      # workspace root
 dart run tools/gen_params.dart       # after editing data/params/tiles.json
 (cd app && flutter gen-l10n)         # after editing app/lib/l10n/*.arb
 tools/check.sh                       # analyze, test, i18n lint, license audit
+tools/check.sh --list                # stage names, to run them one at a time
 (cd app && flutter run -d chrome)    # or any device
 ```
 

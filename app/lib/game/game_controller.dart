@@ -934,7 +934,9 @@ class GameController extends ChangeNotifier {
 
   double? get overlayThreshold => switch (overlay) {
     MapOverlay.noise => (55 - 35) / 40,
-    MapOverlay.heat => 2 / sim.params.heat.uhiMaxC,
+    MapOverlay.heat => sim.fields.uhiMaxNowC <= 0
+        ? null
+        : 2 / sim.fields.uhiMaxNowC,
     MapOverlay.green ||
     MapOverlay.retail ||
     MapOverlay.jobs ||
@@ -1007,7 +1009,9 @@ class GameController extends ChangeNotifier {
       case MapOverlay.air:
         return (1 - f.airIndex[cell] / 100).clamp(0, 1);
       case MapOverlay.heat:
-        return (f.heatDeltaC[cell] / source.params.heat.uhiMaxC).clamp(0, 1);
+        return source.fields.uhiMaxNowC <= 0
+            ? 0.0
+            : (f.heatDeltaC[cell] / source.fields.uhiMaxNowC).clamp(0.0, 1.0);
       case MapOverlay.green:
         return f.greenAccess[cell];
       case MapOverlay.retail:

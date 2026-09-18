@@ -289,6 +289,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   (e.g. dense quarter noise exposure 55–65 dB, suburb car share 0.6–0.8). Adjust
   coefficients only via `data/params/`.
   *Note 2026-09-05 (2):* `tool/calibrate.dart` with seven archetypes; ranges and results in `docs/model/calibration.md`. Climate score changed to per-person CO₂.
+  *Note 2026-09-18:* The harness read seasonal quantities at a single tick, and 60 ticks is a whole number of years from a January start — so every ΔT it printed was a January reading. That is what made the dense-quarter 0.18 K look like a regression against the recorded 1.6 K; the annual mean is 1.71 K and the model never moved. It now sweeps the twelve months after the warm-up and reports `heatDeltaCYearMean`, `heatDeltaCSummerPeak` and the yearly spread of the recreation and climate scores.
 - [~] **T-115 Performance.** 24×24 map full tick < 16 ms on desktop, < 50 ms on a mid
   Android phone (measure with `benchmark_harness`). Optimise kernels if needed.
   *Note 2026-09-05 (3):* 180 → 38 ms per tick on a loaded VPS (`benchmark/tick_benchmark.dart`); desktop and phone targets still to measure on real hardware.
@@ -535,6 +536,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   five level solution tests passed unchanged. A test asserts that mean, after a first draft
   averaged 0.900 while its source field claimed 1.0. `amplitude` scales the departure from the
   mean, so 0 reproduces the season-free model exactly.
+  *Note 2026-09-18:* A seasonal numerator needs a seasonal denominator. `heat.uhiMaxC` is the annual-mean ceiling, but the ceiling in force is that times the month's factor (4.1 K in July against a parameter of 3.0), and every score that turned a ΔT into 0–1 divided by the parameter. The result was that **for three months a year the climate indicator could not tell a dense quarter with sixteen hectares of park from one with none** — both 53.8 — and the heat term of residential attractiveness went to zero for every cell, which drives migration. `computeHeat` now publishes the ceiling it used as `fields.uhiMaxNowC` and everything divides through `fields.heatScoreOf`, so the two cannot drift apart. The same comparison now reads 64.0 against 62.5. The map's terrain tint deliberately keeps the absolute scale: a July city should look hotter. Three tests in `seasons_test.dart` pin it.
   Crop yield is represented through `growth` on cropland's evapotranspiration; an economic yield
   term is deliberately not modelled (`docs/model/seasons.md` says why). **Open:** the seasonal
   tint on vegetation, which should read `growthAt(tick)` — it pairs with the illustrative

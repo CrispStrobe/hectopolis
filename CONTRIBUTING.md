@@ -14,7 +14,10 @@ Thank you for helping. Before you start, read `PLAN.md` (scope, model, roadmap) 
    `app/lib/l10n/app_en.arb` in the same commit.
 4. **Every model parameter** goes into `data/params/*.json` with a `source`, and the
    matching `docs/model/*.md` explains the formula and cites it.
-5. Run `tools/check.sh` before opening a pull request.
+5. Run `tools/check.sh` before opening a pull request. On a machine that
+   cannot hold a full run, `tools/check.sh --list` gives the stage names and
+   `tools/check.sh <stage> …` runs only those; `CHECK_JOBS` caps test
+   concurrency (default 2).
 
 ## Guides
 

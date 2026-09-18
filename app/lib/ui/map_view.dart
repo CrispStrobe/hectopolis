@@ -1032,6 +1032,12 @@ class _MapPainter extends CustomPainter {
 
   /// Heat, against the roughly 1 degree a town of this size reaches rather
   /// than the 3 degree theoretical maximum.
+  ///
+  /// Deliberately an **absolute** scale, unlike the heat overlay and the
+  /// indicators, which divide by the month's ceiling (`fields.uhiMaxNowC`) so
+  /// that a score keeps discriminating in July. This is a tint, not a score:
+  /// what it should say is "this place is hot right now", so a July city is
+  /// meant to look hotter than the same city in January.
   double _warmth(int i) =>
       (c.sim.fields.heatDeltaC[i] / (c.sim.params.heat.uhiMaxC * 0.35)).clamp(
         0.0,

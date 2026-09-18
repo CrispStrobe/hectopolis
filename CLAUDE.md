@@ -38,6 +38,10 @@ export PUB_CACHE=/mnt/volume1/pub-cache
 
 ```bash
 tools/check.sh                      # analyze + test + i18n lint + license audit
+tools/check.sh --list               # the stage names
+tools/check.sh test-sim i18n        # only those stages — use this when the box is loaded,
+                                    # a full run needs three analysis servers and three test
+                                    # runners at once and gets OOM-killed with no output
 flutter test                        # in app/ or packages/stadtbau_sim/
 flutter build web --release         # writes to app/build/web -> /mnt/storage/...
 ```

@@ -20,7 +20,7 @@ void computeAttractiveness(WorldState w, SimParams p, Fields f) {
     }
     final noiseScore = clamp01((np.limitBadDb - f.noiseDb[i]) / (np.limitBadDb - np.limitDayDb));
     final airScore = f.airIndex[i] / 100;
-    final heatScore = 1 - clamp01(f.heatDeltaC[i] / p.heat.uhiMaxC);
+    final heatScore = f.heatScoreOf(f.heatDeltaC[i]);
     var a = (aw.noise * noiseScore +
             aw.air * airScore +
             aw.green * f.greenAccess[i] +

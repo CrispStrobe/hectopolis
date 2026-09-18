@@ -28,6 +28,7 @@ void computeHeat(WorldState w, SimParams p, Fields f) {
   // of the surface and stay put. (docs/model/seasons.md)
   final growth = p.seasons.growthAt(w.tick);
   final uhiMax = p.heat.uhiMaxC * p.seasons.heatAt(w.tick);
+  f.uhiMaxNowC = uhiMax;
 
   double capacity(TileParams tp) =>
       hp.shadeWeight * tp.shade.value +
