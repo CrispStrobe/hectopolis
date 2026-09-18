@@ -618,6 +618,13 @@ const _authorities = <Authority>[
   Authority('copernicus', r'Copernicus', 'Copernicus Imperviousness',
       'The pan-European high-resolution imperviousness layer, used for the '
           'sealed fraction of each land cover.'),
+  Authority('umweltatlas', r'Umweltatlas', 'Umweltatlas Berlin 01.02 Versiegelung',
+      'Berlin measures the sealed fraction of every block from satellite '
+          'imagery, building outlines and street-survey data, and publishes '
+          'the mean per land-use type. It is the only German dataset that '
+          'measures sealing by use rather than assuming it, so the built '
+          'tiles take their sealed fraction from it '
+          '(dl-de/zero-2.0).'),
   Authority('baunvo', r'BauNVO', 'BauNVO',
       'Baunutzungsverordnung: the site-occupancy (GRZ) and floor-area (GFZ) '
           'ceilings from which residents and jobs per hectare are derived.'),

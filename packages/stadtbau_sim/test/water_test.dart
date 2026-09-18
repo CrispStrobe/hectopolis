@@ -60,10 +60,14 @@ void main() {
   });
 
   test('water retains runoff from its surroundings', () {
+    // Road, not industry: the flood threshold is 10 mm and an industrial
+    // hectare sheds 9.6 mm of the design storm, so a block of industry has no
+    // cell at risk to take away. T-103 moved industry sealing from 0.90 to the
+    // measured 0.88 and that margin closed; the test had been resting on it.
     final sealed = Simulation.sandbox();
     for (var x = 4; x < 11; x++) {
       for (var y = 4; y < 11; y++) {
-        sealed.apply(PlaceTile(x, y, TileType.industry));
+        sealed.apply(PlaceTile(x, y, TileType.road));
       }
     }
     final before = sealed.fields.meanRunoffMm;

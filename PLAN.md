@@ -226,6 +226,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   BBSR density values, TA Lärm zone limits, CNOSSOS emission references. Update
   `tiles.json` sources. Write `docs/model/tiles.md` with the citations. No code.
   *Note 2026-09-05 (2):* BKompV Anlage 2 codes recorded per tile (`docs/model/tiles.md`); densities derived from Destatis 49.2 m²/EW and BauNVO GFZ; taxes from Destatis 2023/2024 releases; MiD 2017 mode shares. Costs and recovery times remain estimates.
+  *Note 2026-09-18:* Sealing verified against Umweltatlas Berlin 01.02 Versiegelung 2021 Tabelle 19 (new source register row, dl-de/zero-2.0), corrected for street share; industry 0.90 → 0.88, park 0.15 → 0.10, the other three confirmed. Costs, CO₂, air and noise emissions still estimates.
 - [x] **T-104 Kernel engine.** Generic `FieldSolver` that takes emitters (tile → strength)
   and a kernel (function of Chebyshev or Euclidean distance in tiles) and fills a
   `Float32List` field. Support energetic (dB) summation and linear summation. Precompute
@@ -730,6 +731,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 | Retail | HDE / BBSR Nahversorgung studies | Public reports (values only) | Floor space per resident, radii |
 | Recreation | WHO Urban green spaces (2016/2017); 3-30-300 rule (Konijnendijk 2021) | Public / paper | Access thresholds |
 | Runoff | USDA SCS curve number (NRCS TR-55) | US public domain | Water module |
+| Soil sealing by land use | Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt Berlin) | dl-de/zero-2.0 (no attribution required; we attribute anyway) | Sealed fraction of the built tiles |
 | Land use maps | Copernicus Urban Atlas, CORINE, ATKIS (open Länder) | Copernicus free; dl-de/by-2.0 | Level generator |
 | Land cover, Germany | Landbedeckungsmodell LBM-DE2021 (BKG) | CC BY 4.0, prescribed Quellenvermerk and modification notice | Level generator (T-303); the `tuebingen` level |
 | Game model references | Micropolis (GPL-3), Citybound (AGPL-3), Forrester Urban Dynamics | Read only | Design inspiration |

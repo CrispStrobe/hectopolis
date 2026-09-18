@@ -41,9 +41,58 @@ be refined (open in T-103).
   ranges (office/retail 80–150, manufacturing 30–60 employees per ha);
   ground-floor services in apartment blocks 15/ha. Initial estimates.
 
-## Sealing, cooling parameters
+## Sealing (Umweltatlas Berlin 01.02, verified in T-103)
 
-Sealing follows Copernicus Imperviousness typical values per land use.
+Sealing was an estimate anchored on the BauNVO GRZ ceilings until T-103. A GRZ
+is a legal maximum for *buildings on a plot*, not a measurement of what is
+actually impervious across a whole hectare, so it was the wrong kind of number
+even where it happened to be close.
+
+Berlin measures the sealed fraction of every block from satellite imagery,
+building outlines and street-survey data, and publishes the mean per land-use
+type. It is the only German dataset that measures sealing *by use* rather than
+assuming it, so the built tiles now take their values from it: Umweltatlas
+Berlin, Karte 01.02 Versiegelung 2021, Tabelle 19 (Stand 14.06.2022),
+dl-de/zero-2.0.
+
+Two corrections are needed before a block figure becomes a tile figure:
+
+- **Streets.** A block value excludes the street in front of it, a game tile
+  does not. Berlin's street land is 9 721 ha of 83 694 ha excluding water
+  (11.6 %) and is 85.2 % sealed, so a tile is
+  `0.88 · block + 0.12 · 0.852`.
+- **Which sub-type.** A game tile is a hectare built out for one use, which is
+  the denser end of a Berlin land-use class rather than its mean.
+
+| Tile | Umweltatlas Flächentyp | Block | With streets | Tile |
+|---|---|---|---|---|
+| housing_low | 23 Freistehende Einfamilienhäuser mit Gärten 34.9 %, 22 Reihen-/Doppelhäuser 37.3 %, 25 Verdichtung in Einzelhausgebieten 39.9 % | 35–40 % | 0.44 | 0.45 |
+| housing_high | 3 Geschlossene/halboffene Blockbebauung 65.6 %, 73 Geschosswohnungsbau ab 1990 64.3 %, 2 Geschlossene Blockbebauung 5-gesch. 77.8 % | 64–78 % | 0.72–0.79 | 0.75 |
+| commercial | 29 Kerngebiet 85.7 % | 85.7 % | 0.86 | 0.85 |
+| industry | 31 Gewerbe-/Industriegebiet, dichte Bebauung 88.4 % (38.0 pp of it unbuilt: yards and storage) | 88.4 % | 0.88 | 0.88 |
+| park | 53 Park / Grünfläche 10.1 %, of which 0.7 pp built | 10.1 % | 0.10 | 0.10 |
+| meadow, cropland, forest | 55 Wald 0.3 %, 56 Landwirtschaft 0.1 % (the 2016 edition also reports Grünland 0.2 %) | ≈ 0 | ≈ 0 | 0.00 |
+
+Two values changed as a result:
+
+- **industry 0.90 → 0.88.** 0.90 was above every type Berlin measures. The
+  whole Gewerbe- und Industriegebiet class averages 70.7 %, because it also
+  holds sparsely built sites (type 30, 66.9 %); a fully developed industrial
+  hectare is the dense case, 88.4 %.
+- **park 0.15 → 0.10.** Measured parks are 10.1 % sealed and almost none of
+  that is building. 0.15 assumed more path and playground than parks have.
+
+The BauNVO ceilings still hold as a cross-check rather than as the source:
+§ 17 caps GRZ at 0.4 for WR/WA, 0.6 for MI and 0.8 for GE/GI, and § 19 Abs. 4
+lets garages, drives and ancillary buildings overshoot that by half, to at most
+0.8. Detached housing at 0.4 + overshoot and a hectare that is one-eighth
+street lands where Berlin measures it.
+
+`solar_field.sealing` is not covered by this dataset — Berlin has no
+ground-mount PV type — and remains an estimate.
+
+## Cooling parameters
+
 Shade, albedo and ETI are the InVEST Urban Cooling biophysical inputs
 (canopy fraction, surface albedo, crop coefficient scaled 0–1); see
 `heat.md`.
@@ -75,6 +124,9 @@ fleet average). Initial estimates.
 - Destatis, Wohnfläche je Einwohner: https://www.destatis.de/DE/Presse/Pressemitteilungen/2025/09/PD25_336_31231.html
 - BauNVO § 17: https://www.gesetze-im-internet.de/baunvo/__17.html
 - Copernicus Land Monitoring Service, Imperviousness
+- BauNVO § 19: https://www.gesetze-im-internet.de/baunvo/__19.html
+- Umweltatlas Berlin 01.02 Versiegelung 2021: https://www.berlin.de/umweltatlas/boden/versiegelung/2021/kartenbeschreibung/
+- Umweltatlas Berlin, Abschlussbericht Versiegelung 2021 (Tabelle 19): https://www.berlin.de/umweltatlas/_assets/literatur/ab_versiegelung_2021.pdf
 - InVEST User Guide, Urban Cooling Model
 
 ## The six tiles added by T-502 (2026-09-17)

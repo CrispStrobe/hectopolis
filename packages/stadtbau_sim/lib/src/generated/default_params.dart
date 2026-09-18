@@ -333,8 +333,8 @@ const String defaultParamsJson = r'''
         "source": "Grünflächenamt/Gastronomie (initial estimate)"
       },
       "sealing": {
-        "value": 0.15,
-        "source": "paths and playgrounds (initial estimate)"
+        "value": 0.1,
+        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Typ 53 'Park / Grünfläche' 10,1 %, davon nur 0,7 % bebaut — Wege, Plätze und Spielflächen"
       },
       "biotopeValue": {
         "value": 13,
@@ -411,7 +411,7 @@ const String defaultParamsJson = r'''
       },
       "sealing": {
         "value": 0.45,
-        "source": "BauNVO WR/WA GRZ 0.4 plus roads (initial estimate)"
+        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Flächentyp 23 'Freistehende Einfamilienhäuser mit Gärten' 34,9 %, Typ 22 'Reihen- und Doppelhäuser mit Gärten' 37,3 %, Typ 25 'Verdichtung in Einzelhausgebieten' 39,9 %; auf die Brutto-Hektare mit Erschließungsstraßen hochgerechnet (Straßenraum 85,2 % bei 11,6 % Flächenanteil): 0,87·0,37 + 0,13·0,85 ≈ 0,44. Deckt sich mit BauNVO § 17 GRZ 0,4 für WR/WA zuzüglich der nach § 19 Abs. 4 zulässigen Überschreitung"
       },
       "biotopeValue": {
         "value": 5,
@@ -488,7 +488,7 @@ const String defaultParamsJson = r'''
       },
       "sealing": {
         "value": 0.75,
-        "source": "BauNVO WA/MI GRZ 0.6 plus roads (initial estimate)"
+        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Geschosswohnungsbau zwischen Typ 3 'Geschlossene und halboffene Blockbebauung' 65,6 %, Typ 73 'Geschosswohnungsbau der 1990er Jahre und jünger' 64,3 % und Typ 2 'Geschlossene Blockbebauung, 5-geschossig' 77,8 %; mit Erschließungsstraßen (Straßenraum 85,2 % bei 11,6 % Flächenanteil) 0,72–0,79. Entspricht BauNVO § 17 GRZ 0,6 für WA/MI plus § 19 Abs. 4"
       },
       "biotopeValue": {
         "value": 4,
@@ -567,7 +567,7 @@ const String defaultParamsJson = r'''
       },
       "sealing": {
         "value": 0.85,
-        "source": "BauNVO GE GRZ 0.8 (initial estimate)"
+        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Typ 29 'Kerngebiet' 85,7 %; mit Erschließungsstraßen (Straßenraum 85,2 % bei 11,6 % Flächenanteil) ≈ 0,86. BauNVO § 17 GRZ 0,8 für GE ist die rechtliche Obergrenze"
       },
       "biotopeValue": {
         "value": 2,
@@ -641,8 +641,8 @@ const String defaultParamsJson = r'''
         "source": "BBSR Flächenkennwerte: produzierendes Gewerbe 30–60 Beschäftigte/ha (initial estimate)"
       },
       "sealing": {
-        "value": 0.9,
-        "source": "BauNVO GI GRZ 0.8 plus yards (initial estimate)"
+        "value": 0.88,
+        "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19 'Mittlere Versiegelungsgrade pro Flächentyp': Typ 31 'Gewerbe- und Industriegebiet, dichte Bebauung' 88,4 % (davon 38,0 % unbebaut versiegelt, also Hof- und Lagerflächen); mit Erschließungsstraßen (Straßenraum 85,2 % bei 11,6 % Flächenanteil) ≈ 0,88. Die ganze Nutzungsklasse liegt mit 70,7 % niedriger, weil sie auch gering bebaute Standorte (Typ 30, 66,9 %) enthält; eine voll ausgebaute Industrie-Hektare im Spiel ist der dichte Fall"
       },
       "biotopeValue": {
         "value": 2,
