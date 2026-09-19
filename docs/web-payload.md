@@ -14,18 +14,25 @@ reaches exactly one. `tools/web_origin_check.py` serves the build on
 resolving to nothing**, and reports anything that tried to leave our origin. It
 runs in CI after the web build.
 
-## First load, measured 2026-09-18
+## First load
 
-| | gzipped |
-|---|---|
-| shell and fonts | 155 KB |
-| program (dart2js) | 877 KB |
-| engine, CanvasKit chromium | 2157 KB |
-| **total, Chromium browsers** | **3191 KB** |
-| total elsewhere (generic CanvasKit, 2857 KB) | 3892 KB |
+| | 2026-09-18 | 2026-09-19 |
+|---|---|---|
+| shell and fonts | 155 KB | 156 KB |
+| program (dart2js) | 877 KB | **1002 KB** |
+| engine, CanvasKit chromium | 2157 KB | 2157 KB |
+| **total, Chromium browsers** | **3191 KB** | **3315 KB** |
+| total elsewhere (generic CanvasKit, 2857 KB) | 3892 KB | 4016 KB |
 
 The engine is two thirds of it and is Flutter's, not ours. Of what is ours, the
 program is three quarters and the fonts the rest.
+
+The program grew 125 KB gzipped in a day, and it is worth knowing why rather
+than assuming the font work was undone: the fonts held at 156 KB, and LAN co-op
+(#65) and the seasonal vegetation tint (#66) landed in between. **A feature
+costs about as much as the whole font subset saved.** Re-measure with
+`tools/web_payload.py` rather than quoting a figure from this table; both
+columns were true on the day.
 
 ### Removed: 15 KB of citations nobody reads
 
@@ -100,7 +107,7 @@ add nothing to the payload.
 The three bundled weights carried Greek, Cyrillic and Vietnamese. They are now
 subset to European Latin plus the punctuation and symbols the app uses, taking
 the shell and fonts from 280 KB to 155 KB gzipped — **125 KB off every first
-load, about 4 % of the total**. `tools/subset_fonts.py` derives its character
+load, about 4 % of the total at the time**. `tools/subset_fonts.py` derives its character
 set from both ARB files and the Dart source, keeps `π` explicitly, and fails CI
 if the committed fonts drift. The Apache-2.0 notice shipped beside the fonts
 records the modification.
