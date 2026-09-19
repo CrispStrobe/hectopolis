@@ -24,7 +24,7 @@ fi
 
 JOBS="${CHECK_JOBS:-2}"
 
-STAGES=(params licenses l10n analyze-sim analyze-net analyze-app \
+STAGES=(params licenses fonts l10n analyze-sim analyze-net analyze-app \
         test-sim test-net test-app i18n learning docs license privacy)
 # Not in STAGES: it needs `flutter build web` first and a Chrome, so it is run
 # by name (tools/check.sh origin) and in CI after the web build.
@@ -59,6 +59,10 @@ run_stage() {
       cmp -s LICENSE app/assets/licenses/AGPL-3.0.txt || { echo "app/assets/licenses/AGPL-3.0.txt differs from LICENSE; copy it"; exit 1; }
       cmp -s LICENSE-EXCEPTION.md app/assets/licenses/APP-STORE-EXCEPTION.md || { echo "app/assets/licenses/APP-STORE-EXCEPTION.md differs from LICENSE-EXCEPTION.md; copy it"; exit 1; }
       ;;
+    # The bundled Roboto is subset to the characters the app can display. A
+    # glyph it lacks is not a blank on screen: CanvasKit fetches a fallback
+    # font for it from Google, which is what the origin stage checks.
+    fonts)       python3 tools/subset_fonts.py --check ;;
     l10n)        (cd app && flutter gen-l10n) ;;
     analyze-sim) (cd packages/stadtbau_sim && dart analyze --fatal-infos) ;;
     analyze-net) (cd packages/stadtbau_net && dart analyze --fatal-infos) ;;

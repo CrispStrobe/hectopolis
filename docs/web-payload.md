@@ -18,11 +18,11 @@ runs in CI after the web build.
 
 | | gzipped |
 |---|---|
-| shell and fonts | 280 KB |
+| shell and fonts | 155 KB |
 | program (dart2js) | 877 KB |
 | engine, CanvasKit chromium | 2157 KB |
-| **total, Chromium browsers** | **3314 KB** |
-| total elsewhere (generic CanvasKit, 2857 KB) | 4014 KB |
+| **total, Chromium browsers** | **3191 KB** |
+| total elsewhere (generic CanvasKit, 2857 KB) | 3892 KB |
 
 The engine is two thirds of it and is Flutter's, not ours. Of what is ours, the
 program is three quarters and the fonts the rest.
@@ -46,9 +46,9 @@ bytes: `∝` and `→` appeared only inside parameter sources, so they are no
 longer in the shipped program at all — two fewer of the fallback triggers
 below.
 
-## The app fetches fonts from Google, and its own copy says it does not
+## Removed: the font fallbacks that reached Google
 
-**Found 2026-09-18 by the new check.** `T-702` had the web build serving
+**Found and fixed 2026-09-18.** `T-702` had the web build serving
 everything from our own origin, verified by hand at the time. It does not any
 more, and the cause is not a dependency. It is a character.
 
@@ -68,12 +68,12 @@ So a run of the app asks Google for `notosans` and `notocoloremoji`. The
 privacy text in the About screen says there are no network requests while you
 play. There are two.
 
-The check now tolerates `fonts.gstatic.com` as a **dated, named hole** in
-`KNOWN_HOSTS` rather than failing CI on a known problem or, worse, not being
-wired up at all. It guards against a *new* third party from today, and prints a
-reminder to delete the entry when the fix lands.
+The emoji are now Material icons, which were already bundled and take the
+theme colour. The two text glyphs became plain `CO2` and `->`. The origin
+check's allow-list is empty again: a fallback request is a build failure, not a
+dated exception.
 
-### Fixing it is a choice, not a patch
+### The alternatives that were considered
 
 Every route changes something owned by a person rather than by the code:
 
@@ -92,19 +92,18 @@ Every route changes something owned by a person rather than by the code:
    origin. Keeps every character, keeps every request on our origin, and costs
    megabytes of Noto.
 
-1 and 2 together are the cheapest complete fix and add nothing to the payload.
+Options 1 and 2 were chosen together: they are the cheapest complete fix and
+add nothing to the payload.
 
-## Also measured, not done: Roboto is three quarters bigger than it needs to be
+## Removed: Roboto characters the app cannot display
 
-The three bundled weights carry Greek, Cyrillic and Vietnamese. Subsetting them
-to European Latin plus the punctuation and symbols the app uses takes them from
-271 KB gzipped to 129 KB — **139 KB off every first load, 4 % of the total**.
-
-It is held because it belongs with the decision above: both are "which glyphs
-do we ship", and subsetting while the fallback question is open would trade a
-measured saving for more of exactly the bug the check just found. `pyftsubset`
-does the work; keeping `π` needs the Greek block, and the Apache-2.0 notice
-would need a modification note, as the LBM-DE data already has.
+The three bundled weights carried Greek, Cyrillic and Vietnamese. They are now
+subset to European Latin plus the punctuation and symbols the app uses, taking
+the shell and fonts from 280 KB to 155 KB gzipped — **125 KB off every first
+load, about 4 % of the total**. `tools/subset_fonts.py` derives its character
+set from both ARB files and the Dart source, keeps `π` explicitly, and fails CI
+if the committed fonts drift. The Apache-2.0 notice shipped beside the fonts
+records the modification.
 
 ## A trap worth writing down
 

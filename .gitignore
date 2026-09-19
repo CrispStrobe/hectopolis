@@ -32,3 +32,6 @@ docs/_site/
 /data/raw/
 __pycache__/
 *.pyc
+
+# Local handover notes, not part of the project
+HANDOVER.md

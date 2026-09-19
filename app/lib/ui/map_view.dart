@@ -796,10 +796,7 @@ class _PlacementPreviewCard extends StatelessWidget {
                     ),
                   )
                 else if (simpleMode)
-                  Text(
-                    _friendlyImpact(l10n, changes),
-                    style: theme.textTheme.bodySmall,
-                  )
+                  _friendlyImpactLine(l10n, changes, theme.textTheme.bodySmall)
                 else if (changes.isEmpty)
                   Text(
                     l10n.placementPreviewNoScoreChange,
@@ -835,18 +832,48 @@ class _PlacementPreviewCard extends StatelessWidget {
   }
 }
 
-String _friendlyImpact(
+/// Simple mode's verdict on a placement: an icon and a sentence.
+///
+/// The sentences used to carry an emoji of their own. They no longer do:
+/// an emoji is not in Roboto, so each one made CanvasKit fetch a colour-emoji
+/// font from Google on the web (docs/web-payload.md). The icon font is already
+/// bundled, and an icon can take the theme colour.
+(IconData, String) _friendlyImpact(
   AppLocalizations l10n,
   List<MapEntry<Indicator, double>> changes,
 ) {
-  if (changes.isEmpty) return l10n.impactSimpleSteady;
+  const steady = (Icons.sentiment_neutral, null);
+  if (changes.isEmpty) return (steady.$1, l10n.impactSimpleSteady);
   final total = changes.fold<double>(0, (sum, entry) => sum + entry.value);
   final positive = changes.any((entry) => entry.value > 0.15);
   final negative = changes.any((entry) => entry.value < -0.15);
-  if (positive && negative) return l10n.impactSimpleMixed;
-  if (total > 0.15) return l10n.impactSimpleBetter;
-  if (total < -0.15) return l10n.impactSimpleWorse;
-  return l10n.impactSimpleSteady;
+  if (positive && negative) {
+    return (Icons.compare_arrows, l10n.impactSimpleMixed);
+  }
+  if (total > 0.15) {
+    return (Icons.sentiment_satisfied, l10n.impactSimpleBetter);
+  }
+  if (total < -0.15) {
+    return (Icons.sentiment_dissatisfied, l10n.impactSimpleWorse);
+  }
+  return (steady.$1, l10n.impactSimpleSteady);
+}
+
+/// One line of simple-mode feedback, icon first.
+Widget _friendlyImpactLine(
+  AppLocalizations l10n,
+  List<MapEntry<Indicator, double>> changes,
+  TextStyle? style,
+) {
+  final (icon, text) = _friendlyImpact(l10n, changes);
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Icon(icon, size: 18),
+      const SizedBox(width: 6),
+      Expanded(child: Text(text, style: style)),
+    ],
+  );
 }
 
 class _BuildImpactCard extends StatelessWidget {
@@ -904,10 +931,7 @@ class _BuildImpactCard extends StatelessWidget {
                 ],
               ),
               if (simpleMode)
-                Text(
-                  _friendlyImpact(l10n, changes),
-                  style: theme.textTheme.bodyMedium,
-                )
+                _friendlyImpactLine(l10n, changes, theme.textTheme.bodyMedium)
               else if (changes.isEmpty)
                 Text(
                   l10n.placementPreviewNoScoreChange,

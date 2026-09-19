@@ -40,6 +40,14 @@ jobs:
       - name: Test app
         run: cd app && flutter test
 
+      # The bundled Roboto is subset to the characters the app can display; a
+      # glyph it lacks becomes a request to Google, not a blank on screen.
+      - name: Fonts are the committed subset
+        run: |
+          python3 -m pip install --quiet fonttools
+          python3 tools/subset_fonts.py --check \
+            --sdk-fonts "${FLUTTER_ROOT}/bin/cache/artifacts/material_fonts"
+
       - name: i18n lint
         run: dart run tools/i18n_lint.dart
 

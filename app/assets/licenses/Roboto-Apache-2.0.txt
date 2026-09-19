@@ -1,3 +1,20 @@
+MODIFICATION NOTICE (Apache License 2.0, section 4(b))
+======================================================
+
+The Roboto Regular, Medium and Bold fonts distributed with Hectopolis are
+MODIFIED. They were taken from the Flutter SDK's material_fonts artifact and
+subset by `tools/subset_fonts.py` to the characters this application can
+display: Basic Latin, Latin-1 Supplement, Latin Extended-A and -B, spacing
+modifiers and combining diacritics, General Punctuation, Currency Symbols,
+Letterlike Symbols, Number Forms, Arrows, Mathematical Operators, Box Drawing
+and Geometric Shapes, plus U+03C0. Greek, Cyrillic and Vietnamese were removed.
+
+No glyph outline, metric or layout table was altered; only the set of encoded
+characters is smaller. Running `tools/subset_fonts.py` against the same source
+reproduces the shipped files exactly.
+
+The unmodified licence follows.
+
 
                                  Apache License
                            Version 2.0, January 2004
