@@ -683,6 +683,11 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   already be read by an ordinary phone camera as text. HTTPS web builds generally cannot
   open a plain `ws://` LAN connection because of mixed-content policy, so native-to-native
   is the supported first slice and T-606 is the path to browser cross-play.
+  *Note 2026-09-19 (2):* The app-side `LanSession` boundary now has its own real loopback
+  test — host, join, lobby, ready, start, turn and authoritative placement — rather than
+  relying only on the lower-level transport test. WebSocket handshakes have an eight-second
+  ceiling, so a stale or mistyped address returns to the setup screen with its existing
+  connection error instead of leaving an indefinite spinner.
 - [x] **T-603 Lobby UI.** Host or join, player list, district assignment, ready check.
   *Note 2026-09-17:* `SessionController` (the only place that knows both the protocol and
   Flutter) and `LobbyScreen`, with seven widget tests driving a real host and a real guest
