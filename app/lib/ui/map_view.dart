@@ -1087,6 +1087,10 @@ class _MapPainter extends CustomPainter {
 
   bool get _moving => layer == _MapLayer.moving;
 
+  double get _growth => c.sim.params.seasons.growthAt(c.sim.state.tick);
+
+  Color _seasonal(Color base) => seasonalVegetationColor(base, _growth);
+
   /// Large maps automatically shed decorative detail while zoomed out.
   bool get _lowDetail =>
       cleanVisuals || (c.sim.state.cellCount > 1024 && scale < 1.35);
@@ -1495,6 +1499,11 @@ class _MapPainter extends CustomPainter {
     TileType.housingHigh => const Color(0xFFD8C8B8),
     TileType.commercial => const Color(0xFFD6C9E7),
     TileType.industry => const Color(0xFFBCC5C8),
+    TileType.meadow ||
+    TileType.cropland ||
+    TileType.forest ||
+    TileType.park ||
+    TileType.wetland => _seasonal(TileStyle.of(tile).color),
     _ => TileStyle.of(tile).color,
   };
 
@@ -1520,11 +1529,13 @@ class _MapPainter extends CustomPainter {
     final pressure = _modelTinting ? _threat(index) : 0.0;
     final grass = Paint()
       // Green by default, drying only where something is pressing on it.
-      ..color = Color.lerp(
-        const Color(0xFF4F8A51),
-        const Color(0xFF9E8B3F),
-        pressure * 0.7,
-      )!.withValues(alpha: 0.65)
+      ..color = _seasonal(
+        Color.lerp(
+          const Color(0xFF4F8A51),
+          const Color(0xFF9E8B3F),
+          pressure * 0.7,
+        )!,
+      ).withValues(alpha: 0.65)
       ..style = PaintingStyle.stroke
       ..strokeWidth = math.max(0.55 / scale, rect.width * 0.018)
       ..strokeCap = StrokeCap.round;
@@ -2412,12 +2423,13 @@ class _MapPainter extends CustomPainter {
         Paint()..color = const Color(0xFF6D4C41),
       );
     }
-    final dark = Color.lerp(
+    final rawDark = Color.lerp(
       const Color(0xFF66BB6A),
       const Color(0xFF1B5E20),
       vitality,
     )!;
-    final lit = Color.lerp(dark, const Color(0xFFC5E1A5), 0.34)!;
+    final dark = _seasonal(rawDark);
+    final lit = _seasonal(Color.lerp(rawDark, const Color(0xFFC5E1A5), 0.34)!);
     // Three lobes, jittered per tree, drawn dark first so the lit one reads
     // as the sunlit side.
     for (var lobe = 0; lobe < 3; lobe++) {

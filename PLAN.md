@@ -626,7 +626,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   Reported, not scored: the 0–100 noise indicator still scores the day level, so no scenario was
   silently rebalanced. A %HSD exposure-response curve was deliberately left out because the
   coefficients could not be read from a primary source from here; `docs/model/noise.md` says so.
-- [~] **T-506 Time and seasons.** Yearly cycle for crop yield, ETI, heat waves.
+- [x] **T-506 Time and seasons.** Yearly cycle for crop yield, ETI, heat waves.
   *Note 2026-09-17:* Model side done. A tick is a month and tick 0 is January, so the month is
   `tick % 12` and the cycle carries no state — replays stay deterministic. Two twelve-value series
   in `seasons.*`: `growth` scales the ETI term of cooling capacity, `heat` scales `uhiMaxC`.
@@ -637,9 +637,12 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   mean, so 0 reproduces the season-free model exactly.
   *Note 2026-09-18:* A seasonal numerator needs a seasonal denominator. `heat.uhiMaxC` is the annual-mean ceiling, but the ceiling in force is that times the month's factor (4.1 K in July against a parameter of 3.0), and every score that turned a ΔT into 0–1 divided by the parameter. The result was that **for three months a year the climate indicator could not tell a dense quarter with sixteen hectares of park from one with none** — both 53.8 — and the heat term of residential attractiveness went to zero for every cell, which drives migration. `computeHeat` now publishes the ceiling it used as `fields.uhiMaxNowC` and everything divides through `fields.heatScoreOf`, so the two cannot drift apart. The same comparison now reads 64.0 against 62.5. The map's terrain tint deliberately keeps the absolute scale: a July city should look hotter. Three tests in `seasons_test.dart` pin it.
   Crop yield is represented through `growth` on cropland's evapotranspiration; an economic yield
-  term is deliberately not modelled (`docs/model/seasons.md` says why). **Open:** the seasonal
-  tint on vegetation, which should read `growthAt(tick)` — it pairs with the illustrative
-  direction and is the visible half of this task.
+  term is deliberately not modelled (`docs/model/seasons.md` says why).
+  *Note 2026-09-19:* The visible half is complete. Meadow, cropland, forest, park and wetland
+  ground — plus meadow blades and tree canopies — now read the same `growthAt(tick)` as the
+  model. A factor of 1 preserves the previous colour exactly; winter shifts gently toward straw
+  and the growing season toward lush green. The tint is clamped, tested at winter, annual mean
+  and summer, and does not feed back into a score or alter any scenario balance.
 
 ### Phase 6 — Multiplayer (same WLAN, cross-play)
 
