@@ -552,7 +552,9 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   runners (run 35438023002): Linux in 1m30s, macOS in 3m38s and Windows in 4m29s.
   It exposed a workflow usability gap rather than a build failure: manual dry runs packaged
   the bundles and then discarded them because only tag builds attached files to a release.
-  The workflow now retains one 14-day artifact per platform on every run.
+  The workflow now retains one 14-day artifact per platform on every run. Verified on the
+  branch in run 35438349043: Linux (22.1 MB), macOS (58.3 MB) and Windows (13.5 MB) all
+  built, packaged and uploaded through the Node 24 action without creating a release.
 - [x] **T-405 About / licenses screen.** Shows AGPL, the section 7 exception, third-party
   licenses (`THIRD_PARTY.md`), data attributions, link to source repository.
   *Note 2026-09-05:* `AboutScreen` like the sibling apps: header with version, provider, contact, privacy, disclaimer, license + section 7 exception, data sources, `showLicensePage` with the bundled AGPL/exception texts and data-source entries registered via `LicenseRegistry`. Widget tests in DE and EN.
