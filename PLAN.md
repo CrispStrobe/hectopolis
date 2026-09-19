@@ -530,6 +530,12 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   *Note 2026-09-08:* Prepared build 0.1.1+4 for external TestFlight; added
   versioned DE/EN beta/store copy, public privacy/support pages and an idempotent
   external-beta preparation workflow. Fixed the macOS screenshot watchdog.
+  *Note 2026-09-19:* A fresh signed iOS dry run on current `main` passed in 4m53s
+  (run 35438021512): archive, export and Apple's validation all succeeded and the
+  21.8 MB IPA is retained as an artifact. The App Store upload and GitHub release steps
+  were skipped, as required. This also compiles the LAN local-network declaration and
+  client transport into the signed app. The remaining iOS work is physical-device review;
+  the Mac App Store flow remains separate.
 - [~] **T-404 Windows and Linux desktop** builds; installer via MSIX (Windows) and
   AppImage/Flatpak (Linux).
   *Note 2026-09-16:* The builds were already there — `desktop-release.yml` builds Linux, macOS
@@ -542,6 +548,13 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   **Windows MSIX is still open** and is deliberately not guessed at: it needs the `msix` pub
   package, a licence allow-list entry and pubspec configuration, none of which can be exercised
   from Linux — committing it untested would only surface on a release tag. Flatpak is also open.
+  *Note 2026-09-19:* A manual matrix run on current `main` passed on all three hosted
+  runners (run 35438023002): Linux in 1m30s, macOS in 3m38s and Windows in 4m29s.
+  It exposed a workflow usability gap rather than a build failure: manual dry runs packaged
+  the bundles and then discarded them because only tag builds attached files to a release.
+  The workflow now retains one 14-day artifact per platform on every run. Verified on the
+  branch in run 35438349043: Linux (22.1 MB), macOS (58.3 MB) and Windows (13.5 MB) all
+  built, packaged and uploaded through the Node 24 action without creating a release.
 - [x] **T-405 About / licenses screen.** Shows AGPL, the section 7 exception, third-party
   licenses (`THIRD_PARTY.md`), data attributions, link to source repository.
   *Note 2026-09-05:* `AboutScreen` like the sibling apps: header with version, provider, contact, privacy, disclaimer, license + section 7 exception, data sources, `showLicensePage` with the bundled AGPL/exception texts and data-source entries registered via `LicenseRegistry`. Widget tests in DE and EN.
