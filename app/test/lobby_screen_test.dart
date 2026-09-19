@@ -7,31 +7,42 @@ import 'dart:async';
 import 'package:flutter/material.dart' hide Simulation;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stadtbau/game/session_controller.dart';
 import 'package:stadtbau/l10n/generated/app_localizations.dart';
 import 'package:stadtbau/ui/lobby_screen.dart';
 import 'package:stadtbau_net/stadtbau_net.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
-Widget _app(SessionController c, {VoidCallback? onStart}) => MaterialApp(
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: LobbyScreen(controller: c, onStart: onStart ?? () {}),
-    );
+Widget _app(
+  SessionController c, {
+  VoidCallback? onStart,
+  List<String> roomCodes = const [],
+}) => MaterialApp(
+  localizationsDelegates: const [
+    AppLocalizations.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ],
+  supportedLocales: AppLocalizations.supportedLocales,
+  locale: const Locale('en'),
+  home: LobbyScreen(
+    controller: c,
+    onStart: onStart ?? () {},
+    roomCodes: roomCodes,
+  ),
+);
 
 /// A host controller and a guest controller, connected and settled, plus the
 /// guest's end of the wire so a test can pull the plug on it.
 Future<
-    ({
-      SessionController host,
-      SessionController guest,
-      InMemoryTransport guestWire,
-    })> _pair() async {
+  ({
+    SessionController host,
+    SessionController guest,
+    InMemoryTransport guestWire,
+  })
+>
+_pair() async {
   final host = SessionController.host(
     simulation: Simulation(
       state: WorldState.empty(width: 16, height: 16, budgetKEur: 10000),
@@ -40,13 +51,31 @@ Future<
   );
   final (hostEnd, guestEnd) = InMemoryTransport.pair();
   host.accept(hostEnd);
-  final guest =
-      SessionController.join(transport: guestEnd, playerName: 'Linus');
+  final guest = SessionController.join(
+    transport: guestEnd,
+    playerName: 'Linus',
+  );
   await InMemoryTransport.settle();
   return (host: host, guest: guest, guestWire: guestEnd);
 }
 
 void main() {
+  testWidgets('the host can share its room code as text and QR', (
+    tester,
+  ) async {
+    final s = await _pair();
+    addTearDown(() async {
+      await s.host.close();
+      await s.guest.close();
+    });
+    const code = '192.168.1.20:43123/test-secret';
+    await tester.pumpWidget(_app(s.host, roomCodes: const [code]));
+    await tester.pumpAndSettle();
+
+    expect(find.text(code), findsOneWidget);
+    expect(find.byType(QrImageView), findsOneWidget);
+  });
+
   testWidgets('the host sees a guest arrive', (tester) async {
     final s = await _pair();
     addTearDown(() async {
@@ -60,8 +89,9 @@ void main() {
     expect(find.text('No district yet'), findsNWidgets(2));
   });
 
-  testWidgets('dividing the map gives every player their own columns',
-      (tester) async {
+  testWidgets('dividing the map gives every player their own columns', (
+    tester,
+  ) async {
     final s = await _pair();
     addTearDown(() async {
       await s.host.close();
@@ -77,8 +107,7 @@ void main() {
     expect(find.text('Columns 9–16'), findsOneWidget);
   });
 
-  testWidgets('the host cannot start until the guest is ready',
-      (tester) async {
+  testWidgets('the host cannot start until the guest is ready', (tester) async {
     final s = await _pair();
     addTearDown(() async {
       await s.host.close();
@@ -112,8 +141,9 @@ void main() {
     expect(s.host.players.where((p) => p.ready), hasLength(1));
   });
 
-  testWidgets('starting the game calls back, for the host and the guest',
-      (tester) async {
+  testWidgets('starting the game calls back, for the host and the guest', (
+    tester,
+  ) async {
     final s = await _pair();
     addTearDown(() async {
       await s.host.close();
@@ -125,12 +155,16 @@ void main() {
     s.host.start();
     await InMemoryTransport.settle();
     await tester.pumpAndSettle();
-    expect(guestStarted, isTrue,
-        reason: 'a guest learns from the lobby update, not from a tap');
+    expect(
+      guestStarted,
+      isTrue,
+      reason: 'a guest learns from the lobby update, not from a tap',
+    );
   });
 
-  testWidgets('a refused join explains itself instead of hanging',
-      (tester) async {
+  testWidgets('a refused join explains itself instead of hanging', (
+    tester,
+  ) async {
     final host = SessionController.host(
       simulation: Simulation(
         state: WorldState.empty(width: 16, height: 16, budgetKEur: 1000),
@@ -140,8 +174,10 @@ void main() {
     );
     final (hostEnd, guestEnd) = InMemoryTransport.pair();
     host.accept(hostEnd);
-    final guest =
-        SessionController.join(transport: guestEnd, playerName: 'Linus');
+    final guest = SessionController.join(
+      transport: guestEnd,
+      playerName: 'Linus',
+    );
     await InMemoryTransport.settle();
     addTearDown(() async {
       await host.close();
@@ -153,8 +189,9 @@ void main() {
     expect(find.byType(SwitchListTile), findsNothing);
   });
 
-  testWidgets('a held seat is shown as held, and can be given up',
-      (tester) async {
+  testWidgets('a held seat is shown as held, and can be given up', (
+    tester,
+  ) async {
     final s = await _pair();
     final guestId = s.guest.playerId!;
     s.host.start();

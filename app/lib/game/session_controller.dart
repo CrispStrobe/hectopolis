@@ -13,11 +13,9 @@ import 'package:stadtbau_sim/stadtbau_sim.dart';
 /// deliberately exposes plain lists and flags rather than the message types,
 /// so a screen cannot accidentally depend on the wire format.
 ///
-/// A [Transport] is injected. Nothing here opens a socket: which transport a
-/// player gets is T-602's question, and until it is answered this controller
-/// is driven by the in-memory pair in tests. That is also why there is no
-/// "connect to this address" method — there is nothing honest to put in it
-/// yet.
+/// A [Transport] is injected. Socket ownership stays in [LanSession], so the
+/// same controller is driven by an in-memory pair in tests and a WebSocket in
+/// the app without either the widgets or the protocol knowing which.
 class SessionController extends ChangeNotifier {
   SessionController._({required this.isHost});
 
@@ -26,12 +24,14 @@ class SessionController extends ChangeNotifier {
     required Simulation simulation,
     required String playerName,
     int maxPlayers = 4,
+    String Function()? tokenFactory,
   }) {
     final c = SessionController._(isHost: true);
     final host = SessionHost(
       simulation: simulation,
       hostName: playerName,
       maxPlayers: maxPlayers,
+      tokenFactory: tokenFactory,
     );
     c._host = host;
     c._players = host.players;
@@ -47,6 +47,7 @@ class SessionController extends ChangeNotifier {
     String? resumeToken,
   }) {
     final c = SessionController._(isHost: false);
+    c._guestName = playerName;
     c._client = SessionClient(
       transport: transport,
       playerName: playerName,
@@ -60,6 +61,7 @@ class SessionController extends ChangeNotifier {
 
   SessionHost? _host;
   SessionClient? _client;
+  String? _guestName;
   StreamSubscription<SessionClient>? _clientSub;
   StreamSubscription<SessionHost>? _hostSub;
 
@@ -115,7 +117,8 @@ class SessionController extends ChangeNotifier {
   }
 
   /// Whether every guest has ticked ready, so the host may start.
-  bool get canStart => isHost && (_host?.allReady ?? false) && players.length > 1;
+  bool get canStart =>
+      isHost && (_host?.allReady ?? false) && players.length > 1;
 
   /// Set when a join was refused, so the screen can say why.
   RejectReason? get rejectReason => _client?.rejectReason;
@@ -126,6 +129,26 @@ class SessionController extends ChangeNotifier {
   /// The token that would reclaim this seat after a drop (T-605). The screen
   /// holds it; it is not shown to anyone.
   String? get resumeToken => _client?.resumeToken;
+
+  bool get disconnected => _client?.phase == SessionPhase.closed;
+
+  /// Replaces a dropped guest connection while presenting the same resume
+  /// token, so the host returns the held seat and its district (T-605).
+  Future<void> reconnect(Transport transport) async {
+    if (isHost || _guestName == null) return;
+    final oldSub = _clientSub;
+    if (oldSub != null) await oldSub.cancel();
+    final old = _client;
+    final token = old?.resumeToken;
+    if (old != null) await old.dispose();
+    _client = SessionClient(
+      transport: transport,
+      playerName: _guestName!,
+      resumeToken: token,
+    );
+    _clientSub = _client!.changes.listen((_) => _onClientChanged());
+    notifyListeners();
+  }
 
   /// Accepts a guest. Host only; the transport comes from outside.
   void accept(Transport transport) {
@@ -163,6 +186,13 @@ class SessionController extends ChangeNotifier {
           height: height,
         ),
       );
+      host.assignTileStock(players[i].id, {
+        for (final tile in host.simulation.tileBudget.allowedTypes)
+          tile: switch (host.simulation.tileBudget.remaining(tile)) {
+            null => null,
+            final count => count ~/ n + (i < count % n ? 1 : 0),
+          },
+      });
     }
     _refreshFromHost();
   }

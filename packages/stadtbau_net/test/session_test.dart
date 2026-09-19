@@ -30,7 +30,8 @@ Future<({SessionHost host, List<SessionClient> clients})> _session(
     final (hostEnd, clientEnd) = InMemoryTransport.pair();
     host.accept(hostEnd);
     clients.add(
-        SessionClient(transport: clientEnd, playerName: 'Player ${i + 1}'));
+      SessionClient(transport: clientEnd, playerName: 'Player ${i + 1}'),
+    );
   }
   await InMemoryTransport.settle();
   return (host: host, clients: clients);
@@ -79,20 +80,23 @@ void main() {
       expect(late.rejectReason, RejectReason.alreadyStarted);
     });
 
-    test('a client on another protocol version is told which side is old', () async {
-      final s = await _session(0);
-      final (hostEnd, clientEnd) = InMemoryTransport.pair();
-      s.host.accept(hostEnd);
-      final seen = <String>[];
-      clientEnd.incoming.listen(seen.add);
-      // A build from the future says hello.
-      clientEnd.send('{"v":99,"type":"hello","name":"Future"}');
-      await InMemoryTransport.settle();
-      expect(seen, hasLength(1));
-      final answer = NetMessage.decode(seen.single) as Rejected;
-      expect(answer.reason, RejectReason.protocolMismatch);
-      expect(answer.hostProtocol, protocolVersion);
-    });
+    test(
+      'a client on another protocol version is told which side is old',
+      () async {
+        final s = await _session(0);
+        final (hostEnd, clientEnd) = InMemoryTransport.pair();
+        s.host.accept(hostEnd);
+        final seen = <String>[];
+        clientEnd.incoming.listen(seen.add);
+        // A build from the future says hello.
+        clientEnd.send('{"v":99,"type":"hello","name":"Future"}');
+        await InMemoryTransport.settle();
+        expect(seen, hasLength(1));
+        final answer = NetMessage.decode(seen.single) as Rejected;
+        expect(answer.reason, RejectReason.protocolMismatch);
+        expect(answer.hostProtocol, protocolVersion);
+      },
+    );
   });
 
   group('authority', () {
@@ -135,7 +139,9 @@ void main() {
       final s = await _session(1);
       final c = s.clients.single;
       s.host.assignDistrict(
-          c.playerId!, const District(x: 0, y: 0, width: 6, height: 12));
+        c.playerId!,
+        const District(x: 0, y: 0, width: 6, height: 12),
+      );
       await InMemoryTransport.settle();
       final inside = c.request(const PlaceTile(2, 2, TileType.park));
       final outside = c.request(const PlaceTile(9, 2, TileType.park));
@@ -146,14 +152,17 @@ void main() {
       expect(s.host.simulation.state.tiles[2 * 12 + 9], isNot(TileType.park));
     });
 
-    test("a simulation refusal is passed back with the simulation's reason", () async {
-      final s = await _session(1, budget: 10); // 10 k€ buys nothing
-      final c = s.clients.single;
-      final seq = c.request(const PlaceTile(1, 1, TileType.commercial));
-      await InMemoryTransport.settle();
-      expect(c.denials[seq]?.reason, DenyReason.simulation);
-      expect(c.denials[seq]?.commandError, CommandError.insufficientBudget);
-    });
+    test(
+      "a simulation refusal is passed back with the simulation's reason",
+      () async {
+        final s = await _session(1, budget: 10); // 10 k€ buys nothing
+        final c = s.clients.single;
+        final seq = c.request(const PlaceTile(1, 1, TileType.commercial));
+        await InMemoryTransport.settle();
+        expect(c.denials[seq]?.reason, DenyReason.simulation);
+        expect(c.denials[seq]?.commandError, CommandError.insufficientBudget);
+      },
+    );
 
     test('the host and a client building in turn stay identical', () async {
       final s = await _session(2);
@@ -176,24 +185,29 @@ void main() {
   });
 
   group('sync', () {
-    test('a client that missed a message repairs itself from a snapshot', () async {
-      final s = await _session(1);
-      final c = s.clients.single;
-      // Simulate a lost frame: apply something on the host without telling
-      // anyone, which is exactly the state a dropped Applied leaves behind.
-      s.host.simulation.apply(const PlaceTile(4, 4, TileType.industry));
-      await InMemoryTransport.settle();
-      expect(c.simulation!.state.hash(),
-          isNot(s.host.simulation.state.hash()));
+    test(
+      'a client that missed a message repairs itself from a snapshot',
+      () async {
+        final s = await _session(1);
+        final c = s.clients.single;
+        // Simulate a lost frame: apply something on the host without telling
+        // anyone, which is exactly the state a dropped Applied leaves behind.
+        s.host.simulation.apply(const PlaceTile(4, 4, TileType.industry));
+        await InMemoryTransport.settle();
+        expect(
+          c.simulation!.state.hash(),
+          isNot(s.host.simulation.state.hash()),
+        );
 
-      // The next authoritative message carries the host's hash, so the
-      // client notices within one tick rather than at the end of the game.
-      s.host.applyAsHost(const AdvanceTick());
-      await InMemoryTransport.settle();
-      expect(c.resyncCount, 1);
-      expect(c.simulation!.state.hash(), s.host.simulation.state.hash());
-      expect(c.simulation!.state.tiles[4 * 12 + 4], TileType.industry);
-    });
+        // The next authoritative message carries the host's hash, so the
+        // client notices within one tick rather than at the end of the game.
+        s.host.applyAsHost(const AdvanceTick());
+        await InMemoryTransport.settle();
+        expect(c.resyncCount, 1);
+        expect(c.simulation!.state.hash(), s.host.simulation.state.hash());
+        expect(c.simulation!.state.tiles[4 * 12 + 4], TileType.industry);
+      },
+    );
 
     test('a healthy session never resyncs', () async {
       final s = await _session(3);
@@ -235,6 +249,31 @@ void main() {
       expect(s.clients[0].denials[now], isNull);
     });
 
+    test('the host obeys its own district and tile allowance', () async {
+      final s = await _session(1);
+      final id = s.host.hostPlayerId;
+      s.host.assignDistrict(
+        id,
+        const District(x: 0, y: 0, width: 6, height: 12),
+      );
+      s.host.assignTileStock(id, const {TileType.park: 1});
+      s.host.start();
+
+      expect(
+        s.host.applyAsHost(const PlaceTile(2, 2, TileType.park)).ok,
+        isTrue,
+      );
+      expect(
+        s.host.applyAsHost(const PlaceTile(3, 2, TileType.park)).error,
+        CommandError.tileExhausted,
+      );
+      expect(
+        s.host.applyAsHost(const PlaceTile(8, 2, TileType.park)).error,
+        CommandError.outOfBounds,
+      );
+      expect(s.host.players.first.tileStock['park'], 0);
+    });
+
     test('a late end-turn cannot skip the next player', () async {
       final s = await _session(2);
       s.host.start();
@@ -245,8 +284,11 @@ void main() {
       // The host taps "end turn" again, a moment too late.
       s.host.endTurn(s.host.hostPlayerId);
       await InMemoryTransport.settle();
-      expect(s.host.currentPlayerId, current,
-          reason: 'a stale end-turn must not move the turn on');
+      expect(
+        s.host.currentPlayerId,
+        current,
+        reason: 'a stale end-turn must not move the turn on',
+      );
     });
 
     test('closing the round moves time, once, for everyone', () async {
@@ -268,17 +310,25 @@ void main() {
         expect(c.round, 2);
         expect(c.resyncCount, 0);
       }
-      expect(s.host.currentPlayerId, s.host.hostPlayerId,
-          reason: 'the new round starts with the first player again');
+      expect(
+        s.host.currentPlayerId,
+        s.host.hostPlayerId,
+        reason: 'the new round starts with the first player again',
+      );
     });
 
-    test('a player spends their own allowance, not everyone else\'s',
-        () async {
+    test('a player spends their own allowance, not everyone else\'s', () async {
       final s = await _session(2);
       final a = s.clients[0].playerId!;
       final b = s.clients[1].playerId!;
-      s.host.assignTileStock(a, const {TileType.park: 2, TileType.meadow: null});
-      s.host.assignTileStock(b, const {TileType.park: 2, TileType.meadow: null});
+      s.host.assignTileStock(a, const {
+        TileType.park: 2,
+        TileType.meadow: null,
+      });
+      s.host.assignTileStock(b, const {
+        TileType.park: 2,
+        TileType.meadow: null,
+      });
       s.host.start();
       await InMemoryTransport.settle();
       s.host.endTurn(s.host.hostPlayerId);
@@ -289,14 +339,19 @@ void main() {
       await InMemoryTransport.settle();
       final third = s.clients[0].request(const PlaceTile(3, 1, TileType.park));
       await InMemoryTransport.settle();
-      expect(s.clients[0].denials[third]?.commandError,
-          CommandError.tileExhausted);
+      expect(
+        s.clients[0].denials[third]?.commandError,
+        CommandError.tileExhausted,
+      );
 
       PlayerInfo of(SessionClient c, String id) =>
           c.players.firstWhere((p) => p.id == id);
       expect(of(s.clients[0], a).tileStock['park'], 0);
-      expect(of(s.clients[0], b).tileStock['park'], 2,
-          reason: "one player's spending must not drain another's");
+      expect(
+        of(s.clients[0], b).tileStock['park'],
+        2,
+        reason: "one player's spending must not drain another's",
+      );
 
       // And the other player can still build their own two.
       s.clients[0].endTurn();
@@ -315,114 +370,132 @@ void main() {
       await InMemoryTransport.settle();
       s.host.endTurn(s.host.hostPlayerId);
       await InMemoryTransport.settle();
-      final seq = s.clients[0].request(const PlaceTile(1, 1, TileType.industry));
+      final seq = s.clients[0].request(
+        const PlaceTile(1, 1, TileType.industry),
+      );
       await InMemoryTransport.settle();
-      expect(s.clients[0].denials[seq]?.commandError,
-          CommandError.tileNotAllowed);
+      expect(
+        s.clients[0].denials[seq]?.commandError,
+        CommandError.tileNotAllowed,
+      );
     });
   });
 
   group('reconnect (T-605)', () {
-    test('a dropped player keeps their seat and district and comes back', () async {
-      final s = await _session(2);
-      final leaver = s.clients[1];
-      final id = leaver.playerId!;
-      final token = leaver.resumeToken!;
-      s.host.assignDistrict(id, const District(x: 6, y: 0, width: 6, height: 12));
-      s.host.start();
-      await InMemoryTransport.settle();
+    test(
+      'a dropped player keeps their seat and district and comes back',
+      () async {
+        final s = await _session(2);
+        final leaver = s.clients[1];
+        final id = leaver.playerId!;
+        final token = leaver.resumeToken!;
+        s.host.assignDistrict(
+          id,
+          const District(x: 6, y: 0, width: 6, height: 12),
+        );
+        s.host.start();
+        await InMemoryTransport.settle();
 
-      // Build something, so the returning client has a world to catch up to.
-      s.host.applyAsHost(const PlaceTile(0, 0, TileType.road));
-      s.host.applyAsHost(const AdvanceTick(5));
-      await InMemoryTransport.settle();
+        // Build something, so the returning client has a world to catch up to.
+        s.host.applyAsHost(const PlaceTile(0, 0, TileType.road));
+        s.host.applyAsHost(const AdvanceTick(5));
+        await InMemoryTransport.settle();
 
-      await leaver.dispose();
-      await InMemoryTransport.settle();
-      // The seat is held, not freed: the district stays theirs.
-      final held = s.host.players.firstWhere((p) => p.id == id);
-      expect(held.connected, isFalse);
-      expect(held.district, isNotNull);
-      expect(s.host.players, hasLength(3));
-      // And the others can see that it is empty on purpose.
-      expect(
-        s.clients[0].players.firstWhere((p) => p.id == id).connected,
-        isFalse,
-      );
+        await leaver.dispose();
+        await InMemoryTransport.settle();
+        // The seat is held, not freed: the district stays theirs.
+        final held = s.host.players.firstWhere((p) => p.id == id);
+        expect(held.connected, isFalse);
+        expect(held.district, isNotNull);
+        expect(s.host.players, hasLength(3));
+        // And the others can see that it is empty on purpose.
+        expect(
+          s.clients[0].players.firstWhere((p) => p.id == id).connected,
+          isFalse,
+        );
 
-      // More happens while they are away.
-      s.host.applyAsHost(const AdvanceTick(4));
-      await InMemoryTransport.settle();
+        // More happens while they are away.
+        s.host.applyAsHost(const AdvanceTick(4));
+        await InMemoryTransport.settle();
 
-      final (hostEnd, clientEnd) = InMemoryTransport.pair();
-      s.host.accept(hostEnd);
-      final back = SessionClient(
-        transport: clientEnd,
-        playerName: 'Player 2',
-        resumeToken: token,
-      );
-      await InMemoryTransport.settle();
+        final (hostEnd, clientEnd) = InMemoryTransport.pair();
+        s.host.accept(hostEnd);
+        final back = SessionClient(
+          transport: clientEnd,
+          playerName: 'Player 2',
+          resumeToken: token,
+        );
+        await InMemoryTransport.settle();
 
-      expect(back.resumed, isTrue);
-      expect(back.playerId, id, reason: 'the same seat, not a new one');
-      expect(back.phase, SessionPhase.playing,
-          reason: 'the game moved on; there is no lobby to return to');
-      expect(back.simulation!.state.tick, s.host.simulation.state.tick);
-      expect(back.simulation!.state.hash(), s.host.simulation.state.hash());
-      expect(back.players.firstWhere((p) => p.id == id).connected, isTrue);
-      expect(
-        back.players.firstWhere((p) => p.id == id).district,
-        isNotNull,
-        reason: 'the district came back with the seat',
-      );
-      // And they can build in it again -- once it is their turn. Turn order
-      // (T-604) outlives a reconnect: the seat came back where it was, not at
-      // the front of the queue.
-      final early = back.request(const PlaceTile(7, 1, TileType.park));
-      await InMemoryTransport.settle();
-      expect(back.denials[early]?.reason, DenyReason.notYourTurn);
-      s.host.endTurn(s.host.hostPlayerId);
-      s.host.endTurn(s.clients[0].playerId!);
-      await InMemoryTransport.settle();
-      expect(back.isMyTurn, isTrue);
-      final seq = back.request(const PlaceTile(7, 1, TileType.park));
-      await InMemoryTransport.settle();
-      expect(back.denials[seq], isNull);
-    });
+        expect(back.resumed, isTrue);
+        expect(back.playerId, id, reason: 'the same seat, not a new one');
+        expect(
+          back.phase,
+          SessionPhase.playing,
+          reason: 'the game moved on; there is no lobby to return to',
+        );
+        expect(back.simulation!.state.tick, s.host.simulation.state.tick);
+        expect(back.simulation!.state.hash(), s.host.simulation.state.hash());
+        expect(back.players.firstWhere((p) => p.id == id).connected, isTrue);
+        expect(
+          back.players.firstWhere((p) => p.id == id).district,
+          isNotNull,
+          reason: 'the district came back with the seat',
+        );
+        // And they can build in it again -- once it is their turn. Turn order
+        // (T-604) outlives a reconnect: the seat came back where it was, not at
+        // the front of the queue.
+        final early = back.request(const PlaceTile(7, 1, TileType.park));
+        await InMemoryTransport.settle();
+        expect(back.denials[early]?.reason, DenyReason.notYourTurn);
+        s.host.endTurn(s.host.hostPlayerId);
+        s.host.endTurn(s.clients[0].playerId!);
+        await InMemoryTransport.settle();
+        expect(back.isMyTurn, isTrue);
+        final seq = back.request(const PlaceTile(7, 1, TileType.park));
+        await InMemoryTransport.settle();
+        expect(back.denials[seq], isNull);
+      },
+    );
 
-    test('a stale or foreign token is refused rather than given a seat', () async {
-      final s = await _session(1);
-      s.host.start();
-      await InMemoryTransport.settle();
-      final (hostEnd, clientEnd) = InMemoryTransport.pair();
-      s.host.accept(hostEnd);
-      final impostor = SessionClient(
-        transport: clientEnd,
-        playerName: 'Nobody',
-        resumeToken: 'not-a-real-token',
-      );
-      await InMemoryTransport.settle();
-      expect(impostor.rejectReason, RejectReason.unknownSeat);
-      expect(impostor.simulation, isNull);
-    });
+    test(
+      'a stale or foreign token is refused rather than given a seat',
+      () async {
+        final s = await _session(1);
+        s.host.start();
+        await InMemoryTransport.settle();
+        final (hostEnd, clientEnd) = InMemoryTransport.pair();
+        s.host.accept(hostEnd);
+        final impostor = SessionClient(
+          transport: clientEnd,
+          playerName: 'Nobody',
+          resumeToken: 'not-a-real-token',
+        );
+        await InMemoryTransport.settle();
+        expect(impostor.rejectReason, RejectReason.unknownSeat);
+        expect(impostor.simulation, isNull);
+      },
+    );
 
-    test("a token for a seat that is still occupied does not evict them",
-        () async {
-      final s = await _session(1);
-      final sitting = s.clients.single;
-      s.host.start();
-      await InMemoryTransport.settle();
-      final (hostEnd, clientEnd) = InMemoryTransport.pair();
-      s.host.accept(hostEnd);
-      final twin = SessionClient(
-        transport: clientEnd,
-        playerName: 'Player 1',
-        resumeToken: sitting.resumeToken,
-      );
-      await InMemoryTransport.settle();
-      expect(twin.rejectReason, RejectReason.unknownSeat);
-      expect(sitting.phase, SessionPhase.playing);
-    });
+    test(
+      "a token for a seat that is still occupied does not evict them",
+      () async {
+        final s = await _session(1);
+        final sitting = s.clients.single;
+        s.host.start();
+        await InMemoryTransport.settle();
+        final (hostEnd, clientEnd) = InMemoryTransport.pair();
+        s.host.accept(hostEnd);
+        final twin = SessionClient(
+          transport: clientEnd,
+          playerName: 'Player 1',
+          resumeToken: sitting.resumeToken,
+        );
+        await InMemoryTransport.settle();
+        expect(twin.rejectReason, RejectReason.unknownSeat);
+        expect(sitting.phase, SessionPhase.playing);
+      },
+    );
 
     test('leaving the lobby really leaves; there is nothing to hold', () async {
       final s = await _session(2);
@@ -464,8 +537,11 @@ void main() {
       await InMemoryTransport.settle();
       await s.clients[1].dispose();
       await InMemoryTransport.settle();
-      expect(s.host.allReady, isFalse,
-          reason: 'someone who is not there cannot be ready');
+      expect(
+        s.host.allReady,
+        isFalse,
+        reason: 'someone who is not there cannot be ready',
+      );
     });
   });
 

@@ -32,6 +32,14 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- T-602 manual same-WLAN co-op. No mDNS service is advertised. -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Hectopolis uses your local network only when you host or join a co-op game with people on the same Wi-Fi.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -1182,6 +1182,47 @@ class _MapPainter extends CustomPainter {
 
     if (_still) return;
 
+    // Co-op districts divide build rights, not effects. Keep every border
+    // visible while giving this device's own strip the strongest outline.
+    if (c.cooperative) {
+      const districtColors = [
+        Color(0xFF1565C0),
+        Color(0xFFC62828),
+        Color(0xFF6A1B9A),
+        Color(0xFFEF6C00),
+      ];
+      final mine = c.myDistrict;
+      for (var i = 0; i < c.cooperativePlayers.length; i++) {
+        final district = c.cooperativePlayers[i].district;
+        if (district == null) continue;
+        final isMine =
+            mine != null &&
+            district.x == mine.x &&
+            district.y == mine.y &&
+            district.width == mine.width &&
+            district.height == mine.height;
+        final rect = Rect.fromLTWH(
+          district.x * cell,
+          district.y * cell,
+          district.width * cell,
+          district.height * cell,
+        ).deflate(2 * hair);
+        final color = districtColors[i % districtColors.length];
+        if (isMine) {
+          canvas.drawRect(
+            rect,
+            Paint()..color = color.withValues(alpha: 0.045),
+          );
+        }
+        _outline(
+          canvas,
+          rect,
+          color.withValues(alpha: isMine ? 0.95 : 0.62),
+          (isMine ? 4 : 2) * hair,
+        );
+      }
+    }
+
     if (c.experience.causalHighlights &&
         c.overlay != MapOverlay.none &&
         c.selectedCell != null) {

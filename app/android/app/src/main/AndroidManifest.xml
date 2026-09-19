@@ -1,8 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- T-602: only used after the player explicitly hosts or joins a LAN game. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="Hectopolis"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

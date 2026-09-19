@@ -79,23 +79,32 @@ local preview can be rolled back when the answer is no.
   bounds — comes back as `denied` with `simulation` and the original
   `CommandError`, so the client can show the same message single-player does.
 
-## No sockets in this package
+## The socket boundary (T-602)
 
-`Transport` is an interface over "send a string, receive strings, close". The
-only implementation here is an in-memory pair, which the tests use to run a
-real host and real clients in one isolate.
+`Transport` remains an interface over "send a string, receive strings, close".
+The in-memory pair drives protocol tests; `WebSocketTransport` is the real
+adapter. Native hosts bind an ephemeral port on IPv4 and expose a room code of
+the form `address:port/random-path`. The 128-bit path is the admission secret:
+knowing that a device is hosting is not enough to join it.
 
-This is deliberate. Opening a listening socket is the moment the promise on
-the About screen — *no network requests while you play* — has to be restated
-for an opt-in LAN mode, and `tools/privacy_audit.sh` fails the build if any
-first-party code reaches for a networking API. That guard should hold until
-the decision is taken in the open, with the About text and the store listings
-changed in the same breath. It belongs with discovery (T-602), not smuggled in
-under a protocol task.
+The first transport is plain `ws://` because devices on an ordinary LAN do
+not share a certificate authority and a self-signed `wss://` certificate would
+not be trusted by clients. The random path is admission control, not
+encryption: use co-op on a network you trust. Android therefore opts into
+cleartext traffic, iOS explains the local-network permission and allows local
+transport, and sandboxed macOS builds carry both client and server network
+entitlements. An internet relay must use `wss://`.
 
-The audit does now strip line comments before matching, because the claim it
-checks is about code, and a guard that fails on the paragraph above would
-teach people to delete the paragraph.
+This first reachable slice deliberately does not use mDNS. Nothing announces a
+device name to the rest of the wifi; the host shows a code to the people it
+wants to invite. Networking APIs are confined to the WebSocket adapter and the
+conditionally imported native server, which keeps `dart:io` out of web builds.
+The About and privacy copy say exactly what crosses the LAN and, just as
+importantly, that nothing goes to us or to a third party.
+
+The privacy audit strips line comments before matching, then rejects a network
+API anywhere outside those two adapters and the app-side owner that opens and
+closes them.
 
 ## Delivery must be ordered, and is asynchronous
 
@@ -221,11 +230,15 @@ Two rules, learned the hard way, both about `flutter_test`'s faked clock:
 
 ## What is not here yet
 
-T-602 discovery (mDNS, room code, QR, manual IP) and T-606 an internet relay.
+Automatic mDNS discovery is deliberately deferred. Native hosts instead show
+one room code per usable IPv4 address as text and a QR code, and guests can
+paste or type that code. There is no camera scanner yet. A web build served
+over HTTPS generally cannot open the host's plain `ws://` LAN connection due
+to browser mixed-content rules, so the reachable first release is native to
+native. T-606's `wss://` internet relay is the route to browser cross-play.
 
-T-604's remaining half is the game screen itself: drawing district borders,
-showing whose turn it is, and offering the per-player stock in the palette.
-That waits for the session to be reachable at all — which is T-602 — rather
-than half-refactoring the game screen behind something nobody can open.
-T-605's remaining half is likewise UI: holding a token across a reconnect and
-deciding when a seat is given up.
+The game screen now draws every district, names the active player and round,
+uses each player's private stock in the palette, and disables single-player
+time and history controls. It retains the resume token in memory after a drop,
+shows a reconnect action, and replaces its mirror with the authoritative
+snapshot on return. A token is not persisted across an app restart.

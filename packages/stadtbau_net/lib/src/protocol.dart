@@ -39,9 +39,10 @@ enum RejectReason {
   unknownSeat;
 
   String get id => name;
-  static RejectReason fromId(String id) =>
-      values.firstWhere((r) => r.id == id,
-          orElse: () => throw FormatException('unknown reject reason $id'));
+  static RejectReason fromId(String id) => values.firstWhere(
+    (r) => r.id == id,
+    orElse: () => throw FormatException('unknown reject reason $id'),
+  );
 }
 
 /// Why the host would not apply an intent. Simulation-level failures reuse
@@ -60,9 +61,10 @@ enum DenyReason {
   simulation;
 
   String get id => name;
-  static DenyReason fromId(String id) =>
-      values.firstWhere((r) => r.id == id,
-          orElse: () => throw FormatException('unknown deny reason $id'));
+  static DenyReason fromId(String id) => values.firstWhere(
+    (r) => r.id == id,
+    orElse: () => throw FormatException('unknown deny reason $id'),
+  );
 }
 
 /// A rectangle of the map one player is responsible for (T-604). Districts do
@@ -84,15 +86,19 @@ class District {
   bool contains(int cx, int cy) =>
       cx >= x && cy >= y && cx < x + width && cy < y + height;
 
-  Map<String, dynamic> toJson() =>
-      {'x': x, 'y': y, 'width': width, 'height': height};
+  Map<String, dynamic> toJson() => {
+    'x': x,
+    'y': y,
+    'width': width,
+    'height': height,
+  };
 
   static District fromJson(Map<String, dynamic> json) => District(
-        x: json['x'] as int,
-        y: json['y'] as int,
-        width: json['width'] as int,
-        height: json['height'] as int,
-      );
+    x: json['x'] as int,
+    y: json['y'] as int,
+    width: json['width'] as int,
+    height: json['height'] as int,
+  );
 
   @override
   String toString() => 'District($x,$y ${width}x$height)';
@@ -135,39 +141,39 @@ class PlayerInfo {
     bool? ready,
     bool? connected,
     Map<String, int?>? tileStock,
-  }) =>
-      PlayerInfo(
-        id: id,
-        name: name,
-        isHost: isHost,
-        district: district ?? this.district,
-        ready: ready ?? this.ready,
-        connected: connected ?? this.connected,
-        tileStock: tileStock ?? this.tileStock,
-      );
+  }) => PlayerInfo(
+    id: id,
+    name: name,
+    isHost: isHost,
+    district: district ?? this.district,
+    ready: ready ?? this.ready,
+    connected: connected ?? this.connected,
+    tileStock: tileStock ?? this.tileStock,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'isHost': isHost,
-        if (district != null) 'district': district!.toJson(),
-        'ready': ready,
-        'connected': connected,
-        if (tileStock.isNotEmpty) 'tileStock': tileStock,
-      };
+    'id': id,
+    'name': name,
+    'isHost': isHost,
+    if (district != null) 'district': district!.toJson(),
+    'ready': ready,
+    'connected': connected,
+    if (tileStock.isNotEmpty) 'tileStock': tileStock,
+  };
 
   static PlayerInfo fromJson(Map<String, dynamic> json) => PlayerInfo(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        isHost: json['isHost'] as bool,
-        district: json['district'] == null
-            ? null
-            : District.fromJson(json['district'] as Map<String, dynamic>),
-        ready: json['ready'] as bool? ?? false,
-        connected: json['connected'] as bool? ?? true,
-        tileStock: (json['tileStock'] as Map<String, dynamic>? ?? const {})
-            .map((k, v) => MapEntry(k, v as int?)),
-      );
+    id: json['id'] as String,
+    name: json['name'] as String,
+    isHost: json['isHost'] as bool,
+    district: json['district'] == null
+        ? null
+        : District.fromJson(json['district'] as Map<String, dynamic>),
+    ready: json['ready'] as bool? ?? false,
+    connected: json['connected'] as bool? ?? true,
+    tileStock: (json['tileStock'] as Map<String, dynamic>? ?? const {}).map(
+      (k, v) => MapEntry(k, v as int?),
+    ),
+  );
 }
 
 /// Base of every message on the wire.
@@ -180,10 +186,10 @@ sealed class NetMessage {
   Map<String, dynamic> get body;
 
   Map<String, dynamic> toJson() => {
-        'v': protocolVersion,
-        'type': type,
-        ...body,
-      };
+    'v': protocolVersion,
+    'type': type,
+    ...body,
+  };
 
   String encode() => jsonEncode(toJson());
 
@@ -253,13 +259,13 @@ class Hello extends NetMessage {
   String get type => 'hello';
   @override
   Map<String, dynamic> get body => {
-        'name': name,
-        if (resumeToken != null) 'resumeToken': resumeToken,
-      };
+    'name': name,
+    if (resumeToken != null) 'resumeToken': resumeToken,
+  };
   static Hello fromJson(Map<String, dynamic> j) => Hello(
-        name: j['name'] as String,
-        resumeToken: j['resumeToken'] as String?,
-      );
+    name: j['name'] as String,
+    resumeToken: j['resumeToken'] as String?,
+  );
 }
 
 /// host -> one client: you are in, here is the world as it stands.
@@ -298,27 +304,27 @@ class Welcome extends NetMessage {
   String get type => 'welcome';
   @override
   Map<String, dynamic> get body => {
-        'playerId': playerId,
-        'players': [for (final p in players) p.toJson()],
-        'state': state,
-        'hash': hash,
-        if (resumeToken != null) 'resumeToken': resumeToken,
-        'resumed': resumed,
-        'started': started,
-      };
+    'playerId': playerId,
+    'players': [for (final p in players) p.toJson()],
+    'state': state,
+    'hash': hash,
+    if (resumeToken != null) 'resumeToken': resumeToken,
+    'resumed': resumed,
+    'started': started,
+  };
 
   static Welcome fromJson(Map<String, dynamic> j) => Welcome(
-        playerId: j['playerId'] as String,
-        players: [
-          for (final p in j['players'] as List<dynamic>)
-            PlayerInfo.fromJson(p as Map<String, dynamic>),
-        ],
-        state: j['state'] as Map<String, dynamic>,
-        hash: j['hash'] as int,
-        resumeToken: j['resumeToken'] as String?,
-        resumed: j['resumed'] as bool? ?? false,
-        started: j['started'] as bool? ?? false,
-      );
+    playerId: j['playerId'] as String,
+    players: [
+      for (final p in j['players'] as List<dynamic>)
+        PlayerInfo.fromJson(p as Map<String, dynamic>),
+    ],
+    state: j['state'] as Map<String, dynamic>,
+    hash: j['hash'] as int,
+    resumeToken: j['resumeToken'] as String?,
+    resumed: j['resumed'] as bool? ?? false,
+    started: j['started'] as bool? ?? false,
+  );
 }
 
 /// host -> one client: you are not in, and why.
@@ -333,13 +339,15 @@ class Rejected extends NetMessage {
   @override
   String get type => 'rejected';
   @override
-  Map<String, dynamic> get body =>
-      {'reason': reason.id, 'hostProtocol': hostProtocol};
+  Map<String, dynamic> get body => {
+    'reason': reason.id,
+    'hostProtocol': hostProtocol,
+  };
 
   static Rejected fromJson(Map<String, dynamic> j) => Rejected(
-        reason: RejectReason.fromId(j['reason'] as String),
-        hostProtocol: j['hostProtocol'] as int? ?? protocolVersion,
-      );
+    reason: RejectReason.fromId(j['reason'] as String),
+    hostProtocol: j['hostProtocol'] as int? ?? protocolVersion,
+  );
 }
 
 /// host -> all: who is here, with what district, and who is ready.
@@ -362,20 +370,20 @@ class LobbyUpdate extends NetMessage {
   String get type => 'lobby';
   @override
   Map<String, dynamic> get body => {
-        'players': [for (final p in players) p.toJson()],
-        'started': started,
-        if (currentPlayerId != null) 'currentPlayerId': currentPlayerId,
-        'round': round,
-      };
+    'players': [for (final p in players) p.toJson()],
+    'started': started,
+    if (currentPlayerId != null) 'currentPlayerId': currentPlayerId,
+    'round': round,
+  };
   static LobbyUpdate fromJson(Map<String, dynamic> j) => LobbyUpdate(
-        players: [
-          for (final p in j['players'] as List<dynamic>)
-            PlayerInfo.fromJson(p as Map<String, dynamic>),
-        ],
-        started: j['started'] as bool,
-        currentPlayerId: j['currentPlayerId'] as String?,
-        round: j['round'] as int? ?? 0,
-      );
+    players: [
+      for (final p in j['players'] as List<dynamic>)
+        PlayerInfo.fromJson(p as Map<String, dynamic>),
+    ],
+    started: j['started'] as bool,
+    currentPlayerId: j['currentPlayerId'] as String?,
+    round: j['round'] as int? ?? 0,
+  );
 }
 
 /// client -> host: my turn is over (T-604).
@@ -410,16 +418,16 @@ class TurnChanged extends NetMessage {
   String get type => 'turn';
   @override
   Map<String, dynamic> get body => {
-        if (currentPlayerId != null) 'currentPlayerId': currentPlayerId,
-        'round': round,
-        'tick': tick,
-      };
+    if (currentPlayerId != null) 'currentPlayerId': currentPlayerId,
+    'round': round,
+    'tick': tick,
+  };
 
   static TurnChanged fromJson(Map<String, dynamic> j) => TurnChanged(
-        currentPlayerId: j['currentPlayerId'] as String?,
-        round: j['round'] as int,
-        tick: j['tick'] as int,
-      );
+    currentPlayerId: j['currentPlayerId'] as String?,
+    round: j['round'] as int,
+    tick: j['tick'] as int,
+  );
 }
 
 /// client -> host: I am (not) ready to start.
@@ -446,9 +454,9 @@ class Intent extends NetMessage {
   @override
   Map<String, dynamic> get body => {'seq': seq, 'command': command.toJson()};
   static Intent fromJson(Map<String, dynamic> j) => Intent(
-        seq: j['seq'] as int,
-        command: Command.fromJson(j['command'] as Map<String, dynamic>),
-      );
+    seq: j['seq'] as int,
+    command: Command.fromJson(j['command'] as Map<String, dynamic>),
+  );
 }
 
 /// host -> all: this happened, at this tick, in this order.
@@ -474,20 +482,20 @@ class Applied extends NetMessage {
   String get type => 'applied';
   @override
   Map<String, dynamic> get body => {
-        'playerId': playerId,
-        'seq': seq,
-        'command': command.toJson(),
-        'tick': tick,
-        'hash': hash,
-      };
+    'playerId': playerId,
+    'seq': seq,
+    'command': command.toJson(),
+    'tick': tick,
+    'hash': hash,
+  };
 
   static Applied fromJson(Map<String, dynamic> j) => Applied(
-        playerId: j['playerId'] as String,
-        seq: j['seq'] as int,
-        command: Command.fromJson(j['command'] as Map<String, dynamic>),
-        tick: j['tick'] as int,
-        hash: j['hash'] as int,
-      );
+    playerId: j['playerId'] as String,
+    seq: j['seq'] as int,
+    command: Command.fromJson(j['command'] as Map<String, dynamic>),
+    tick: j['tick'] as int,
+    hash: j['hash'] as int,
+  );
 }
 
 /// host -> one client: no, and why.
@@ -503,19 +511,20 @@ class Denied extends NetMessage {
   String get type => 'denied';
   @override
   Map<String, dynamic> get body => {
-        'seq': seq,
-        'reason': reason.id,
-        if (commandError != null) 'commandError': commandError!.name,
-      };
+    'seq': seq,
+    'reason': reason.id,
+    if (commandError != null) 'commandError': commandError!.name,
+  };
 
   static Denied fromJson(Map<String, dynamic> j) => Denied(
-        seq: j['seq'] as int,
-        reason: DenyReason.fromId(j['reason'] as String),
-        commandError: j['commandError'] == null
-            ? null
-            : CommandError.values
-                .firstWhere((e) => e.name == j['commandError'] as String),
-      );
+    seq: j['seq'] as int,
+    reason: DenyReason.fromId(j['reason'] as String),
+    commandError: j['commandError'] == null
+        ? null
+        : CommandError.values.firstWhere(
+            (e) => e.name == j['commandError'] as String,
+          ),
+  );
 }
 
 /// host -> all: time moved.
@@ -554,9 +563,9 @@ class Snapshot extends NetMessage {
   @override
   Map<String, dynamic> get body => {'state': state, 'hash': hash};
   static Snapshot fromJson(Map<String, dynamic> j) => Snapshot(
-        state: j['state'] as Map<String, dynamic>,
-        hash: j['hash'] as int,
-      );
+    state: j['state'] as Map<String, dynamic>,
+    hash: j['hash'] as int,
+  );
 }
 
 /// host -> all: someone is gone.

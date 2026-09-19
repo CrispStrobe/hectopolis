@@ -15,6 +15,7 @@ dependencies:
     sdk: flutter
   intl: any
   package_info_plus: ^10.1.0
+  qr_flutter: ^4.1.0
   shared_preferences: ^2.5.0
   stadtbau_net:
     path: ../packages/stadtbau_net
