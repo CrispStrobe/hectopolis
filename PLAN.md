@@ -517,6 +517,12 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 - [~] **T-402 Android.** SDK setup on a build machine, signing config outside the repo,
   `flutter build appbundle`. Verify AGPL notice screen (license text + sources) in-app.
   *Note 2026-09-05:* `.github/workflows/android-release.yml` (dry run by default, tag `v*` publishes to a GitHub release), release signing in `build.gradle.kts` with debug fallback, `docs/release/android.md`. Open: first CI run, upload keystore secrets, Play Console record.
+  *Note 2026-09-19:* The first CI dry run passed end to end in 4m59s and uploaded both the
+  APK and AAB as workflow artifacts (run 35434176884). With no repository keystore it used
+  the documented debug-key fallback and labelled the artifacts unsigned; no release or
+  store upload occurred. The Actions runtime majors were updated after the run exposed the
+  Node 20 and `setup-java@v4` deprecation warnings. Open: upload-keystore secrets, Play
+  Console record and a physical-device install/performance pass.
 - [~] **T-403 iOS / macOS.** Requires a Mac runner. Document steps; Xcode project settings;
   App Store exception referenced in the About screen.
   *Note 2026-09-05:* `.github/workflows/ios-release.yml` + `tools/ios/build-ios-appstore.sh` + `app/ios/ExportOptions.plist` following `/mnt/volume1/appstore.md` (manual signing, unsigned archive, sign at export, `--upload-package`). Bundle id `com.crispstrobe.hectopolis` registered, profile "Hectopolis AppStore CI" created, 5 of 8 secrets set. Open: human creates the app record (`ASC_APP_ID`) and exports the `.p12` (`DIST_CERT_P12_BASE64`, `DIST_CERT_PASSWORD`); first dry run. `docs/release/ios.md`.
