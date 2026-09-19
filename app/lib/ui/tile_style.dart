@@ -32,6 +32,19 @@ class TileStyle {
   static TileStyle of(TileType t) => _styles[t]!;
 }
 
+/// Gives living ground cover a restrained seasonal cast without changing the
+/// simulation value it represents. A factor of 1 is the existing, annual-mean
+/// colour; lower activity shifts toward straw and higher activity toward lush
+/// green. The asymmetric spans match the model's approximate 0.28–1.78 range.
+Color seasonalVegetationColor(Color base, double growth) {
+  if (growth < 1) {
+    final dormancy = ((1 - growth) / 0.75).clamp(0.0, 1.0);
+    return Color.lerp(base, const Color(0xFFC4AD72), dormancy * 0.45)!;
+  }
+  final lushness = ((growth - 1) / 0.8).clamp(0.0, 1.0);
+  return Color.lerp(base, const Color(0xFF43A047), lushness * 0.22)!;
+}
+
 /// Colour-blind-safe sequential ramp (light yellow → teal → dark blue) for
 /// "good" overlays and (light yellow → orange → dark red) for "bad" ones.
 Color overlayColor(double v, {required bool highIsBad}) {
