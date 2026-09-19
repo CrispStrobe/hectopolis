@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import 'dart:async';
+import 'dart:io';
 
 import 'package:stadtbau_net/stadtbau_net.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
@@ -62,6 +63,27 @@ void main() {
     final wrong = Uri.parse('ws://127.0.0.1:${server.port}/not-the-room');
     expect(WebSocketTransport.connect(wrong), throwsA(anything));
   });
+
+  test(
+    'a stalled handshake times out instead of hanging the join UI',
+    () async {
+      if (!lanHostingSupported) return;
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      server.listen((_) {
+        // Deliberately never answer the upgrade request.
+      });
+      addTearDown(() => server.close(force: true));
+
+      final uri = Uri.parse('ws://127.0.0.1:${server.port}/stalled');
+      await expectLater(
+        WebSocketTransport.connect(
+          uri,
+          timeout: const Duration(milliseconds: 50),
+        ),
+        throwsA(isA<TimeoutException>()),
+      );
+    },
+  );
 
   test('a real socket carries a whole authoritative session', () async {
     if (!lanHostingSupported) return;

@@ -31,11 +31,32 @@ class WebSocketTransport implements Transport {
     );
   }
 
+  /// Long enough for an ordinary LAN handshake, but bounded so a mistyped or
+  /// stale room address returns control to the join screen.
+  static const defaultConnectTimeout = Duration(seconds: 8);
+
   /// Connects and completes only after the WebSocket handshake succeeds.
-  static Future<WebSocketTransport> connect(Uri uri) async {
+  static Future<WebSocketTransport> connect(
+    Uri uri, {
+    Duration timeout = defaultConnectTimeout,
+  }) async {
     final channel = WebSocketChannel.connect(uri);
-    await channel.ready;
+    try {
+      await channel.ready.timeout(timeout);
+    } on Object {
+      unawaited(_discard(channel));
+      rethrow;
+    }
     return WebSocketTransport.fromChannel(channel);
+  }
+
+  static Future<void> _discard(WebSocketChannel channel) async {
+    try {
+      await channel.sink.close();
+    } on Object {
+      // The failed handshake is already being reported by [connect]. Cleanup
+      // must not replace it with a second, less useful exception.
+    }
   }
 
   final WebSocketChannel _channel;
