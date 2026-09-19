@@ -13,7 +13,7 @@
       }
     }
   },
-  "tileDescription": "{id, select, meadow{Extensive grassland. Cheap, decent habitat, cools a little.} cropland{Farmland. Low habitat value, small CO₂ source.} forest{Deciduous forest. Best habitat, absorbs CO₂, dampens noise and dust. Matures over decades.} water{Pond or lake. Good habitat, cools its surroundings.} park{Urban park. Recreation within 300 m, cooling, some habitat.} housing_low{Single-family homes, about 45 residents per hectare.} housing_high{Apartment blocks, about 180 residents per hectare with ground-floor services.} commercial{Offices and shops. Jobs, shopping within walking distance, delivery noise.} industry{Manufacturing. Many jobs, noise, emissions.} road{Main road. Connects housing to jobs; traffic causes noise and pollution.} wetland{Reeds and shallow water. The richest habitat here, cools strongly, and soaks up runoff from its surroundings.}solar_field{Ground-mounted panels on open grassland. Displaces a great deal of power-station CO2; dark, fenced and not a place people go.}mixed_use{Homes above shops and workshops. Fewer flats than apartment blocks, but work and shopping are already downstairs.}school{Classrooms, a yard and a sports field. Expensive to build and to run, brings jobs, and is empty at night.}tram_stop{A stop with its track. Quieter than the road traffic it stands in for, and electric, so nothing is burnt here.}cycle_path{A surfaced path through a planted verge. Cheap, nearly silent, and keeps most of the ground open.}other{}}",
+  "tileDescription": "{id, select, meadow{Extensive grassland. Cheap, decent habitat, cools a little.} cropland{Farmland. Low habitat value, small CO2 source.} forest{Deciduous forest. Best habitat, absorbs CO2, dampens noise and dust. Matures over decades.} water{Pond or lake. Good habitat, cools its surroundings.} park{Urban park. Recreation within 300 m, cooling, some habitat.} housing_low{Single-family homes, about 45 residents per hectare.} housing_high{Apartment blocks, about 180 residents per hectare with ground-floor services.} commercial{Offices and shops. Jobs, shopping within walking distance, delivery noise.} industry{Manufacturing. Many jobs, noise, emissions.} road{Main road. Connects housing to jobs; traffic causes noise and pollution.} wetland{Reeds and shallow water. The richest habitat here, cools strongly, and soaks up runoff from its surroundings.}solar_field{Ground-mounted panels on open grassland. Displaces a great deal of power-station CO2; dark, fenced and not a place people go.}mixed_use{Homes above shops and workshops. Fewer flats than apartment blocks, but work and shopping are already downstairs.}school{Classrooms, a yard and a sports field. Expensive to build and to run, brings jobs, and is empty at night.}tram_stop{A stop with its track. Quieter than the road traffic it stands in for, and electric, so nothing is burnt here.}cycle_path{A surfaced path through a planted verge. Cheap, nearly silent, and keeps most of the ground open.}other{}}",
   "@tileDescription": {
     "description": "One-line description of a tile type",
     "placeholders": {
@@ -37,7 +37,7 @@
       }
     }
   },
-  "indicatorHint": "{id, select, biodiversity{Habitat quality and connectivity of green patches (BKompV biotope values, InVEST habitat quality).} air{Population-weighted pollution index from traffic, industry and heating; vegetation removes part of it.} noise{Share of residents below the 55 dB(A) daytime limit for residential areas (TA Lärm).} housing{Housing capacity relative to local jobs, and how full it is.} economy{Jobs available for residents and the budget trend.} shopping{Retail within walking distance (Huff model, 700 m).} recreation{Green space within 300 m (WHO) and summer cooling.} commuting{Mean commute distance and car share (MiD 2017 mode shares).} climate{CO₂ balance of land use and traffic, plus urban heat.} budget{Municipal budget relative to the starting budget.} other{}}",
+  "indicatorHint": "{id, select, biodiversity{Habitat quality and connectivity of green patches (BKompV biotope values, InVEST habitat quality).} air{Population-weighted pollution index from traffic, industry and heating; vegetation removes part of it.} noise{Share of residents below the 55 dB(A) daytime limit for residential areas (TA Lärm).} housing{Housing capacity relative to local jobs, and how full it is.} economy{Jobs available for residents and the budget trend.} shopping{Retail within walking distance (Huff model, 700 m).} recreation{Green space within 300 m (WHO) and summer cooling.} commuting{Mean commute distance and car share (MiD 2017 mode shares).} climate{CO2 balance of land use and traffic, plus urban heat.} budget{Municipal budget relative to the starting budget.} other{}}",
   "@indicatorHint": {
     "placeholders": {
       "id": {
@@ -53,7 +53,7 @@
       }
     }
   },
-  "indicatorFormula": "{id, select, biodiversity{Biotope values (BKompV) times maturity, reduced by threats from roads, industry and buildings and by fragmentation, then scaled with a species-area curve.} air{Emissions from traffic, industry and buildings spread with an exp(-d/300 m) kernel, vegetation removes part, and the resident-weighted mean becomes the score.} noise{Every source loses 20 dB per distance decade and forest or buildings attenuate further; each resident scores (65 dB - L) / 10, clamped to 0-1.} housing{100 x min(1, capacity / (jobs / 0.52)) x (0.5 + 0.5 x occupancy); zero without housing.} economy{100 x (0.6 x min(1, jobs / workers) + 0.4 x budget trend), the trend taken from the budget change in the last month.} shopping{Huff model with lambda = 2 over shops within 700 m walking distance, averaged over the residents.} recreation{Resident-weighted 0.7 x green space within 300 m plus 0.3 x (1 - delta T / maximum urban heat).} commuting{100 x (0.5 x (1 - mean distance / 20 km) + 0.5 x (1 - car share)) from the gravity commute model.} climate{100 x (0.7 x (1 - CO₂ per person / 2.5 t) + 0.3 x (1 - mean delta T / maximum urban heat)).} budget{The municipal budget divided by the starting budget, clamped to 0-100.} other{}}",
+  "indicatorFormula": "{id, select, biodiversity{Biotope values (BKompV) times maturity, reduced by threats from roads, industry and buildings and by fragmentation, then scaled with a species-area curve.} air{Emissions from traffic, industry and buildings spread with an exp(-d/300 m) kernel, vegetation removes part, and the resident-weighted mean becomes the score.} noise{Every source loses 20 dB per distance decade and forest or buildings attenuate further; each resident scores (65 dB - L) / 10, clamped to 0-1.} housing{100 x min(1, capacity / (jobs / 0.52)) x (0.5 + 0.5 x occupancy); zero without housing.} economy{100 x (0.6 x min(1, jobs / workers) + 0.4 x budget trend), the trend taken from the budget change in the last month.} shopping{Huff model with lambda = 2 over shops within 700 m walking distance, averaged over the residents.} recreation{Resident-weighted 0.7 x green space within 300 m plus 0.3 x (1 - delta T / maximum urban heat).} commuting{100 x (0.5 x (1 - mean distance / 20 km) + 0.5 x (1 - car share)) from the gravity commute model.} climate{100 x (0.7 x (1 - CO2 per person / 2.5 t) + 0.3 x (1 - mean delta T / maximum urban heat)).} budget{The municipal budget divided by the starting budget, clamped to 0-100.} other{}}",
   "@indicatorFormula": {
     "description": "One-line description of how an indicator score is computed",
     "placeholders": {
@@ -131,10 +131,10 @@
       }
     }
   },
-  "impactSimpleBetter": "😊 This helps the city.",
-  "impactSimpleMixed": "🤔 This helps some things and hurts others.",
-  "impactSimpleSteady": "🙂 No big change yet.",
-  "impactSimpleWorse": "🙁 This makes things harder.",
+  "impactSimpleBetter": "This helps the city.",
+  "impactSimpleMixed": "This helps some things and hurts others.",
+  "impactSimpleSteady": "No big change yet.",
+  "impactSimpleWorse": "This makes things harder.",
   "indicatorsTitle": "Indicators",
   "indicatorModeSimple": "Simple mode",
   "indicatorModeExpert": "Expert mode",
@@ -327,7 +327,7 @@
   "learningLawTab": "Evidence and rules",
   "learningMoreDetail": "Open model, evidence and rules",
   "causalViewTitle": "How the town pushes back",
-  "causalPath": "{id, select, village{Homes → people → access and traffic → quality of life} noise{Road and industry → sound at homes → quiet → attractiveness} habitat{Development → fragmentation → connected habitat → biodiversity} budget{Homes and jobs → revenue → budget → choices} quarter{Land-use mix → journeys and environment → attractiveness → population} other{Choices → effects → new choices}}",
+  "causalPath": "{id, select, village{Homes -> people -> access and traffic -> quality of life} noise{Road and industry -> sound at homes -> quiet -> attractiveness} habitat{Development -> fragmentation -> connected habitat -> biodiversity} budget{Homes and jobs -> revenue -> budget -> choices} quarter{Land-use mix -> journeys and environment -> attractiveness -> population} other{Choices -> effects -> new choices}}",
   "@causalPath": {
     "placeholders": {
       "id": {
@@ -522,7 +522,7 @@
       }
     }
   },
-  "tonsPerYear": "{value} t CO₂/year",
+  "tonsPerYear": "{value} t CO2/year",
   "@tonsPerYear": {
     "placeholders": {
       "value": {

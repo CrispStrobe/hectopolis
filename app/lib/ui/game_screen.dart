@@ -485,20 +485,21 @@ class _Clock extends StatelessWidget {
                 (sum, indicator) => sum + ind.score(indicator),
               ) /
               Indicator.values.length;
+          // Material icons, not emoji: see docs/web-payload.md.
           final face = average >= 75
-              ? '😄'
+              ? Icons.sentiment_very_satisfied
               : average >= 55
-              ? '🙂'
+              ? Icons.sentiment_satisfied
               : average >= 35
-              ? '😐'
-              : '🙁';
+              ? Icons.sentiment_neutral
+              : Icons.sentiment_dissatisfied;
           return Row(
             children: [
               if (!compact) Text(l10n.yearMonthLabel(year, month)),
               if (!compact) const SizedBox(width: 10),
               Tooltip(
                 message: l10n.townMood,
-                child: Text(face, style: const TextStyle(fontSize: 22)),
+                child: Icon(face, size: 22),
               ),
             ],
           );
@@ -516,7 +517,14 @@ class _Clock extends StatelessWidget {
             const SizedBox(width: 12),
             Tooltip(
               message: l10n.populationLabel,
-              child: Text('${n0.format(ind.population)} 👥'),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(n0.format(ind.population)),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.group, size: 16),
+                ],
+              ),
             ),
           ],
         );

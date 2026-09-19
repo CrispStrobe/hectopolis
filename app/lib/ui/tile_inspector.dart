@@ -34,11 +34,12 @@ class TileInspector extends StatelessWidget {
         final type = sim.state.tiles[cell];
         final style = TileStyle.of(type);
         if (controller.simpleMode) {
-          String face(double value) {
-            if (value >= 0.75) return '😄';
-            if (value >= 0.5) return '🙂';
-            if (value >= 0.3) return '😐';
-            return '🙁';
+          // Material icons, not emoji: see docs/web-payload.md.
+          IconData face(double value) {
+            if (value >= 0.75) return Icons.sentiment_very_satisfied;
+            if (value >= 0.5) return Icons.sentiment_satisfied;
+            if (value >= 0.3) return Icons.sentiment_neutral;
+            return Icons.sentiment_dissatisfied;
           }
 
           final conditions = <(String, double)>[
@@ -77,7 +78,7 @@ class TileInspector extends StatelessWidget {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   title: Text(label),
-                  trailing: Text(face(value)),
+                  trailing: Icon(face(value)),
                 ),
             ],
           );

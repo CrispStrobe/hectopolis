@@ -59,15 +59,12 @@ SANDBOX_ROW = (700, 152)
 # Hosts this check tolerates, and why. An entry here is a known hole, dated, in
 # the code rather than in someone's memory -- not a permanent exception.
 #
-# fonts.gstatic.com (found 2026-09-18): CanvasKit fetches a fallback font for
-# every glyph the bundled Roboto lacks, and the app's own copy uses twelve of
-# them -- the subscript in CO2, an arrow in the causal paths, and nine emoji
-# that simple mode is built around. Each one is a request to Google from an app
-# whose privacy text says there are none. The fix is a question about fonts,
-# copy and the licence register (see docs/web-payload.md), so until it is
-# answered this check guards against *new* third parties rather than pretending
-# this one is not there.
-KNOWN_HOSTS = {"fonts.gstatic.com"}
+# Empty since 2026-09-18: fonts.gstatic.com was here because CanvasKit fetched
+# a fallback font for the twelve characters the bundled Roboto lacked -- the
+# subscript in CO2, an arrow, and nine emoji. The emoji became Material icons,
+# which were already bundled, and the two text glyphs became plain ASCII, so
+# there is nothing left to tolerate.
+KNOWN_HOSTS: set[str] = set()
 
 
 def find_chrome(explicit):

@@ -208,12 +208,19 @@ class _Gauge extends StatelessWidget {
         dark: Theme.of(context).brightness == Brightness.dark,
       );
 
-  String _smiley(double v) {
-    if (v >= 0.8) return '😄';
-    if (v >= 0.6) return '🙂';
-    if (v >= 0.4) return '😐';
-    if (v >= 0.2) return '🙁';
-    return '😠';
+  /// Simple mode's face for a score.
+  ///
+  /// Material icons rather than emoji: the icon font is already bundled and
+  /// tree-shaken, and an emoji is not in Roboto, so every one of them made
+  /// CanvasKit fetch a colour-emoji font from Google on the web
+  /// (docs/web-payload.md). These also take the theme colour, which the
+  /// emoji could not.
+  IconData _smiley(double v) {
+    if (v >= 0.8) return Icons.sentiment_very_satisfied;
+    if (v >= 0.6) return Icons.sentiment_satisfied;
+    if (v >= 0.4) return Icons.sentiment_neutral;
+    if (v >= 0.2) return Icons.sentiment_dissatisfied;
+    return Icons.sentiment_very_dissatisfied;
   }
 
   Color _smileyColor(double v) {
@@ -273,12 +280,7 @@ class _Gauge extends StatelessWidget {
                     style: theme.textTheme.labelSmall,
                   ),
                   simpleMode
-                      ? Text(
-                          _smiley(v),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: _smileyColor(v),
-                          ),
-                        )
+                      ? Icon(_smiley(v), color: _smileyColor(v), size: 22)
                       : Text(
                           '$rounded',
                           style: theme.textTheme.titleMedium?.copyWith(
@@ -319,12 +321,7 @@ class _Gauge extends StatelessWidget {
                       child: Text(label, style: theme.textTheme.bodyMedium),
                     ),
                     if (simpleMode)
-                      Text(
-                        _smiley(v),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: _smileyColor(v),
-                        ),
-                      )
+                      Icon(_smiley(v), color: _smileyColor(v), size: 22)
                     else ...[
                       Text(
                         '$rounded',

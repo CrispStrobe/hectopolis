@@ -114,11 +114,22 @@ void main() {
     await tester.pump();
 
     expect(find.text(t.indicatorSourceLink), findsNothing);
+    // Simple mode shows a face instead of a number. It is a Material icon
+    // rather than an emoji, because an emoji is not in Roboto and every one
+    // of them made the web build fetch a colour-emoji font from Google
+    // (docs/web-payload.md).
     expect(
       find.byWidgetPredicate(
         (widget) =>
-            widget is Text &&
-            const {'😄', '🙂', '😐', '🙁', '😠'}.contains(widget.data),
+            widget is Icon &&
+            // Not a const Set: IconData overrides ==, so it cannot be one.
+            [
+              Icons.sentiment_very_satisfied,
+              Icons.sentiment_satisfied,
+              Icons.sentiment_neutral,
+              Icons.sentiment_dissatisfied,
+              Icons.sentiment_very_dissatisfied,
+            ].contains(widget.icon),
       ),
       findsWidgets,
     );

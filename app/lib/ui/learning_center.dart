@@ -48,18 +48,38 @@ class MissionDebrief extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 6),
+        // Material icons rather than emoji throughout: an emoji is not in
+        // Roboto, so each one made CanvasKit fetch a colour-emoji font from
+        // Google on the web (docs/web-payload.md).
         for (final change in changes.take(3))
-          Text(
-            controller.simpleMode
-                ? '${change.value >= 0 ? '😊' : '🤔'} '
-                      '${l10n.indicatorName(change.key.name)}'
-                : '${l10n.indicatorName(change.key.name)}: '
-                      '${change.value >= 0 ? '+' : ''}${format.format(change.value)}',
-          ),
+          if (controller.simpleMode)
+            Row(
+              children: [
+                Icon(
+                  change.value >= 0
+                      ? Icons.sentiment_satisfied
+                      : Icons.sentiment_neutral,
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
+                Text(l10n.indicatorName(change.key.name)),
+              ],
+            )
+          else
+            Text(
+              '${l10n.indicatorName(change.key.name)}: '
+              '${change.value >= 0 ? '+' : ''}${format.format(change.value)}',
+            ),
         if (controller.earnedChallenges.isNotEmpty) ...[
           const SizedBox(height: 8),
           for (final challenge in controller.earnedChallenges)
-            Text('🏅 ${l10n.challengeName(challenge)}'),
+            Row(
+              children: [
+                const Icon(Icons.military_tech, size: 18),
+                const SizedBox(width: 6),
+                Expanded(child: Text(l10n.challengeName(challenge))),
+              ],
+            ),
         ],
       ],
     );
