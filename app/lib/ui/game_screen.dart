@@ -261,7 +261,7 @@ class _GameScreenState extends State<GameScreen> {
                         icon: const Icon(Icons.center_focus_strong),
                         onPressed: _map.reset,
                       ),
-                      if (c.level == null)
+                      if (c.level == null && !c.cooperative)
                         IconButton(
                           tooltip: l10n.actionNewGame,
                           icon: const Icon(Icons.restart_alt),
@@ -301,7 +301,9 @@ class _GameScreenState extends State<GameScreen> {
                       _MoreMenu(
                         controller: c,
                         map: _map,
-                        onNewGame: c.level == null ? _newGame : null,
+                        onNewGame: c.level == null && !c.cooperative
+                            ? _newGame
+                            : null,
                         onSettings: _settings,
                         onLocaleToggle: widget.onLocaleToggle,
                         onAbout: _about,
@@ -310,7 +312,12 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                     ],
             ),
-            body: wide ? _wide() : _narrow(),
+            body: Column(
+              children: [
+                if (c.cooperative) _CoopTurnBanner(controller: c),
+                Expanded(child: wide ? _wide() : _narrow()),
+              ],
+            ),
           );
         },
       ),
@@ -497,10 +504,7 @@ class _Clock extends StatelessWidget {
             children: [
               if (!compact) Text(l10n.yearMonthLabel(year, month)),
               if (!compact) const SizedBox(width: 10),
-              Tooltip(
-                message: l10n.townMood,
-                child: Icon(face, size: 22),
-              ),
+              Tooltip(message: l10n.townMood, child: Icon(face, size: 22)),
             ],
           );
         }
@@ -545,28 +549,120 @@ class _Transport extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return ListenableBuilder(
       listenable: controller,
-      builder: (context, _) => Row(
-        children: [
-          IconButton(
-            tooltip: controller.speed == 0 ? l10n.actionPlay : l10n.actionPause,
-            icon: Icon(controller.speed == 0 ? Icons.play_arrow : Icons.pause),
-            onPressed: controller.togglePlay,
-          ),
-          IconButton(
-            tooltip: l10n.actionStep,
-            icon: const Icon(Icons.skip_next),
-            onPressed: controller.step,
-          ),
-          if (!compact)
-            for (final s in GameController.speeds)
+      builder: (context, _) {
+        if (controller.cooperative) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!compact) Text(l10n.coopRound(controller.cooperativeRound)),
               IconButton(
-                tooltip: l10n.actionSpeed(s),
-                isSelected: controller.speed == s,
-                icon: Text('$s×'),
-                onPressed: () => controller.setSpeed(s),
+                tooltip: l10n.coopEndTurn,
+                icon: const Icon(Icons.done_all),
+                onPressed: controller.isMyTurn ? controller.step : null,
               ),
-        ],
-      ),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            IconButton(
+              tooltip: controller.speed == 0
+                  ? l10n.actionPlay
+                  : l10n.actionPause,
+              icon: Icon(
+                controller.speed == 0 ? Icons.play_arrow : Icons.pause,
+              ),
+              onPressed: controller.togglePlay,
+            ),
+            IconButton(
+              tooltip: l10n.actionStep,
+              icon: const Icon(Icons.skip_next),
+              onPressed: controller.step,
+            ),
+            if (!compact)
+              for (final s in GameController.speeds)
+                IconButton(
+                  tooltip: l10n.actionSpeed(s),
+                  isSelected: controller.speed == s,
+                  icon: Text('$s×'),
+                  onPressed: () => controller.setSpeed(s),
+                ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _CoopTurnBanner extends StatelessWidget {
+  const _CoopTurnBanner({required this.controller});
+  final GameController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final scheme = Theme.of(context).colorScheme;
+        if (controller.cooperativeDisconnected) {
+          return Material(
+            color: scheme.errorContainer,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.wifi_off, color: scheme.onErrorContainer),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(l10n.coopConnectionLost)),
+                  FilledButton.tonal(
+                    onPressed: () async {
+                      final ok = await controller.reconnectCooperative();
+                      if (!ok && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l10n.coopConnectionFailed)),
+                        );
+                      }
+                    },
+                    child: Text(l10n.coopReconnect),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        final current = controller.cooperativePlayers
+            .where((player) => player.id == controller.currentPlayerId)
+            .firstOrNull;
+        final text = controller.isMyTurn
+            ? l10n.coopYourTurn
+            : l10n.coopWaitingTurn(current?.name ?? l10n.lobbyWaiting);
+        return Material(
+          color: controller.isMyTurn
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerHighest,
+          child: SafeArea(
+            top: false,
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Icon(controller.isMyTurn ? Icons.edit : Icons.hourglass_top),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(text)),
+                  Text(l10n.coopRound(controller.cooperativeRound)),
+                  const SizedBox(width: 8),
+                  FilledButton.tonal(
+                    onPressed: controller.isMyTurn ? controller.step : null,
+                    child: Text(l10n.coopEndTurn),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

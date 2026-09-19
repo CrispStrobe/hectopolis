@@ -64,11 +64,19 @@ void main() {
   }
 
   testWidgets('the licenses page opens and lists the app license', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(900, 2200));
+    // A viewport taller than the content can put the last button's centre
+    // exactly on the lower hit-test boundary as dependency licences grow.
+    // Exercise the real scroll path instead.
+    await tester.binding.setSurfaceSize(const Size(900, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(_app(const Locale('en')));
     await tester.pumpAndSettle();
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await tester.scrollUntilVisible(
+      find.text(l10n.aboutOpenSourceLicenses),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text(l10n.aboutOpenSourceLicenses));
     await tester.pumpAndSettle();
     expect(find.byType(LicensePage), findsOneWidget);

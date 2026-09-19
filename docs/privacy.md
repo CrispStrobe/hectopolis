@@ -1,23 +1,43 @@
 # Privacy
 
-Task T-702. What the game stores, where, and what leaves the device — which is
-nothing.
+Tasks T-702 and T-602. What the game stores, where, and what crosses the local
+network.
 
 `tools/privacy_audit.sh` checks this file against the code on every run of
 `tools/check.sh`, so the two cannot drift apart.
 
-## Nothing leaves the device
+## Nothing is sent to us or to a third party
 
-There is **no analytics, no telemetry, no crash reporting and no account**, and
-no code path that sends anything anywhere. Not "off by default": absent.
+There is **no analytics, no telemetry, no crash reporting and no account**.
+Nothing is sent to the developer or to a third party. Not "off by default":
+absent.
 
-First-party code contains no networking API at all — no `dart:io`, no HTTP
-client, no socket. The audit fails the build if one appears.
+Single-player contains no network path. Networking APIs are confined to a
+WebSocket client adapter, the native LAN listener and the app-side owner that
+opens and closes them. The audit fails if one appears anywhere else.
 
-The dependency list is short enough to read: `flutter`,
+### Co-op is direct and opt-in
+
+When a player explicitly hosts a co-op game, the native app listens on the
+local network. A player who enters the host's room code connects directly to
+that device. The messages are player names, game commands, lobby state and the
+shared world snapshot described in `docs/multiplayer.md`; they are not routed
+through us, stored by us or visible outside that local session.
+
+The room code contains the host's local IP address, port and a random 128-bit
+path. It is not an account or a tracking identifier; it exists for one hosted
+session and is never sent anywhere automatically. This first discovery slice
+does not use mDNS and therefore does not broadcast a device name on the wifi.
+The connection is plain WebSocket rather than encrypted WebSocket, because
+devices on a local network do not share a trusted TLS certificate. The random
+path controls admission but does not prevent someone who can inspect traffic
+on that wifi from reading it. Use co-op on a network you trust.
+
+The app dependency list is short enough to read: `flutter`,
 `flutter_localizations`, `intl`, `package_info_plus`, `shared_preferences`,
-`url_launcher`, and the game's own `stadtbau_sim`. None of them reports
-anything. The audit also checks the **lock file** against a list of known
+`url_launcher`, and the game's own packages. None of them reports anything.
+The network package uses the Dart team's `shelf` and `web_socket_channel` only
+for an explicitly chosen LAN session. The audit also checks the **lock file** against a list of known
 analytics and crash-reporting packages, so a transitive dependency cannot bring
 one in unnoticed.
 
@@ -69,6 +89,7 @@ uploaded or compared with anyone else.
 
 ## If you change the code
 
-Adding a networking dependency, an analytics package or a new stored key will
-fail `tools/privacy_audit.sh` until this file is updated to match. That is the
-point: the promise on the About screen is checked, not just written.
+Adding a networking call outside the reviewed LAN boundary, an analytics
+package or a new stored key will fail `tools/privacy_audit.sh` until the
+implementation and this file are reviewed together. That is the point: the
+promise on the About screen is checked, not just written.

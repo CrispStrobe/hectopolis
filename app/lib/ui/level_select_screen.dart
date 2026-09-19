@@ -6,6 +6,7 @@ import '../game/game_controller.dart';
 import '../game/save_store.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'about_screen.dart';
+import 'coop_setup_screen.dart';
 import 'game_screen.dart';
 import 'onboarding.dart';
 
@@ -84,6 +85,18 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
     _open();
   }
 
+  Future<void> _coop() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CoopSetupScreen(
+          gameController: widget.controller,
+          onLocaleToggle: widget.onLocaleToggle,
+        ),
+      ),
+    );
+    await _refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -133,6 +146,14 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                   title: Text(l10n.levelTitle('sandbox')),
                   subtitle: Text(l10n.levelDescription('sandbox')),
                   onTap: _sandbox,
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.groups),
+                  title: Text(l10n.coopMenuTitle),
+                  subtitle: Text(l10n.coopMenuSubtitle),
+                  onTap: _coop,
                 ),
               ),
               for (final l in Level.builtIn())

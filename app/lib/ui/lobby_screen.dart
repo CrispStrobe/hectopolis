@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stadtbau_net/stadtbau_net.dart';
 
 import '../game/session_controller.dart';
@@ -8,21 +10,19 @@ import '../l10n/generated/app_localizations.dart';
 /// The lobby of a co-operative session: who is here, which part of the map is
 /// theirs, and whether everyone is ready (T-603).
 ///
-/// It has no entry point in the menu yet, and that is deliberate rather than
-/// forgotten: a player reaches a lobby by hosting or joining over a network,
-/// and no transport exists until T-602 — which needs a decision about the
-/// telemetry-free promise first, not a commit. The screen is driven by
-/// [SessionController], which is driven by the in-memory transport in tests,
-/// so it is verified end to end today and needs no rework when a socket
-/// arrives.
+/// [SessionController] drives both this screen and the game screen. Native
+/// hosts can also provide room codes, which are rendered as text and QR codes
+/// so guests can join without discovery broadcasts.
 class LobbyScreen extends StatefulWidget {
   const LobbyScreen({
     super.key,
     required this.controller,
     required this.onStart,
+    this.roomCodes = const [],
   });
 
   final SessionController controller;
+  final List<String> roomCodes;
 
   /// Called when the host starts the game, or when a guest is told it has
   /// started. The caller owns navigation into the game screen.
@@ -90,24 +90,59 @@ class _LobbyScreenState extends State<LobbyScreen> {
                     child: Text(
                       l10n.lobbyRejected(_rejectText(l10n, rejected)),
                       style: TextStyle(
-                          color: theme.colorScheme.onErrorContainer),
+                        color: theme.colorScheme.onErrorContainer,
+                      ),
                     ),
                   ),
                 )
               else ...[
+                if (widget.roomCodes.isNotEmpty) ...[
+                  Text(l10n.coopRoomInstructions),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: QrImageView(
+                      data: widget.roomCodes.first,
+                      size: 176,
+                      backgroundColor: Colors.white,
+                    ),
+                  ),
+                  for (final code in widget.roomCodes)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.key),
+                      title: Text(l10n.coopRoomCodeLabel),
+                      subtitle: SelectableText(code),
+                      trailing: IconButton(
+                        tooltip: l10n.coopCopyCode,
+                        icon: const Icon(Icons.copy),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: code));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.coopCodeCopied)),
+                          );
+                        },
+                      ),
+                    ),
+                  const Divider(),
+                ],
                 Text(l10n.lobbyPlayers, style: theme.textTheme.titleMedium),
                 const SizedBox(height: 4),
                 for (final p in c.players) _PlayerRow(p: p, controller: c),
                 if (c.players.length < 2)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(l10n.lobbyWaiting,
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(color: theme.colorScheme.outline)),
+                    child: Text(
+                      l10n.lobbyWaiting,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
+                    ),
                   ),
                 const SizedBox(height: 12),
-                Text(l10n.lobbyDistrictsExplain,
-                    style: theme.textTheme.bodySmall),
+                Text(
+                  l10n.lobbyDistrictsExplain,
+                  style: theme.textTheme.bodySmall,
+                ),
                 const SizedBox(height: 12),
                 if (c.isHost) ...[
                   OutlinedButton.icon(
@@ -129,8 +164,10 @@ class _LobbyScreenState extends State<LobbyScreen> {
                   if (!c.canStart)
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
-                      child: Text(l10n.lobbyStartHint,
-                          style: theme.textTheme.bodySmall),
+                      child: Text(
+                        l10n.lobbyStartHint,
+                        style: theme.textTheme.bodySmall,
+                      ),
                     ),
                 ] else
                   SwitchListTile(
@@ -165,17 +202,21 @@ class _PlayerRow extends StatelessWidget {
     final subtitle = !p.connected
         ? l10n.lobbyDisconnected
         : d == null
-            ? l10n.lobbyNoDistrict
-            : l10n.lobbyDistrictOf(d.x + 1, d.x + d.width);
+        ? l10n.lobbyNoDistrict
+        : l10n.lobbyDistrictOf(d.x + 1, d.x + d.width);
     return ListTile(
       dense: true,
-      leading: Icon(p.connected ? Icons.person : Icons.person_off,
-          color: p.connected ? null : theme.colorScheme.outline),
-      title: Text([
-        p.name,
-        if (p.isHost) '(${l10n.lobbyHostLabel})',
-        if (isMe) '(${l10n.lobbyYou})',
-      ].join(' ')),
+      leading: Icon(
+        p.connected ? Icons.person : Icons.person_off,
+        color: p.connected ? null : theme.colorScheme.outline,
+      ),
+      title: Text(
+        [
+          p.name,
+          if (p.isHost) '(${l10n.lobbyHostLabel})',
+          if (isMe) '(${l10n.lobbyYou})',
+        ].join(' '),
+      ),
       subtitle: Text(subtitle),
       trailing: !p.connected && controller.isHost
           ? TextButton(
@@ -183,11 +224,11 @@ class _PlayerRow extends StatelessWidget {
               child: Text(l10n.lobbyReleaseSeat),
             )
           : p.connected && !p.isHost
-              ? Icon(
-                  p.ready ? Icons.check_circle : Icons.radio_button_unchecked,
-                  color: p.ready ? theme.colorScheme.primary : null,
-                )
-              : null,
+          ? Icon(
+              p.ready ? Icons.check_circle : Icons.radio_button_unchecked,
+              color: p.ready ? theme.colorScheme.primary : null,
+            )
+          : null,
     );
   }
 }

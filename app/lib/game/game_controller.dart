@@ -3,10 +3,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:stadtbau_net/stadtbau_net.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 import 'experience_settings.dart';
 import 'save_store.dart';
+import 'session_controller.dart';
 
 /// Colour overlays the player can toggle on the map.
 enum MapOverlay {
@@ -104,6 +106,62 @@ class GameController extends ChangeNotifier {
   Timer? _saveTimer;
 
   Simulation sim;
+  SessionController? _session;
+  Future<bool> Function()? _sessionReconnect;
+
+  bool get cooperative => _session != null;
+  bool get isMyTurn => _session?.isMyTurn ?? true;
+  bool get cooperativeDisconnected => _session?.disconnected ?? false;
+  int get cooperativeRound => _session?.round ?? 0;
+  District? get myDistrict => _session?.myDistrict;
+  List<PlayerInfo> get cooperativePlayers => _session?.players ?? const [];
+  String? get currentPlayerId => _session?.currentPlayerId;
+
+  /// Switches the existing presentation controller onto a shared simulation.
+  /// The session remains authoritative; this controller only supplies the UI
+  /// state (brush, overlay, selection and animation preferences).
+  void startCooperative(
+    SessionController session, {
+    Future<bool> Function()? reconnect,
+  }) {
+    _detachSession();
+    _reset();
+    level = null;
+    _session = session;
+    _sessionReconnect = reconnect;
+    session.addListener(_onSessionChanged);
+    final shared = session.simulation;
+    if (shared != null) sim = shared;
+    _recordTimeline();
+    notifyListeners();
+  }
+
+  void endCooperative() {
+    if (_session == null) return;
+    _detachSession();
+    notifyListeners();
+  }
+
+  void _detachSession() {
+    _session?.removeListener(_onSessionChanged);
+    _session = null;
+    _sessionReconnect = null;
+  }
+
+  Future<bool> reconnectCooperative() async {
+    final reconnect = _sessionReconnect;
+    return reconnect == null ? false : reconnect();
+  }
+
+  void _onSessionChanged() {
+    final shared = _session?.simulation;
+    if (shared != null) sim = shared;
+    visualRevision++;
+    _cachedPreview = null;
+    lastImpact = null;
+    _recordTimeline();
+    notifyListeners();
+  }
 
   /// The level being played, or null for the sandbox.
   Level? level;
@@ -200,8 +258,8 @@ class GameController extends ChangeNotifier {
   final List<Simulation> _undo = [];
   final List<Simulation> _redo = [];
 
-  bool get canUndo => _undo.isNotEmpty;
-  bool get canRedo => _redo.isNotEmpty;
+  bool get canUndo => !cooperative && _undo.isNotEmpty;
+  bool get canRedo => !cooperative && _redo.isNotEmpty;
 
   /// Cell the keyboard cursor sits on, or null while the keyboard is unused
   /// (task T-203). Drawn with a double outline, distinct from the selection.
@@ -224,6 +282,7 @@ class GameController extends ChangeNotifier {
     final levelId = saved.levelId;
     final lvl = levelId == null ? null : Level.byId(levelId);
     if (levelId != null && lvl == null) return false;
+    _detachSession();
     _reset();
     level = lvl;
     sim = lvl == null
@@ -239,6 +298,7 @@ class GameController extends ChangeNotifier {
   }
 
   void startSandbox(int w, int h) {
+    _detachSession();
     _reset();
     level = null;
     sim = Simulation.sandbox(width: w, height: h);
@@ -249,6 +309,7 @@ class GameController extends ChangeNotifier {
   }
 
   void startLevel(Level lvl) {
+    _detachSession();
     _reset();
     level = lvl;
     sim = lvl.start();
@@ -450,7 +511,19 @@ class GameController extends ChangeNotifier {
 
   /// The tile types the player may place, in palette order. Digits 1–9 and 0
   /// in the map view select from this list.
-  List<TileType> get allowedTypes => sim.tileBudget.allowedTypes.toList();
+  List<TileType> get allowedTypes {
+    final session = _session;
+    if (session == null || session.myTileStock.isEmpty) {
+      return sim.tileBudget.allowedTypes.toList();
+    }
+    return [
+      for (final tile in TileType.values)
+        if (session.myTileStock.containsKey(tile.id)) tile,
+    ];
+  }
+
+  int? remaining(TileType tile) =>
+      _session?.myTileStock[tile.id] ?? sim.tileBudget.remaining(tile);
 
   /// Select the [i]-th allowed tile (0-based) as the brush; out-of-range
   /// indices are ignored so that a digit without a tile does nothing.
@@ -506,11 +579,15 @@ class GameController extends ChangeNotifier {
     final y = cell ~/ width;
     CommandError? error;
     final cost = sim.placementCost(x, y, tile);
-    if (!sim.tileBudget.allowed(tile)) {
+    final district = myDistrict;
+    if (cooperative &&
+        (!isMyTurn || (district != null && !district.contains(x, y)))) {
+      error = CommandError.tileNotAllowed;
+    } else if (!allowedTypes.contains(tile)) {
       error = CommandError.tileNotAllowed;
     } else if (cost == null) {
       error = CommandError.sameTile;
-    } else if ((sim.tileBudget.remaining(tile) ?? 1) <= 0) {
+    } else if ((remaining(tile) ?? 1) <= 0) {
       error = CommandError.tileExhausted;
     } else if (cost > sim.state.budgetKEur) {
       error = CommandError.insufficientBudget;
@@ -665,6 +742,20 @@ class GameController extends ChangeNotifier {
   }
 
   bool place(int x, int y, TileType t) {
+    final session = _session;
+    if (session != null) {
+      final district = session.myDistrict;
+      if (!session.isMyTurn ||
+          (district != null && !district.contains(x, y)) ||
+          !session.myTileStock.containsKey(t.id) ||
+          (session.myTileStock[t.id] ?? 1) <= 0) {
+        return false;
+      }
+      selectedCell = sim.state.index(x, y);
+      session.request(PlaceTile(x, y, t));
+      notifyListeners();
+      return true;
+    }
     final before = sim.copy();
     final result = sim.apply(PlaceTile(x, y, t));
     lastError = result.error;
@@ -691,6 +782,17 @@ class GameController extends ChangeNotifier {
   }
 
   bool clear(int x, int y) {
+    final session = _session;
+    if (session != null) {
+      final district = session.myDistrict;
+      if (!session.isMyTurn || (district != null && !district.contains(x, y))) {
+        return false;
+      }
+      selectedCell = sim.state.index(x, y);
+      session.request(RemoveTile(x, y));
+      notifyListeners();
+      return true;
+    }
     final before = sim.copy();
     final previous = before.state.inBounds(x, y)
         ? before.state.tileAt(x, y)
@@ -719,6 +821,11 @@ class GameController extends ChangeNotifier {
   }
 
   void step() {
+    final session = _session;
+    if (session != null) {
+      session.endTurn();
+      return;
+    }
     // Editing history deliberately does not cross time: undoing a build must
     // never silently rewind population, finances, or level progress.
     _undo.clear();
@@ -771,6 +878,7 @@ class GameController extends ChangeNotifier {
   }
 
   void setSpeed(int monthsPerSecond) {
+    if (cooperative) return;
     speed = monthsPerSecond;
     _stopTimer();
     if (speed > 0) {
@@ -939,9 +1047,8 @@ class GameController extends ChangeNotifier {
 
   double? get overlayThreshold => switch (overlay) {
     MapOverlay.noise => (55 - 35) / 40,
-    MapOverlay.heat => sim.fields.uhiMaxNowC <= 0
-        ? null
-        : 2 / sim.fields.uhiMaxNowC,
+    MapOverlay.heat =>
+      sim.fields.uhiMaxNowC <= 0 ? null : 2 / sim.fields.uhiMaxNowC,
     MapOverlay.green ||
     MapOverlay.retail ||
     MapOverlay.jobs ||
@@ -1043,6 +1150,7 @@ class GameController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _detachSession();
     _stopTimer();
     _saveTimer?.cancel();
     mapFocusRequests.dispose();

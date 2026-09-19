@@ -670,8 +670,16 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   privacy audit also now strips line comments before matching, since it was failing on the
   paragraph explaining where the socket *will* go, and a guard that fails on its own
   documentation teaches people to delete the documentation.
-- [ ] **T-602 Discovery.** mDNS/DNS-SD via `bonsoir` on native; room code + QR code
+- [~] **T-602 Discovery.** mDNS/DNS-SD via `bonsoir` on native; room code + QR code
   (`qr_flutter`, BSD) as universal fallback; manual IP entry.
+  *Note 2026-09-19:* The reachable, privacy-preserving slice is complete on native: a host
+  binds an ephemeral IPv4 port behind a random 128-bit path, displays every usable
+  `address:port/path` as text and QR, and a guest can paste or type one. The protocol has
+  real loopback WebSocket coverage in addition to the in-memory tests. mDNS and camera
+  scanning remain open; omitting mDNS avoids broadcasting a device name, while the QR can
+  already be read by an ordinary phone camera as text. HTTPS web builds generally cannot
+  open a plain `ws://` LAN connection because of mixed-content policy, so native-to-native
+  is the supported first slice and T-606 is the path to browser cross-play.
 - [x] **T-603 Lobby UI.** Host or join, player list, district assignment, ready check.
   *Note 2026-09-17:* `SessionController` (the only place that knows both the protocol and
   Flutter) and `LobbyScreen`, with seven widget tests driving a real host and a real guest
@@ -692,7 +700,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   also now defers a close **only when it is inside a message delivery**, which is the only
   time a broadcast controller cannot be closed; deferring unconditionally meant a session
   closed from a test body never told the other end.
-- [~] **T-604 Turn-based co-op mode.** Districts, per-player tile budgets, shared
+- [x] **T-604 Turn-based co-op mode.** Districts, per-player tile budgets, shared
   indicators, cross-border effects visible in overlays.
   *Note 2026-09-17:* Rules and enforcement done in `stadtbau_net` with twelve tests; the
   game-screen half (district borders drawn, whose-turn banner, per-player stock in the
@@ -710,7 +718,12 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   together. An end-turn arriving after the turn already moved on is ignored, so a late tap
   cannot skip the next player. Turn order survives a reconnect: a returning seat comes back
   where it was, not at the front of the queue, which `session_test.dart` asserts.
-- [~] **T-605 Reconnect and state sync.** Full state on join, diffs afterwards, hash check
+  *Note 2026-09-19:* The game-screen half is complete: district borders and ownership fill,
+  active-player/round banner, end-turn control and private stock all read the authoritative
+  session. Speed, undo, redo and new-game controls are unavailable in co-op. Placements and
+  removals go through the host, including the host player's own actions, so district, turn
+  and stock rules have one enforcement path.
+- [x] **T-605 Reconnect and state sync.** Full state on join, diffs afterwards, hash check
   per tick, resync on mismatch.
   *Note 2026-09-17:* Protocol half done with T-601; the remaining half is UI (hold the token
   across a reconnect, decide when a seat is given up), which waits for T-603. Full state on
@@ -729,6 +742,11 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   so it is a named constructor parameter rather than a default that quietly ships. None of
   it needed a protocol bump: both fields are optional, which is the additive-change rule
   from `docs/multiplayer.md` working as designed.
+  *Note 2026-09-19:* The UI now retains the resume token for the lifetime of the session,
+  shows a connection-lost banner and reconnects to the room code. A loopback test drops a
+  real WebSocket, reclaims the held seat and proves the returned client and host hashes are
+  equal. Deliberately not promised: recovery after the app process is killed, because the
+  admission token is not written to storage.
 - [ ] **T-606 Internet relay (later).** Dart server reusing the protocol; document hosting.
 
 ### Phase 7 — Quality and community

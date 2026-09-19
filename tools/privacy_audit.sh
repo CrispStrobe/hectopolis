@@ -2,9 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Checks the promise the About screen makes (task T-702):
 #
-#   "Hectopolis runs entirely on your device. The only data it stores is your
-#    saved game and your best results, in local app storage. There are no
-#    accounts, no ads, no analytics and no network requests while you play."
+#   Hectopolis sends nothing to us or to third parties. An explicitly chosen
+#   LAN game exchanges game commands directly between the players' devices.
 #
 # That is a claim in a user-facing string, and a claim in a string rots. This
 # turns it into something CI can fail on.
@@ -17,15 +16,16 @@ failures=0
 sources=$(find app/lib packages/*/lib -name '*.dart' \
             -not -path '*/generated/*' -not -path '*/.dart_tool/*')
 
-echo "== no networking in first-party code"
+echo "== networking is confined to the opt-in LAN transport"
 # url_launcher is the one sanctioned outbound path: it hands a URL to the
 # platform browser when the player taps a link on the About screen. It cannot
 # fetch anything back into the app, and nothing calls it during play.
 #
 # Line comments are stripped before matching, because the claim being checked
-# is about code. packages/stadtbau_net (T-601) has to explain in prose where a
-# WebSocket transport will live and why it is not here yet, and a guard that
-# fails on its own documentation teaches people to delete the documentation.
+# is about code. The two T-602 adapters and the app-side session owner below
+# are the only sanctioned network boundary: session rules, the simulation and
+# the rest of the app stay free of networking APIs. A new call site fails until
+# this list is reviewed.
 # The trade is that a networking call written after `//` on the same line as
 # code would be missed; nothing in this codebase puts code after a comment.
 net='dart:io|package:http|package:dio|HttpClient|HttpRequest|WebSocket|RawSocket|ServerSocket|Socket\.|InternetAddress|package:web_socket'
@@ -35,10 +35,14 @@ net='dart:io|package:http|package:dio|HttpClient|HttpRequest|WebSocket|RawSocket
 hits=$(for f in $sources; do
          sed 's|//.*||' "$f" | grep -nE "$net" | sed "s|^|$f:|" || true
        done)
-if [ -n "$hits" ]; then
-  echo "$hits" | sed 's/^/  /'
-  echo "  a networking API appeared in first-party code"
+allowed_network_files='packages/stadtbau_net/lib/src/lan_server_io.dart|packages/stadtbau_net/lib/src/websocket_transport.dart|app/lib/game/lan_session.dart'
+unexpected=$(echo "$hits" | grep -vE "^($allowed_network_files):" || true)
+if [ -n "$unexpected" ]; then
+  echo "$unexpected" | sed 's/^/  /'
+  echo "  a networking API appeared outside the reviewed LAN adapters"
   failures=$((failures + 1))
+else
+  echo "  only the two LAN adapters and their app-side session owner"
 fi
 
 echo "== no analytics or crash-reporting dependencies"

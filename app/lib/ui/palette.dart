@@ -86,7 +86,7 @@ class _TileCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final style = TileStyle.of(type);
     final params = controller.sim.params.tile(type);
-    final remaining = controller.sim.tileBudget.remaining(type);
+    final remaining = controller.remaining(type);
     final selected = controller.brush == type;
     final money = NumberFormat.decimalPattern(
       Localizations.localeOf(context).toString(),

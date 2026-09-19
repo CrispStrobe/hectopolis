@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
-
 import 'protocol.dart';
 import 'transport.dart';
 
@@ -26,8 +25,7 @@ class SessionClient {
     String? resumeToken,
   }) {
     _sub = transport.incoming.listen(_onMessage, onDone: _onDone);
-    transport
-        .send(Hello(name: playerName, resumeToken: resumeToken).encode());
+    transport.send(Hello(name: playerName, resumeToken: resumeToken).encode());
   }
 
   final Transport transport;
@@ -115,14 +113,14 @@ class SessionClient {
 
     switch (message) {
       case Welcome(
-          :final playerId,
-          :final players,
-          :final state,
-          :final hash,
-          :final resumeToken,
-          :final resumed,
-          :final started,
-        ):
+        :final playerId,
+        :final players,
+        :final state,
+        :final hash,
+        :final resumeToken,
+        :final resumed,
+        :final started,
+      ):
         this.playerId = playerId;
         this.players = players;
         this.resumeToken = resumeToken ?? this.resumeToken;
@@ -135,11 +133,11 @@ class SessionClient {
         rejectReason = reason;
         hostProtocolVersion = hostProtocol;
       case LobbyUpdate(
-          :final players,
-          :final started,
-          :final currentPlayerId,
-          :final round,
-        ):
+        :final players,
+        :final started,
+        :final currentPlayerId,
+        :final round,
+      ):
         this.players = players;
         this.started = started;
         this.currentPlayerId = currentPlayerId;
@@ -196,7 +194,8 @@ class SessionClient {
       // disagree about serialisation, not about the game. Nothing a resync
       // can fix, so it is surfaced rather than papered over.
       throw StateError(
-          'snapshot hash mismatch: host says $hash, ours is $ours');
+        'snapshot hash mismatch: host says $hash, ours is $ours',
+      );
     }
   }
 
@@ -205,7 +204,8 @@ class SessionClient {
     if (sim == null || sim.state.hash() == hostHash) return;
     resyncCount++;
     transport.send(
-        ResyncRequest(tick: sim.state.tick, hash: sim.state.hash()).encode());
+      ResyncRequest(tick: sim.state.tick, hash: sim.state.hash()).encode(),
+    );
   }
 
   void _onDone() {

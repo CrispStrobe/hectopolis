@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // T-601: the authoritative side of a co-operative session.
 import 'dart:async';
+import 'dart:math';
 
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
@@ -35,12 +36,15 @@ class SessionHost {
     this.roundMonths = 12,
     String Function()? idFactory,
     String Function()? tokenFactory,
-  })  : _nextId = idFactory ?? _sequentialIds(),
-        _nextToken = tokenFactory ?? _sequentialTokens(),
-        _hostPlayerId = '' {
+  }) : _nextId = idFactory ?? _sequentialIds(),
+       _nextToken = tokenFactory ?? _sequentialTokens(),
+       _hostPlayerId = '' {
     _hostPlayerId = _nextId();
-    _players[_hostPlayerId] =
-        PlayerInfo(id: _hostPlayerId, name: hostName, isHost: true);
+    _players[_hostPlayerId] = PlayerInfo(
+      id: _hostPlayerId,
+      name: hostName,
+      isHost: true,
+    );
   }
 
   /// Deterministic ids by default: a session's log is easier to read, and a
@@ -59,6 +63,18 @@ class SessionHost {
   static String Function() _sequentialTokens() {
     var n = 0;
     return () => 't${++n}';
+  }
+
+  /// Unguessable resume tokens for a host reachable over a real network.
+  ///
+  /// Tests keep the readable sequential default; a LAN entry point must pass
+  /// this factory explicitly so a copied stale token cannot reclaim a seat.
+  static String Function() secureTokenFactory() {
+    final random = Random.secure();
+    return () => List<int>.generate(
+      16,
+      (_) => random.nextInt(256),
+    ).map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
   }
 
   final Simulation simulation;
@@ -104,10 +120,10 @@ class SessionHost {
 
   /// Everyone in the session, host first.
   List<PlayerInfo> get players => [
-        _players[_hostPlayerId]!,
-        for (final e in _players.entries)
-          if (e.key != _hostPlayerId) e.value,
-      ];
+    _players[_hostPlayerId]!,
+    for (final e in _players.entries)
+      if (e.key != _hostPlayerId) e.value,
+  ];
 
   bool get started => _started;
 
@@ -142,25 +158,25 @@ class SessionHost {
       _round++;
       final result = simulation.apply(AdvanceTick(roundMonths));
       if (result.ok) {
-        _broadcast(Ticked(
-          tick: simulation.state.tick,
-          hash: simulation.state.hash(),
-        ));
+        _broadcast(
+          Ticked(tick: simulation.state.tick, hash: simulation.state.hash()),
+        );
       }
     }
     _broadcastTurn();
   }
 
-  void _broadcastTurn() => _broadcast(TurnChanged(
-        currentPlayerId: currentPlayerId,
-        round: _round,
-        tick: simulation.state.tick,
-      ));
+  void _broadcastTurn() => _broadcast(
+    TurnChanged(
+      currentPlayerId: currentPlayerId,
+      round: _round,
+      tick: simulation.state.tick,
+    ),
+  );
 
   /// Whether every player has ticked ready. The host counts as ready.
-  bool get allReady => players
-      .where((p) => !p.isHost)
-      .every((p) => p.ready && p.connected);
+  bool get allReady =>
+      players.where((p) => !p.isHost).every((p) => p.ready && p.connected);
 
   /// Assigns the district a player may build in (T-604).
   void assignDistrict(String playerId, District district) {
@@ -203,7 +219,8 @@ class SessionHost {
       // Answer in our own version so the client can name the mismatch. The
       // frame it cannot parse is still better than silence.
       transport.send(
-          const Rejected(reason: RejectReason.protocolMismatch).encode());
+        const Rejected(reason: RejectReason.protocolMismatch).encode(),
+      );
       transport.close();
       return;
     } on FormatException {
@@ -229,19 +246,19 @@ class SessionHost {
         seat.transport.send(_snapshot().encode());
       // Messages only a host sends, or that arrived before the handshake.
       case Hello() ||
-            ReadyState() ||
-            EndTurn() ||
-            TurnChanged() ||
-            Intent() ||
-            ResyncRequest() ||
-            Welcome() ||
-            Rejected() ||
-            LobbyUpdate() ||
-            Applied() ||
-            Denied() ||
-            Ticked() ||
-            Snapshot() ||
-            PlayerLeft():
+          ReadyState() ||
+          EndTurn() ||
+          TurnChanged() ||
+          Intent() ||
+          ResyncRequest() ||
+          Welcome() ||
+          Rejected() ||
+          LobbyUpdate() ||
+          Applied() ||
+          Denied() ||
+          Ticked() ||
+          Snapshot() ||
+          PlayerLeft():
         return;
     }
   }
@@ -311,19 +328,22 @@ class SessionHost {
     // number of ticks depend on who clicked, and the simulation is
     // deterministic per tick, not per wall-clock second.
     if (command is AdvanceTick) {
-      seat.transport
-          .send(Denied(seq: seq, reason: DenyReason.hostOnly).encode());
+      seat.transport.send(
+        Denied(seq: seq, reason: DenyReason.hostOnly).encode(),
+      );
       return;
     }
     if (_started && currentPlayerId != seat.playerId) {
-      seat.transport
-          .send(Denied(seq: seq, reason: DenyReason.notYourTurn).encode());
+      seat.transport.send(
+        Denied(seq: seq, reason: DenyReason.notYourTurn).encode(),
+      );
       return;
     }
     final district = _players[seat.playerId]?.district;
     if (district != null && !_withinDistrict(command, district)) {
-      seat.transport
-          .send(Denied(seq: seq, reason: DenyReason.outsideDistrict).encode());
+      seat.transport.send(
+        Denied(seq: seq, reason: DenyReason.outsideDistrict).encode(),
+      );
       return;
     }
     // A player's own allowance is checked before the simulation, so running
@@ -332,42 +352,50 @@ class SessionHost {
     final stock = _stock[seat.playerId];
     if (stock != null && command is PlaceTile) {
       if (!stock.allowed(command.tile)) {
-        seat.transport.send(Denied(
-          seq: seq,
-          reason: DenyReason.simulation,
-          commandError: CommandError.tileNotAllowed,
-        ).encode());
+        seat.transport.send(
+          Denied(
+            seq: seq,
+            reason: DenyReason.simulation,
+            commandError: CommandError.tileNotAllowed,
+          ).encode(),
+        );
         return;
       }
       final left = stock.remaining(command.tile);
       if (left != null && left <= 0) {
-        seat.transport.send(Denied(
-          seq: seq,
-          reason: DenyReason.simulation,
-          commandError: CommandError.tileExhausted,
-        ).encode());
+        seat.transport.send(
+          Denied(
+            seq: seq,
+            reason: DenyReason.simulation,
+            commandError: CommandError.tileExhausted,
+          ).encode(),
+        );
         return;
       }
     }
     final result = simulation.apply(command);
     if (!result.ok) {
-      seat.transport.send(Denied(
-        seq: seq,
-        reason: DenyReason.simulation,
-        commandError: result.error,
-      ).encode());
+      seat.transport.send(
+        Denied(
+          seq: seq,
+          reason: DenyReason.simulation,
+          commandError: result.error,
+        ).encode(),
+      );
       return;
     }
     if (stock != null && command is PlaceTile) {
       _spend(seat.playerId, command.tile);
     }
-    _broadcast(Applied(
-      playerId: seat.playerId,
-      seq: seq,
-      command: command,
-      tick: simulation.state.tick,
-      hash: simulation.state.hash(),
-    ));
+    _broadcast(
+      Applied(
+        playerId: seat.playerId,
+        seq: seq,
+        command: command,
+        tick: simulation.state.tick,
+        hash: simulation.state.hash(),
+      ),
+    );
   }
 
   static bool _withinDistrict(Command command, District district) =>
@@ -378,29 +406,52 @@ class SessionHost {
       };
 
   /// The host's own action, which needs no permission but is broadcast the
-  /// same way so every client sees one ordered stream.
+  /// same way so every client sees one ordered stream. "Authoritative" does
+  /// not mean exempt: once play starts the host has the same turn, district
+  /// and private tile allowance as every guest.
   CommandResult applyAsHost(Command command) {
+    if (_started && currentPlayerId != _hostPlayerId) {
+      return const CommandResult.failed(CommandError.tileNotAllowed);
+    }
+    final district = _players[_hostPlayerId]?.district;
+    if (district != null && !_withinDistrict(command, district)) {
+      return const CommandResult.failed(CommandError.outOfBounds);
+    }
+    final stock = _stock[_hostPlayerId];
+    if (stock != null && command is PlaceTile) {
+      if (!stock.allowed(command.tile)) {
+        return const CommandResult.failed(CommandError.tileNotAllowed);
+      }
+      final left = stock.remaining(command.tile);
+      if (left != null && left <= 0) {
+        return const CommandResult.failed(CommandError.tileExhausted);
+      }
+    }
     final result = simulation.apply(command);
     if (!result.ok) return result;
+    if (stock != null && command is PlaceTile) {
+      _spend(_hostPlayerId, command.tile);
+    }
     if (command is AdvanceTick) {
       _broadcast(
-          Ticked(tick: simulation.state.tick, hash: simulation.state.hash()));
+        Ticked(tick: simulation.state.tick, hash: simulation.state.hash()),
+      );
     } else {
-      _broadcast(Applied(
-        playerId: _hostPlayerId,
-        seq: -1, // the host has no sequence of its own to match
-        command: command,
-        tick: simulation.state.tick,
-        hash: simulation.state.hash(),
-      ));
+      _broadcast(
+        Applied(
+          playerId: _hostPlayerId,
+          seq: -1, // the host has no sequence of its own to match
+          command: command,
+          tick: simulation.state.tick,
+          hash: simulation.state.hash(),
+        ),
+      );
     }
     return result;
   }
 
-  Snapshot _snapshot() => Snapshot(
-        state: simulation.state.toJson(),
-        hash: simulation.state.hash(),
-      );
+  Snapshot _snapshot() =>
+      Snapshot(state: simulation.state.toJson(), hash: simulation.state.hash());
 
   void _onDisconnect(Transport transport) {
     _pending.remove(transport)?.cancel();
@@ -413,8 +464,7 @@ class SessionHost {
         // someone else and lose the tiles they still owe, and a dropped
         // connection mid-game is the ordinary case, not the exception
         // (T-605). They come back with their resume token.
-        _players[entry.key] =
-            _players[entry.key]!.copyWith(connected: false);
+        _players[entry.key] = _players[entry.key]!.copyWith(connected: false);
       } else {
         // In the lobby there is nothing to hold, so leaving means leaving.
         _players.remove(entry.key);
@@ -453,12 +503,14 @@ class SessionHost {
     _broadcastLobby();
   }
 
-  void _broadcastLobby() => _broadcast(LobbyUpdate(
-        players: players,
-        started: _started,
-        currentPlayerId: currentPlayerId,
-        round: _round,
-      ));
+  void _broadcastLobby() => _broadcast(
+    LobbyUpdate(
+      players: players,
+      started: _started,
+      currentPlayerId: currentPlayerId,
+      round: _round,
+    ),
+  );
 
   void _broadcast(NetMessage message) {
     final text = message.encode();

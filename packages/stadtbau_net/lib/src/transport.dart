@@ -1,16 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// T-601: how messages travel, kept separate from what they mean.
-//
-// There is deliberately no socket in this package. [Transport] is an
-// interface over "send a string, receive strings, close", and the only
-// implementation here is an in-memory pair used by the tests. The WebSocket
-// transport belongs with discovery (T-602), because opening a listening
-// socket is the point at which the promise on the About screen -- "no network
-// requests while you play" -- has to be restated for an opt-in LAN mode. It
-// would be wrong to smuggle that in under a protocol task, and
-// `tools/privacy_audit.sh` fails the build if any first-party code reaches
-// for a networking API, which is exactly the guard that should hold until the
-// decision is taken openly.
+// T-601: how messages travel, kept separate from what they mean. The in-memory
+// implementation below exercises the protocol; T-602's socket adapter lives
+// in websocket_transport.dart and still implements this same small boundary.
 import 'dart:async';
 
 /// A bidirectional, ordered, message-oriented channel.
@@ -51,8 +42,9 @@ class InMemoryTransport implements Transport {
     return (a, b);
   }
 
-  final StreamController<String> _in =
-      StreamController<String>.broadcast(sync: true);
+  final StreamController<String> _in = StreamController<String>.broadcast(
+    sync: true,
+  );
   InMemoryTransport? _peer;
   bool _closed = false;
 
@@ -90,8 +82,10 @@ class InMemoryTransport implements Transport {
       // (T-603). Microtasks are not faked.
       await Future<void>.microtask(() {});
       if (++guard > 100000) {
-        throw StateError('in-memory transport never settled: '
-            '$_inFlight message(s) still in flight');
+        throw StateError(
+          'in-memory transport never settled: '
+          '$_inFlight message(s) still in flight',
+        );
       }
     }
   }
