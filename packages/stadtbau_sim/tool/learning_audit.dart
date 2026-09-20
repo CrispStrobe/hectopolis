@@ -277,6 +277,30 @@ List<String> _auditPaths(
     } else if (!planned!.solved) {
       problems.add('${level.id}: the worked plan no longer solves the level');
     }
+
+    // Which goals a player could meet by placing nothing at all. A goal that
+    // the starting map already satisfies, or that the treasury reaches on its
+    // own, is on the panel telling the player to do something they need not
+    // do -- and worse, it makes the mission look harder than it is. This is
+    // an observation rather than a failure: a goal can be deliberately
+    // non-binding, as a floor the player must not fall through. It was found
+    // on tuebingen, where housing is met in month one and the reserve target
+    // arrives by month six with an empty plan.
+    final idle = _idleGoals(level);
+    if (idle.reachedByWaiting.isNotEmpty) {
+      notes.add(
+        '${level.id}: goal(s) ${idle.reachedByWaiting.join(', ')} start unmet '
+        'and are reached with no tile placed — time alone solves them',
+      );
+    }
+    if (idle.floors.length + idle.reachedByWaiting.length ==
+            level.goals.length &&
+        level.goals.isNotEmpty) {
+      problems.add(
+        '${level.id}: every goal is met by doing nothing, so the level '
+        'solves itself',
+      );
+    }
     if (learning == null) {
       if (level.goals.isNotEmpty) {
         notes.add(
@@ -637,4 +661,54 @@ Directory _repoRoot() {
     dir = dir.parent;
   }
   throw StateError('run this from inside the repository');
+}
+
+/// What an empty plan achieves on a level, split by how.
+///
+/// The distinction is the point. A goal that is met at the start and stays met
+/// is a **floor**: "do not wreck the quiet you already have" is a real thing
+/// to ask, and it should not be reported as a defect. A goal that starts unmet
+/// and becomes met with no tile placed is different -- the clock alone solves
+/// it, so the panel asks the player for something the calendar delivers. That
+/// is worth a second look, which is why only the second kind is reported.
+///
+/// Found on tuebingen: housing is met in month one and never drops (a floor),
+/// while the reserve target arrives by month six on an empty map.
+class _IdleOutcome {
+  _IdleOutcome(this.floors, this.reachedByWaiting);
+
+  final List<String> floors;
+  final List<String> reachedByWaiting;
+}
+
+_IdleOutcome _idleGoals(Level level) {
+  final sim = level.start();
+  sim.apply(const AdvanceTick());
+  final metAtStart = [for (final g in level.goals) g.met(sim.indicators)];
+  final stillMet = [...metAtStart];
+  final everMet = [...metAtStart];
+  final months = level.turnLimitMonths ?? 120;
+  for (var m = 1; m < months; m++) {
+    sim.apply(const AdvanceTick());
+    final ind = sim.indicators;
+    for (var i = 0; i < level.goals.length; i++) {
+      if (level.goals[i].met(ind)) {
+        everMet[i] = true;
+      } else {
+        stillMet[i] = false;
+      }
+    }
+  }
+  String label(int i) =>
+      level.goals[i].indicator?.name ?? level.goals[i].metric ?? 'goal $i';
+  return _IdleOutcome(
+    [
+      for (var i = 0; i < level.goals.length; i++)
+        if (metAtStart[i] && stillMet[i]) label(i),
+    ],
+    [
+      for (var i = 0; i < level.goals.length; i++)
+        if (!metAtStart[i] && everMet[i]) label(i),
+    ],
+  );
 }

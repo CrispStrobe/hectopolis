@@ -499,9 +499,21 @@ const List<String> defaultLevelsJson = [
       "resilience"
     ],
     "features": [
+      "prediction",
       "causalView",
       "experiment",
       "debrief"
+    ],
+    "predictionId": "tuebingen_green",
+    "beats": [
+      {
+        "id": "tuebingen_already_built",
+        "afterTilesPlaced": 6
+      },
+      {
+        "id": "tuebingen_replace",
+        "afterTilesPlaced": 40
+      }
     ]
   },
   "tiles": {

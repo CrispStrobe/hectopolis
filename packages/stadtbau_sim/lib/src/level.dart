@@ -221,6 +221,12 @@ List<String> predictionChoicesFor(String predictionId) => switch (predictionId) 
   'noise_homes' => const ['near', 'far', 'shield'],
   'habitat_corridor' => const ['connect', 'scatter', 'cut'],
   'budget_recovery' => const ['income', 'decorate', 'roads'],
+  // Measured, not assumed: on this level housing is met from the first
+  // month and the reserve reaches its target by month six with no tile
+  // placed, while biodiversity, recreation and climate all fail. Adding
+  // quarters moves biodiversity the wrong way (35 to 33); converting
+  // built and farmed land to forest, park and wetland solves all three.
+  'tuebingen_green' => const ['convert', 'expand', 'wait'],
   _ => const ['balance', 'far', 'near'],
 };
 

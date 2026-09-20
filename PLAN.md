@@ -420,6 +420,28 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   *Note 2026-09-08:* Added the reusable schema and localized learning notebook for all five
   scenarios; the noise mission is the complete first teaching slice. Playtesting and staged
   mission beats remain open.
+  *Note 2026-09-20:* Tübingen, the one mission with no beats and no prediction of its own, now
+  has both — and writing them turned up what the level is actually about, which was not what I
+  assumed. **The worked plan places no housing at all.** It converts industry, commercial and
+  farmed land into forest, park and wetland and puts transit on the existing roads. Measured with
+  an empty plan: housing is met in month one (95 against 88) and never drops, the reserve target
+  arrives by month six on its own, and biodiversity, recreation and climate all fail (35/38,
+  71/88, 71/84). Adding quarters makes biodiversity *worse* (35 → 33). So the prediction
+  `tuebingen_green` offers convert / expand / wait, and `convert` is right because it was measured
+  to be, not because it sounded like the lesson. Had I written the copy first I would have taught
+  the opposite.
+  That measurement also became a check. `learning_audit.dart` now runs every level with an empty
+  plan and separates two things that look alike: a **floor** (met at the start and never lost —
+  "do not wreck the quiet you already have", which is a legitimate goal) from a goal that **starts
+  unmet and is reached by waiting**, where the clock solves what the panel asks the player for.
+  Only the second is reported, and across all six levels it fires exactly once: tuebingen's reserve
+  target. A first, coarser version that reported anything met by an idle run flagged seven goals on
+  six levels and was mostly noise. A level where *every* goal is idle is a failure, not a note; that
+  branch was verified by lowering tuebingen's thresholds to 1.
+  **Open, and a balance call rather than a model one:** tuebingen's `budgetKEur >= 50 000` cannot
+  be made to bind. Doing nothing ends at 376 000 and the worked plan at 244 000, so any threshold
+  the plan can survive is one an idle player also clears; its only honest role is a floor against
+  overspending, and 50 000 is too low to be even that. Raising it is a design decision.
   *Note 2026-09-16:* Staged mission beats added. `MissionBeat` in the sim package owns only
   when a beat fires — `afterMonths`, `afterTilesPlaced`, `afterGoalsMet`, `whenIndicatorBelow`
   — so a teaching moment arrives when the player can see what it is talking about rather than
