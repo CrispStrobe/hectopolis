@@ -33,6 +33,31 @@ def query(path: str, **params: str) -> str:
     return f"{path}?{urllib.parse.urlencode(params)}"
 
 
+def platform_of(build_id: str) -> str | None:
+    status, doc = client.call("GET", f"/v1/builds/{build_id}/preReleaseVersion")
+    if status != 200 or not doc.get("data"):
+        return None
+    return doc["data"].get("attributes", {}).get("platform")
+
+
+def group_platforms(group_id: str) -> str:
+    """Which Apple platforms the group's builds are actually for.
+
+    Worth asking rather than inferring: a tester note that says "open it on
+    your iPhone" for a Mac-only beta is wrong in a way nobody reports.
+    """
+    builds = client.paged(query(f"/v1/betaGroups/{group_id}/builds", limit="50"))
+    seen = {platform_of(b["id"]) for b in builds[:20]}
+    seen.discard(None)
+    if seen == {"IOS"}:
+        return "ios"
+    if seen == {"MAC_OS"}:
+        return "macos"
+    if {"IOS", "MAC_OS"} <= seen:
+        return "universal"
+    return "+".join(sorted(p.lower() for p in seen)) or "unknown"
+
+
 def approved_build(group_id: str) -> tuple[str | None, str]:
     """The newest build in the group, and what beta review made of it."""
     # This relationship refuses `sort` (PARAMETER_ERROR.ILLEGAL), so order the
@@ -75,7 +100,7 @@ def report(apps: list[dict]) -> int:
             g = group["attributes"]
             version, review = approved_build(group["id"])
             state = "ON " if g.get("publicLinkEnabled") else "off"
-            print(f"   [{state}] {g.get('name')}")
+            print(f"   [{state}] {g.get('name')}  platform={group_platforms(group['id'])}")
             print(f"         build {version or '—'}: {review}")
             if g.get("publicLink"):
                 linked += 1
