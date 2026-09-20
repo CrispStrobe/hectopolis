@@ -120,4 +120,7 @@ then **silently binds `[::1]` instead** and starts perfectly well — while the
 poll times out against an address nothing is listening on, and the tool reports
 "could not attach to Chrome". Pass `--remote-debugging-port=0` and read the
 `DevTools listening on ws://…` line Chrome prints; that line is authoritative.
-`tools/web_frame_bench.py` still has the older pattern.
+Both `tools/web_origin_check.py` and `tools/web_frame_bench.py` do that now,
+and both keep Chrome's stderr rather than discarding it — the endpoint is
+announced there, and so is the reason a start-up failed. Discarding it is what
+made every failure read "could not attach to Chrome" with nothing after it.

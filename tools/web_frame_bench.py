@@ -109,28 +109,57 @@ PLAN = [((129, 283), [(x, y) for x in range(2, 14) for y in (2, 3)]),
         ((129, 593), [(x, y) for x in range(2, 14) for y in (10, 11)])]
 
 
-async def measure(chrome, url, port, seconds, shot, play=False):
+async def measure(chrome, url, seconds, shot, play=False):
     profile = tempfile.mkdtemp(prefix="frame-bench-")
+    # Keep Chrome's stderr. It is both where the debugging endpoint is
+    # announced and the only place that says why a start-up failed; discarding
+    # it turns every failure into the same unhelpful "could not attach".
+    log = open(os.path.join(profile, "chrome.log"), "w+")
     proc = subprocess.Popen(
         [chrome, "--headless=new", "--no-sandbox", "--disable-dev-shm-usage",
          "--use-gl=swiftshader", "--enable-unsafe-swiftshader", "--hide-scrollbars",
-         f"--remote-debugging-port={port}", f"--user-data-dir={profile}",
+         # Port 0: Chrome picks a free one and prints it. Naming a port and
+         # polling 127.0.0.1 for it is what a busy machine breaks -- if the
+         # IPv4 port is taken Chrome silently binds [::1] instead and starts
+         # perfectly well, while the poll times out against an address nothing
+         # is listening on. Same trap, same fix as web_origin_check.py.
+         "--remote-debugging-port=0", f"--user-data-dir={profile}",
          f"--window-size={WINDOW[0]},{WINDOW[1]}", "about:blank"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        stdout=subprocess.DEVNULL, stderr=log)
     try:
-        ws_url = None
-        for _ in range(100):
-            try:
-                tabs = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/json"))
-                pages = [t for t in tabs if t["type"] == "page"]
-                if pages:
-                    ws_url = pages[0]["webSocketDebuggerUrl"]
-                    break
-            except Exception:
-                pass
+        # Chrome announces its endpoint on stderr; that line is authoritative.
+        browser_ws = None
+        for _ in range(300):
+            log.flush()
+            with open(log.name, encoding="utf-8", errors="replace") as f:
+                for line in f:
+                    if "DevTools listening on" in line:
+                        browser_ws = line.split("DevTools listening on")[1].strip()
+                        break
+            if browser_ws:
+                break
             await asyncio.sleep(0.2)
+        ws_url = None
+        if browser_ws:
+            base = browser_ws.split("/devtools/")[0].replace("ws://", "http://")
+            for _ in range(100):
+                try:
+                    tabs = json.load(urllib.request.urlopen(f"{base}/json", timeout=2))
+                    pages = [t for t in tabs if t["type"] == "page"]
+                    if pages:
+                        ws_url = pages[0]["webSocketDebuggerUrl"]
+                        break
+                except Exception:
+                    pass
+                await asyncio.sleep(0.2)
         if not ws_url:
-            raise RuntimeError("could not attach to Chrome")
+            log.flush()
+            log.seek(0)
+            lines = [l for l in log.read().splitlines() if "dbus" not in l]
+            tail = [l for l in lines if "ERROR:ui/gl" not in l
+                    and "viz_main_impl" not in l
+                    and "command_buffer_proxy" not in l][-10:]
+            raise RuntimeError("could not attach to Chrome\n  " + "\n  ".join(tail))
 
         async with websockets.connect(ws_url, max_size=None) as ws:
             c = CDP(ws)
@@ -170,8 +199,18 @@ async def measure(chrome, url, port, seconds, shot, play=False):
                 requestAnimationFrame(tick);
               }})""", await_promise=True)
     finally:
+        # A loaded machine can take longer than a polite SIGTERM allows, and a
+        # teardown that raises would hide whatever went wrong above it.
         proc.send_signal(signal.SIGTERM)
-        proc.wait(timeout=10)
+        try:
+            proc.wait(timeout=20)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            try:
+                proc.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                pass
+        log.close()
         shutil.rmtree(profile, ignore_errors=True)
 
 
@@ -196,8 +235,7 @@ async def main():
         for run in range(1, args.runs + 1):
             shot = os.path.join(args.shots, f"frame-bench-{run}.png")
             frames = await measure(chrome, f"http://127.0.0.1:{args.port}/",
-                                   args.port + 1000, args.seconds, shot,
-                                   play=args.play)
+                                   args.seconds, shot, play=args.play)
             if not frames or len(frames) < 10:
                 print(f"  run {run}: only {len(frames or [])} frames; check {shot}")
                 continue
