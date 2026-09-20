@@ -29,7 +29,7 @@
       }
     }
   },
-  "indicatorName": "{id, select, biodiversity{Biodiversity} air{Air quality} noise{Quiet} housing{Housing} economy{Economy} shopping{Shopping} recreation{Recreation} commuting{Commuting} climate{Climate} budget{Budget} other{Unknown}}",
+  "indicatorName": "{id, select, biodiversity{Biodiversity} air{Air quality} noise{Quiet} housing{Housing} economy{Economy} shopping{Shopping} recreation{Recreation} commuting{Commuting} climate{Climate} flood{Stormwater} budget{Budget} other{Unknown}}",
   "@indicatorName": {
     "placeholders": {
       "id": {
@@ -37,7 +37,7 @@
       }
     }
   },
-  "indicatorHint": "{id, select, biodiversity{Habitat quality and connectivity of green patches (BKompV biotope values, InVEST habitat quality).} air{Population-weighted pollution index from traffic, industry and heating; vegetation removes part of it.} noise{Share of residents below the 55 dB(A) daytime limit for residential areas (TA Lärm).} housing{Housing capacity relative to local jobs, and how full it is.} economy{Jobs available for residents and the budget trend.} shopping{Retail within walking distance (Huff model, 700 m).} recreation{Green space within 300 m (WHO) and summer cooling.} commuting{Mean commute distance and car share (MiD 2017 mode shares).} climate{CO2 balance of land use and traffic, plus urban heat.} budget{Municipal budget relative to the starting budget.} other{}}",
+  "indicatorHint": "{id, select, biodiversity{Habitat quality and connectivity of green patches (BKompV biotope values, InVEST habitat quality).} air{Population-weighted pollution index from traffic, industry and heating; vegetation removes part of it.} noise{Share of residents below the 55 dB(A) daytime limit for residential areas (TA Lärm).} housing{Housing capacity relative to local jobs, and how full it is.} economy{Jobs available for residents and the budget trend.} shopping{Retail within walking distance (Huff model, 700 m).} recreation{Green space within 300 m (WHO) and summer cooling.} commuting{Mean commute distance and car share (MiD 2017 mode shares).} climate{CO2 balance of land use and traffic, plus urban heat.} flood{Share of the design storm the ground keeps instead of shedding (SCS curve number, KOSTRA design rainfall); retention tiles absorb from their surroundings.} budget{Municipal budget relative to the starting budget.} other{}}",
   "@indicatorHint": {
     "placeholders": {
       "id": {
@@ -45,7 +45,7 @@
       }
     }
   },
-  "indicatorSimpleHint": "{id, select, biodiversity{Do plants and animals have good connected homes?} air{Can everyone breathe clean air?} noise{Are homes peaceful?} housing{Is there enough room for people?} economy{Can people find work and does the town earn enough?} shopping{Can people reach shops easily?} recreation{Can everyone enjoy nature nearby?} commuting{Can people get where they need to go easily?} climate{Does the town stay cool and protect the climate?} budget{Does the town have enough money?} other{How is the town doing?}}",
+  "indicatorSimpleHint": "{id, select, biodiversity{Do plants and animals have good connected homes?} air{Can everyone breathe clean air?} noise{Are homes peaceful?} housing{Is there enough room for people?} economy{Can people find work and does the town earn enough?} shopping{Can people reach shops easily?} recreation{Can everyone enjoy nature nearby?} commuting{Can people get where they need to go easily?} climate{Does the town stay cool and protect the climate?} flood{Does heavy rain soak away instead of running off?} budget{Does the town have enough money?} other{How is the town doing?}}",
   "@indicatorSimpleHint": {
     "placeholders": {
       "id": {
@@ -53,7 +53,7 @@
       }
     }
   },
-  "indicatorFormula": "{id, select, biodiversity{Biotope values (BKompV) times maturity, reduced by threats from roads, industry and buildings and by fragmentation, then scaled with a species-area curve.} air{Emissions from traffic, industry and buildings spread with an exp(-d/300 m) kernel, vegetation removes part, and the resident-weighted mean becomes the score.} noise{Every source loses 20 dB per distance decade and forest or buildings attenuate further; each resident scores (65 dB - L) / 10, clamped to 0-1.} housing{100 x min(1, capacity / (jobs / 0.52)) x (0.5 + 0.5 x occupancy); zero without housing.} economy{100 x (0.6 x min(1, jobs / workers) + 0.4 x budget trend), the trend taken from the budget change in the last month.} shopping{Huff model with lambda = 2 over shops within 700 m walking distance, averaged over the residents.} recreation{Resident-weighted 0.7 x green space within 300 m plus 0.3 x (1 - delta T / maximum urban heat).} commuting{100 x (0.5 x (1 - mean distance / 20 km) + 0.5 x (1 - car share)) from the gravity commute model.} climate{100 x (0.7 x (1 - CO2 per person / 2.5 t) + 0.3 x (1 - mean delta T / maximum urban heat)).} budget{The municipal budget divided by the starting budget, clamped to 0-100.} other{}}",
+  "indicatorFormula": "{id, select, biodiversity{Biotope values (BKompV) times maturity, reduced by threats from roads, industry and buildings and by fragmentation, then scaled with a species-area curve.} air{Emissions from traffic, industry and buildings spread with an exp(-d/300 m) kernel, vegetation removes part, and the resident-weighted mean becomes the score.} noise{Every source loses 20 dB per distance decade and forest or buildings attenuate further; each resident scores (65 dB - L) / 10, clamped to 0-1.} housing{100 x min(1, capacity / (jobs / 0.52)) x (0.5 + 0.5 x occupancy); zero without housing.} economy{100 x (0.6 x min(1, jobs / workers) + 0.4 x budget trend), the trend taken from the budget change in the last month.} shopping{Huff model with lambda = 2 over shops within 700 m walking distance, averaged over the residents.} recreation{Resident-weighted 0.7 x green space within 300 m plus 0.3 x (1 - delta T / maximum urban heat).} commuting{100 x (0.5 x (1 - mean distance / 20 km) + 0.5 x (1 - car share)) from the gravity commute model.} climate{100 x (0.7 x (1 - CO2 per person / 5.0 t) + 0.3 x (1 - mean delta T / maximum urban heat)).} flood{100 x (1 - mean runoff / design storm). Runoff per cell is the SCS curve-number method on the cell's sealed fraction; water and wetland subtract from their neighbours first.} budget{The municipal budget divided by the starting budget, clamped to 0-100.} other{}}",
   "@indicatorFormula": {
     "description": "One-line description of how an indicator score is computed",
     "placeholders": {
@@ -138,7 +138,7 @@
   "indicatorsTitle": "Indicators",
   "indicatorModeSimple": "Simple mode",
   "indicatorModeExpert": "Expert mode",
-  "simpleGoal": "{id, select, biodiversity{Help nature thrive} air{Keep the air clean} noise{Keep homes peaceful} housing{Make room for everyone} economy{Help the town prosper} shopping{Keep shops nearby} recreation{Give everyone green space} commuting{Make journeys easier} climate{Protect the climate} budget{Keep enough money} population{Welcome more residents} jobs{Create enough jobs} budgetKEur{Keep enough money} other{Help the town}}",
+  "simpleGoal": "{id, select, biodiversity{Help nature thrive} air{Keep the air clean} noise{Keep homes peaceful} housing{Make room for everyone} economy{Help the town prosper} shopping{Keep shops nearby} recreation{Give everyone green space} commuting{Make journeys easier} climate{Protect the climate} flood{Let the rain soak away} budget{Keep enough money} population{Welcome more residents} jobs{Create enough jobs} budgetKEur{Keep enough money} other{Help the town}}",
   "@simpleGoal": {
     "placeholders": {
       "id": {
@@ -550,6 +550,8 @@
     }
   },
   "statsNoise": "Mean exposure {value}",
+  "statsRunoff": "Mean runoff {value} mm, {count} cells at risk",
+  "@statsRunoff": {"placeholders": {"value": {"type": "String"}, "count": {"type": "String"}}},
   "@statsNoise": {
     "placeholders": {
       "value": {

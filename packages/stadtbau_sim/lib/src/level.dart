@@ -279,6 +279,14 @@ List<TileType> guidanceCandidatesFor(LevelGoal goal) =>
         TileType.forest,
         TileType.wetland,
       ],
+      // Retention first, then the covers that let rain into the ground at all.
+      Indicator.flood => const [
+        TileType.wetland,
+        TileType.water,
+        TileType.park,
+        TileType.meadow,
+        TileType.forest,
+      ],
       Indicator.commuting => const [
         TileType.tramStop,
         TileType.cyclePath,

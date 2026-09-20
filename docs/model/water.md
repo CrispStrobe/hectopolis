@@ -59,13 +59,26 @@ slopes, so water does not flow downhill, does not accumulate along a path, and
 a pond helps its neighbours regardless of whether they are above or below it.
 A real model would need a flow direction per cell and an accumulation pass.
 
-## Reported, not scored
+## Scored: the stormwater indicator (T-503)
 
-`meanRunoffMm` and `floodRiskCells` are on the fields, and the tile inspector
-can show a cell's runoff. There is deliberately **no 0–100 flood indicator
-yet**: adding an eleventh indicator changes every level's goal set and the
-scoring surface, which should be a deliberate design decision rather than a
-side effect of landing the model. The same call was made for night noise.
+`meanRunoffMm` and `floodRiskCells` are on the fields, the tile inspector can
+show a cell's runoff, and since T-503 the mean also drives an indicator:
+
+```
+flood = 100 · clamp(1 − meanRunoffMm / water.designStormMm)
+```
+
+100 means the ground took the whole design storm; 0 means all 22.1 mm of it
+left as surface runoff. The reference is the design storm rather than the 10 mm
+`floodRiskMm` threshold, and `indicators.md` records the measurement behind
+that choice — only `road` exceeds 10 mm on a uniform map, so a threshold count
+would score the player on road-drawing rather than on absorption.
+
+This was held back when the model landed, because an extra indicator changes
+every level's goal set and was a design decision rather than a model one. It
+was made deliberately: water and wetland had biotope value and retention but no
+scored consequence, so the ponds a player builds for `habitat_no_water` cost
+budget and earned nothing. Night noise is still reported and not scored.
 
 ## Limits and next steps
 
@@ -73,8 +86,7 @@ side effect of landing the model. The same call was made for night noise.
   moisture condition, no seasonal variation — a frozen or saturated ground
   behaves like a dry one.
 - Storage without routing, as above.
-- Wetland is listed in T-502 and does not exist yet; when it does it belongs in
-  the retention set beside water.
+- Wetland is in the retention set beside water since T-502.
 - No damage or cost: runoff is reported as depth, not as euros.
 
 ## References

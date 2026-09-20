@@ -596,7 +596,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   practice; the reduction shares are design values and say so. Both placeholder `co2PerHaYear`
   figures are gone — the benefit is modelled once now, in the commute, rather than twice.
   **Open:** sub-types per level.
-- [~] **T-503 Water and runoff.** SCS curve number method (USDA, public domain) with
+- [x] **T-503 Water and runoff.** SCS curve number method (USDA, public domain) with
   sealing degree; flood risk indicator; wetlands and water as retention.
   *Note 2026-09-17:* `model/water.dart` implements the SCS curve number method in millimetres.
   The sealed and unsealed parts of a cell compose by TR-55's connected-impervious formula, so the
@@ -610,10 +610,18 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   Water retains: each water cell shares `retentionMmPerCell` among the runoff-producing cells in
   reach. That is **storage, not routing** — nothing knows which way the ground slopes, so a pond
   helps neighbours above it as much as below. `docs/model/water.md` is explicit about that.
-  **Open:** the 0–100 flood-risk indicator. `meanRunoffMm` and `floodRiskCells` are reported, but
-  an eleventh indicator changes every level's goal set, which should be a deliberate decision
-  rather than a side effect (the same call as night noise). Wetland belongs with water in the
-  retention set once T-502 adds it.
+  *Note 2026-09-20:* the flood indicator lands, so T-503 is closed. `Indicator.flood` is
+  `100 · clamp(1 − meanRunoffMm / water.designStormMm)`. The reference is the design storm and
+  not the 10 mm `floodRiskMm` threshold, because that was measured first: on uniform maps only
+  `road` (13.32 mm) crosses 10 mm, so a threshold count would have scored a player on how many
+  roads they drew and read 100 for a sheet of industry. The mean separates the archetypes
+  (forest 100, village 93, suburb 90, industrial park 86, mixed town 84, dense quarter 67) and
+  distinguishes the industrial park from the village where the cell count cannot — both have 16
+  flood-risk cells and the park sheds twice the water. `tool/calibrate.dart` now reports runoff
+  so that table is reproducible. The reason to spend the eleventh indicator now: water and
+  wetland had retention and biotope value but no scored consequence, so the ponds a player
+  builds for `habitat_no_water` cost budget and earned nothing. Wetland joined the retention set
+  in T-502. Night noise is still reported and not scored.
 - [x] **T-504 Causal loop view.** Diagram of §4.6 loops with live dominance highlighting.
   *Note 2026-09-16:* `packages/stadtbau_sim/lib/src/loops.dart` names the five loops and reads a
   strength for each off quantities the model already computes — the share of attractiveness that

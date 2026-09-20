@@ -65,6 +65,9 @@ class IndicatorPanel extends StatelessWidget {
     Indicator.recreation => MapOverlay.green,
     Indicator.commuting => MapOverlay.traffic,
     Indicator.climate => MapOverlay.heat,
+    // No runoff overlay yet; the heat layer at least shows the sealed ground
+    // that sheds the rain, which is the thing to act on.
+    Indicator.flood => MapOverlay.heat,
     Indicator.budget => null,
   };
 
@@ -95,6 +98,10 @@ class IndicatorPanel extends StatelessWidget {
             n2.format(ind.habitatConnectivity),
           ),
           Indicator.air => l10n.statsPopulation(n0.format(ind.population)),
+          Indicator.flood => l10n.statsRunoff(
+            n2.format(ind.meanRunoffMm),
+            n0.format(ind.floodRiskCells),
+          ),
           Indicator.noise => l10n.statsNoise(
             l10n.dbValue(n0.format(ind.meanNoiseDb)),
           ),

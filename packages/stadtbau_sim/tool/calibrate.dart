@@ -140,6 +140,8 @@ void main(List<String> args) {
       'carShare': ind.carShare.toStringAsFixed(2),
       'maxTraffic': maxTraffic.round(),
       'co2TonsPerYear': ind.co2TonsPerYear.round(),
+      'meanRunoffMm': ind.meanRunoffMm.toStringAsFixed(2),
+      'floodRiskCells': ind.floodRiskCells,
       'meanHeatDeltaC': ind.meanHeatDeltaC.toStringAsFixed(2),
       'heatDeltaCYearMean': (heatSum / 12).toStringAsFixed(2),
       'heatDeltaCSummerPeak': '${heatPeak.toStringAsFixed(2)} (month $peakMonth)',

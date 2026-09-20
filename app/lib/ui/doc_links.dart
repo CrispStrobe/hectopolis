@@ -31,6 +31,7 @@ const indicatorDocPage = <Indicator, String>{
   Indicator.recreation: 'access.html',
   Indicator.commuting: 'commute.html',
   Indicator.climate: 'heat.html',
+  Indicator.flood: 'water.html',
   Indicator.budget: 'economy.html',
 };
 
