@@ -390,6 +390,7 @@ class Level {
     this.turnLimitMonths,
     this.populate = true,
     this.paramOverrides,
+    this.subtypes = const {},
     this.learning,
     this.attribution,
   });
@@ -414,6 +415,22 @@ class Level {
 
   /// JSON patch merged over `data/params/tiles.json` for this level.
   final Map<String, dynamic>? paramOverrides;
+
+  /// Which named sub-type each tile type stands for in this level, as
+  /// `{tile id: sub-type id}` from the `subtypes` section of
+  /// `data/params/tiles.json`.
+  ///
+  /// A game tile is a hectare built out for one use, and a land-use class
+  /// covers a range: `housing_low` can be detached houses at 35 residents per
+  /// hectare or infill at 68. The default parameters take the middle of the
+  /// class, derived from BauNVO floor-area ratios; a sub-type replaces them
+  /// with the measured values for one Berlin `Flächentyp`. Choosing one is
+  /// what makes a level about sprawl or about densification.
+  ///
+  /// This is per level, not per cell: every `housing_low` in a level is the
+  /// same sub-type. A mix would need the sub-type stored on the cell, which
+  /// the world state does not carry.
+  final Map<String, String> subtypes;
 
   /// Optional, mission-specific learning tools and concepts.
   final MissionLearning? learning;
@@ -459,6 +476,11 @@ class Level {
       turnLimitMonths: (json['turnLimitMonths'] as num?)?.toInt(),
       populate: json['populate'] as bool? ?? true,
       paramOverrides: json['paramOverrides'] as Map<String, dynamic>?,
+      subtypes: {
+        for (final e in (json['subtypes'] as Map<String, dynamic>? ?? const {})
+            .entries)
+          e.key: e.value as String,
+      },
       learning: json['learning'] == null
           ? null
           : MissionLearning.fromJson(json['learning'] as Map<String, dynamic>),
@@ -469,9 +491,24 @@ class Level {
   /// Parameters for this level: the defaults with [paramOverrides] merged in.
   SimParams params() {
     final overrides = paramOverrides;
-    if (overrides == null) return SimParams.defaults();
+    if (overrides == null && subtypes.isEmpty) return SimParams.defaults();
     final base = jsonDecode(defaultParamsJson) as Map<String, dynamic>;
-    _deepMerge(base, overrides);
+    // Sub-types first, then the level's own patch: a level that names a
+    // sub-type and then overrides one of its values means the override.
+    final catalogue = base['subtypes'] as Map<String, dynamic>? ?? const {};
+    final tiles = base['tiles'] as Map<String, dynamic>;
+    for (final e in subtypes.entries) {
+      final forTile = catalogue[e.key] as Map<String, dynamic>?;
+      final patch = forTile?[e.value] as Map<String, dynamic>?;
+      if (patch == null) {
+        throw FormatException(
+          'level $id names sub-type "${e.value}" for tile "${e.key}", which '
+          'is not in the subtypes section of data/params/tiles.json',
+        );
+      }
+      _deepMerge(tiles[e.key] as Map<String, dynamic>, patch);
+    }
+    if (overrides != null) _deepMerge(base, overrides);
     return SimParams.fromJson(base);
   }
 

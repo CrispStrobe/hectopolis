@@ -573,7 +573,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   follows the meteorological convention so it can be read off a wind rose.
   `docs/model/air.md` documents it as a screening stand-in for a Gaussian plume, not a solution of
   one, and lists what it leaves out: no stability class, no plume rise, no wind rose, no downwash.
-- [~] **T-502 Wetland, solar field, mixed-use, school, tram stop, cycle path** tile types
+- [x] **T-502 Wetland, solar field, mixed-use, school, tram stop, cycle path** tile types
   with parameters and sources (extends §4.1 to ~16 types; sub-types per level).
   *Note 2026-09-17:* All six exist: ten tile types to sixteen, each with the full parameter set,
   a style, a drawing, and DE/EN name and description. Sources follow the file's own convention —
@@ -595,7 +595,33 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   split (10% public transport, 11% bicycle nationally) and 400 m stop catchment from planning
   practice; the reduction shares are design values and say so. Both placeholder `co2PerHaYear`
   figures are gone — the benefit is modelled once now, in the commute, rather than twice.
-  **Open:** sub-types per level.
+  *Note 2026-09-20:* Sub-types per level done, which closes T-502. `docs/model/tiles.md` already
+  listed "which sub-type" as a correction applied once by hand when a Berlin land-use class became
+  a game tile — the tile takes the denser end of the class. That is the right default and the wrong
+  answer for a level that is *about* sprawl or *about* densification, so `data/params/tiles.json`
+  grew a `subtypes` section and a level may name one per tile type
+  (`"subtypes": {"housing_low": "terraced"}`). Parameters, name and description all follow.
+  It is **per level, not per cell**: a mix would need the sub-type on the cell, which the world
+  state does not carry, and that is written down rather than left to be discovered.
+  Six sub-types, all measured rather than invented: residents per hectare from Umweltatlas Berlin
+  **06.06 Einwohnerdichte 2021, Tab. 1** (column Wohngebiet, Stand 31.12.2021) and sealing from the
+  01.02 table already in use, both corrected for streets the same way — `0,88 · Block` for
+  residents, since the street has none. housing_low 35 / 56 / 68 Ew/ha, housing_high 185 / 235 / 362.
+  **The cross-check is the find.** The class defaults were derived independently, from BauNVO
+  floor-area ratios and Destatis floor space, and the Berlin measurements agree: housing_low's 45
+  sits mid-range in 35–68. housing_high's 180 sits 3 % *below* its lightest sub-type rather than
+  inside the range — and that is the right answer, not a defect, because the BauNVO derivation used
+  the §17 ceiling and 1990s blocks are what building at that ceiling produces, while the denser
+  sub-types are pre-war forms the ceiling would not permit. A test pins both with a 10 % tolerance,
+  so a future edit that moves a default away from its measurements fails instead of surprising.
+  A sub-type sets only what the Umweltatlas measures; `paramOverrides` still applies afterwards and
+  wins, so a level can tune anything else.
+  `tileSubtypeName`/`tileSubtypeDescription` are ICU `select`s, which have no exhaustiveness check —
+  a missing branch renders `other`, so a level would quietly call its housing "Unknown".
+  `app/test/subtype_copy_test.dart` checks both languages against the table and was verified by
+  deleting a branch.
+  **No shipped level names a sub-type yet**: doing so changes that level's balance, which is level
+  design rather than model work — the same call made for `solar_field`.
 - [x] **T-503 Water and runoff.** SCS curve number method (USDA, public domain) with
   sealing degree; flood risk indicator; wetlands and water as retention.
   *Note 2026-09-17:* `model/water.dart` implements the SCS curve number method in millimetres.

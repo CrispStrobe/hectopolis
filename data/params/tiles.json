@@ -374,7 +374,7 @@
       },
       "co2PerHaYear": {
         "value": -3.0,
-        "source": "Nowak et al. 2013 (Environmental Pollution 178, 229–236): st\u00e4dtische B\u00e4ume binden brutto 0,28 kg C je m\u00b2 Kronenfl\u00e4che und Jahr; bei der Kronenfl\u00e4che 0,5 dieses Tiles sind das 1,4 t C = 5,1 t CO2/ha/a im ausgewachsenen Zustand. Angesetzt sind 3,0, weil co2PerHaYear nicht mit dem Tile altert und ein Park seine ersten zwei Jahrzehnte darunter liegt"
+        "source": "Nowak et al. 2013 (Environmental Pollution 178, 229–236): städtische Bäume binden brutto 0,28 kg C je m² Kronenfläche und Jahr; bei der Kronenfläche 0,5 dieses Tiles sind das 1,4 t C = 5,1 t CO2/ha/a im ausgewachsenen Zustand. Angesetzt sind 3,0, weil co2PerHaYear nicht mit dem Tile altert und ein Park seine ersten zwei Jahrzehnte darunter liegt"
       },
       "buildCostKEur": {
         "value": 400,
@@ -1267,6 +1267,72 @@
       "perviousCurveNumber": {
         "value": 58,
         "source": "USDA NRCS TR-55 Table 2-2, hydrologic soil group B: the verge is meadow, continuous grass; the sealed part is carried by sealing"
+      }
+    }
+  },
+  "subtypes": {
+    "housing_low": {
+      "detached": {
+        "residentsPerHa": {
+          "value": 35,
+          "source": "Umweltatlas Berlin 06.06 Einwohnerdichte 2021 (SenStadtWohn, Stand 31.12.2021), Tab. 1 'Durchschnittliche Einwohnerdichte pro Flächentyp und Nutzung', Spalte Wohngebiet: 'Freistehende Einfamilienhäuser mit Gärten' = 40 Ew/ha Block; Kachel = 0,88 · Block (die Straße hat keine Einwohner) = 35"
+        },
+        "sealing": {
+          "value": 0.41,
+          "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19, Flächentyp 23 'Freistehende Einfamilienhäuser mit Gärten' = 34,9 % Blockversiegelung; Kachel = 0,88 · Block + 0,12 · 0,852 (Straßenanteil) = 0,41"
+        }
+      },
+      "terraced": {
+        "residentsPerHa": {
+          "value": 56,
+          "source": "Umweltatlas Berlin 06.06 Einwohnerdichte 2021 (SenStadtWohn, Stand 31.12.2021), Tab. 1 'Durchschnittliche Einwohnerdichte pro Flächentyp und Nutzung', Spalte Wohngebiet: 'Reihen- und Doppelhäuser mit Gärten' = 64 Ew/ha Block; Kachel = 0,88 · Block (die Straße hat keine Einwohner) = 56"
+        },
+        "sealing": {
+          "value": 0.43,
+          "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19, Flächentyp 22 'Reihen- und Doppelhäuser mit Gärten' = 37,3 % Blockversiegelung; Kachel = 0,88 · Block + 0,12 · 0,852 (Straßenanteil) = 0,43"
+        }
+      },
+      "infill": {
+        "residentsPerHa": {
+          "value": 68,
+          "source": "Umweltatlas Berlin 06.06 Einwohnerdichte 2021 (SenStadtWohn, Stand 31.12.2021), Tab. 1 'Durchschnittliche Einwohnerdichte pro Flächentyp und Nutzung', Spalte Wohngebiet: 'Verdichtung im Einzelhausgebiet, Mischbebauung mit Garten und halbprivater Umgrünung' = 77 Ew/ha Block; Kachel = 0,88 · Block (die Straße hat keine Einwohner) = 68"
+        },
+        "sealing": {
+          "value": 0.45,
+          "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19, Flächentyp 25 'Verdichtung in Einzelhausgebieten' = 39,9 % Blockversiegelung; Kachel = 0,88 · Block + 0,12 · 0,852 (Straßenanteil) = 0,45"
+        }
+      }
+    },
+    "housing_high": {
+      "modern_blocks": {
+        "residentsPerHa": {
+          "value": 185,
+          "source": "Umweltatlas Berlin 06.06 Einwohnerdichte 2021 (SenStadtWohn, Stand 31.12.2021), Tab. 1 'Durchschnittliche Einwohnerdichte pro Flächentyp und Nutzung', Spalte Wohngebiet: 'Geschosswohnungsbau der 1990er Jahre und jünger' = 210 Ew/ha Block; Kachel = 0,88 · Block (die Straße hat keine Einwohner) = 185"
+        },
+        "sealing": {
+          "value": 0.67,
+          "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19, Flächentyp 73 'Geschosswohnungsbau ab 1990' = 64,3 % Blockversiegelung; Kachel = 0,88 · Block + 0,12 · 0,852 (Straßenanteil) = 0,67"
+        }
+      },
+      "perimeter_blocks": {
+        "residentsPerHa": {
+          "value": 235,
+          "source": "Umweltatlas Berlin 06.06 Einwohnerdichte 2021 (SenStadtWohn, Stand 31.12.2021), Tab. 1 'Durchschnittliche Einwohnerdichte pro Flächentyp und Nutzung', Spalte Wohngebiet: 'Geschlossene und halboffene Blockbebauung, Schmuck- und Gartenhof (1870er - 1918), 4-geschossig' = 267 Ew/ha Block; Kachel = 0,88 · Block (die Straße hat keine Einwohner) = 235"
+        },
+        "sealing": {
+          "value": 0.68,
+          "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19, Flächentyp 3 'Geschlossene/halboffene Blockbebauung' = 65,6 % Blockversiegelung; Kachel = 0,88 · Block + 0,12 · 0,852 (Straßenanteil) = 0,68"
+        }
+      },
+      "gruenderzeit": {
+        "residentsPerHa": {
+          "value": 362,
+          "source": "Umweltatlas Berlin 06.06 Einwohnerdichte 2021 (SenStadtWohn, Stand 31.12.2021), Tab. 1 'Durchschnittliche Einwohnerdichte pro Flächentyp und Nutzung', Spalte Wohngebiet: 'Geschlossene Blockbebauung, Hinterhof (1870er - 1918), 5-geschossig' = 411 Ew/ha Block; Kachel = 0,88 · Block (die Straße hat keine Einwohner) = 362"
+        },
+        "sealing": {
+          "value": 0.79,
+          "source": "Umweltatlas Berlin 01.02 Versiegelung 2021 (SenStadt, Stand 14.06.2022), Tabelle 19, Flächentyp 2 'Geschlossene Blockbebauung 5-geschossig' = 77,8 % Blockversiegelung; Kachel = 0,88 · Block + 0,12 · 0,852 (Straßenanteil) = 0,79"
+        }
       }
     }
   },

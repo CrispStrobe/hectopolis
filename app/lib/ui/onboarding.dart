@@ -133,6 +133,8 @@ class _TilesIllustration extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 6),
             child: Tooltip(
+              // Onboarding runs before any level is chosen, so there is
+              // no sub-type to apply: these are the class names.
               message: l10n.tileName(t.id),
               child: _Swatch(color: TileStyle.of(t).color, icon: TileStyle.of(t).icon, iconColor: TileStyle.of(t).iconColor),
             ),
