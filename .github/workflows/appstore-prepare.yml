@@ -7,7 +7,7 @@ on:
       action:
         description: 'Audit, prepare App Store listing, or submit a build for TestFlight review'
         type: choice
-        options: [audit, listing, ready-store, submit-external]
+        options: [audit, listing, ready-store, submit-external, beta-links]
         default: audit
       build_number:
         description: 'Optional exact CFBundleVersion; blank selects the newest build'
@@ -50,6 +50,12 @@ jobs:
           fi
           if [ "$ACTION" = listing ]; then
             python3 tools/asc/listing.py
+          elif [ "$ACTION" = beta-links ]; then
+            # Read-only: reports every app's external groups and whether a
+            # public link exists. Turning one ON is deliberately not reachable
+            # from this workflow -- a public link is a URL anyone can use to
+            # join, and one that has been handed out cannot be recalled.
+            python3 tools/asc/beta_links.py list
           else
             python3 tools/asc/testflight.py "${args[@]}"
           fi
