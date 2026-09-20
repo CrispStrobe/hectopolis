@@ -238,7 +238,35 @@ List<String> _auditPaths(
       ...awardableFromRandom,
       for (final run in medalRuns.values) ...run.challengesAtEnd,
     };
+    // A constraint medal is a promise that giving something up is hard. It is
+    // only worth earning if the constrained solution is worse in some way the
+    // player feels. Both medals that exist were measured and neither was: the
+    // ponds in `habitat` changed nothing at all (biodiversity 87 either way,
+    // the same 60 months, 400 k€ cheaper without them), and dropping the roads
+    // in `noise` took the score from 88 to 100 and saved 1 200 k€ -- it only
+    // cost three months, which is why the criterion below is deliberately
+    // strict rather than a judgement about money.
+    //
+    // Flagged when the constrained plan *dominates*: solves no later and
+    // places no more tiles. Then the constraint is not a sacrifice, it is a
+    // hint about the better line of play, and the medal rewards noticing it
+    // rather than giving anything up.
     for (final entry in medalRuns.entries) {
+      final variant = entry.value;
+      if (variant.solved &&
+          planned != null &&
+          planned.solved &&
+          variant.months <= planned.months &&
+          (variant.placementsBeforeEnd ?? 0) <=
+              (planned.placementsBeforeEnd ?? 0)) {
+        notes.add(
+          '${level.id}: the constrained plan for "${entry.key}" solves in '
+          '${variant.months} mo with ${variant.placementsBeforeEnd} tiles '
+          'against ${planned.months} mo and ${planned.placementsBeforeEnd} — '
+          'giving the tile up costs nothing, so the medal rewards noticing '
+          'rather than sacrificing',
+        );
+      }
       if (!entry.value.solved) {
         problems.add(
           '${level.id}: the plan variant for "${entry.key}" no longer solves '

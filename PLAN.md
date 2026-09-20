@@ -438,6 +438,18 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   target. A first, coarser version that reported anything met by an idle run flagged seven goals on
   six levels and was mostly noise. A level where *every* goal is idle is a failure, not a note; that
   branch was verified by lowering tuebingen's thresholds to 1.
+  *Note 2026-09-20 (2):* Constraint medals measured, and the comment in `level_plans.dart` that
+  said a constraint "only means something if the constrained solution costs something" is now a
+  check rather than a remark. Both medals were measured against their own plan variant:
+  `habitat_no_water` solves in the same 60 months with 205 tiles instead of 207 and 400 k€ less,
+  changing biodiversity not at all (87 either way) — it is free. `noise_no_roads` takes the noise
+  score from **88 to 100** and saves 1 200 k€, costing only three months (21 against 18).
+  Neither is a sacrifice; both reward noticing the better line of play.
+  The audit flags a medal whose constrained plan *dominates* — solves no later and places no more
+  tiles. That is deliberately strict: it reports `habitat_no_water` and stays silent on
+  `noise_no_roads`, whose three months are a real if small price. Re-pricing the medals is level
+  balance and so a design decision, left to the author; the check means it can no longer be
+  forgotten.
   **Open, and a balance call rather than a model one:** tuebingen's `budgetKEur >= 50 000` cannot
   be made to bind. Doing nothing ends at 376 000 and the worked plan at 244 000, so any threshold
   the plan can survive is one an idle player also clears; its only honest role is a floor against
@@ -893,6 +905,13 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   turned every real failure into a six-minute cascade that hid the failure itself. And it must
   install the same four localization delegates the app does: without the Cupertino one a German
   build logs a warning through `FlutterError`, which this test forwards rather than swallows.
+  *Note 2026-09-20 (2):* `docs/accessibility.md` collects the five audits, which until now existed
+  only as notes in this file. It is organised around one distinction — which WCAG criteria are held
+  by a test that fails, which by a person looking, and which by neither — because "accessible" is
+  easy to claim and the claim is what rots. It records the three findings worth carrying forward:
+  the worst point of a gauge scale is its middle rather than an end; a Flutter overflow is a 1.4.4
+  failure that no ordinary widget test can see, because it is reported rather than thrown; and a
+  stated height is a scaling bug waiting to happen, which scaling the literal does not fix.
   **Open:** testing with a real screen reader, which cannot be done from here.
 - [x] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
   *Note 2026-09-17:* The guarantee already held — there is no networking API anywhere in

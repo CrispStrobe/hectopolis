@@ -88,6 +88,7 @@ const _pages = <PageSpec>[
   PageSpec('docs/web-payload.md', 'web-payload.html', _sectionProject),
   PageSpec('docs/multiplayer.md', 'multiplayer.html', _sectionProject),
   PageSpec('docs/privacy.md', 'privacy.html', _sectionProject),
+  PageSpec('docs/accessibility.md', 'accessibility.html', _sectionProject),
 ];
 
 const _excludedDirs = <String>{'docs/release', 'docs/_site'};
