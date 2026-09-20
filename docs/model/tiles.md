@@ -98,6 +98,64 @@ Two corrections are needed before a block figure becomes a tile figure:
 | park | 53 Park / Grünfläche 10.1 %, of which 0.7 pp built | 10.1 % | 0.10 | 0.10 |
 | meadow, cropland, forest | 55 Wald 0.3 %, 56 Landwirtschaft 0.1 % (the 2016 edition also reports Grünland 0.2 %) | ≈ 0 | ≈ 0 | 0.00 |
 
+## Sub-types per level (T-502)
+
+The table above is the reason sub-types exist. "Which sub-type" is listed there
+as a *correction* applied once, by hand, when a Berlin land-use class became a
+game tile: the tile takes the denser end of the class. That is the right
+default and the wrong answer for a level that is specifically about sprawl, or
+specifically about densification.
+
+So `data/params/tiles.json` carries a `subtypes` section, and a level may name
+one per tile type:
+
+```json
+"subtypes": { "housing_low": "terraced" }
+```
+
+Every `housing_low` in that level is then terraced housing — its parameters,
+its name and its description. It is **per level, not per cell**: a mix would
+need the sub-type stored on the cell, which the world state does not carry.
+
+| Tile | Sub-type | Flächentyp | Residents/ha | Sealing |
+|---|---|---|---|---|
+| housing_low | `detached` | 23 Freistehende Einfamilienhäuser | 35 | 0.41 |
+| housing_low | *(class default)* | — | **45** | **0.45** |
+| housing_low | `terraced` | 22 Reihen-/Doppelhäuser | 56 | 0.43 |
+| housing_low | `infill` | 25 Verdichtung im Einzelhausgebiet | 68 | 0.45 |
+| housing_high | `modern_blocks` | 73 Geschosswohnungsbau ab 1990 | 185 | 0.67 |
+| housing_high | *(class default)* | — | **180** | **0.75** |
+| housing_high | `perimeter_blocks` | 3 Geschl./halboffene Blockbebauung | 235 | 0.68 |
+| housing_high | `gruenderzeit` | 2 Geschlossene Blockbebauung 5-gesch. | 362 | 0.79 |
+
+Density comes from Umweltatlas Berlin **06.06 Einwohnerdichte 2021**
+(SenStadtWohn, Stand 31.12.2021), Tab. 1, column *Wohngebiet*, corrected for
+streets the same way sealing is: residents live on the block and the street has
+none, so a tile is `0.88 · block`. Sealing comes from the 01.02 table above.
+
+**The cross-check is the interesting part.** The class defaults were derived
+independently — BauNVO floor-area ratios and Destatis floor space per person —
+and the Berlin measurements agree with them. `housing_low`'s 45 sits inside the
+35–68 the sub-types span, near the middle. `housing_high`'s 180 sits just
+*outside*, 3 % below the lightest sub-type (`modern_blocks`, 185) rather than
+between 185 and 362 — which is itself the right answer: the BauNVO derivation
+used the §17 ceiling for WA/MI, and 1990s apartment blocks are what building at
+that ceiling produces. The denser sub-types are pre-war forms that the current
+ceiling would not permit.
+
+A test pins both, with a 10 % tolerance so the near-miss is allowed and a real
+divergence is not: if a future edit moves a default away from the measurements
+its sub-types carry, that is a failure rather than a surprise.
+
+A sub-type sets only what the Umweltatlas measures — residents and sealing.
+Build cost, biotope value and jobs stay at the class value, because no source
+gives them per Flächentyp; a level that wants to change those can still say so
+in `paramOverrides`, which is applied *after* the sub-type and therefore wins.
+
+**No shipped level names a sub-type yet.** Doing so changes that level's
+balance, which is level design rather than model work — the same call made for
+`solar_field`.
+
 Two values changed as a result:
 
 - **industry 0.90 → 0.88.** 0.90 was above every type Berlin measures. The

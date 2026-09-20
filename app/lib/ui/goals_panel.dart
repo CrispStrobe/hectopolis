@@ -5,6 +5,7 @@ import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
+import 'tile_naming.dart';
 
 /// The colour a met goal is written in.
 ///
@@ -217,7 +218,7 @@ class _GuidanceCard extends StatelessWidget {
       2 => l10n.guidanceThinkCause,
       _ => switch (tile) {
         null => protectOnly ? l10n.guidanceProtect(target) : l10n.guidanceExplore,
-        final t => l10n.guidanceTryTile(l10n.tileName(t.id)),
+        final t => l10n.guidanceTryTile(tileDisplayName(l10n, controller.level, t)),
       },
     };
     return Card(

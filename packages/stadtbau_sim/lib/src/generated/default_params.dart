@@ -956,6 +956,60 @@ const String defaultParamsJson = r'''
       }
     }
   },
+  "subtypes": {
+    "housing_low": {
+      "detached": {
+        "residentsPerHa": {
+          "value": 35
+        },
+        "sealing": {
+          "value": 0.41
+        }
+      },
+      "terraced": {
+        "residentsPerHa": {
+          "value": 56
+        },
+        "sealing": {
+          "value": 0.43
+        }
+      },
+      "infill": {
+        "residentsPerHa": {
+          "value": 68
+        },
+        "sealing": {
+          "value": 0.45
+        }
+      }
+    },
+    "housing_high": {
+      "modern_blocks": {
+        "residentsPerHa": {
+          "value": 185
+        },
+        "sealing": {
+          "value": 0.67
+        }
+      },
+      "perimeter_blocks": {
+        "residentsPerHa": {
+          "value": 235
+        },
+        "sealing": {
+          "value": 0.68
+        }
+      },
+      "gruenderzeit": {
+        "residentsPerHa": {
+          "value": 362
+        },
+        "sealing": {
+          "value": 0.79
+        }
+      }
+    }
+  },
   "noise": {
     "areaReferenceDistanceM": {
       "value": 50

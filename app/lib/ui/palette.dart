@@ -5,6 +5,7 @@ import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
+import 'tile_naming.dart';
 import 'tile_style.dart';
 
 /// Draggable tile cards, grouped by category. Tapping a card selects it as a
@@ -131,7 +132,7 @@ class _TileCard extends StatelessWidget {
               children: [
                 Icon(style.icon, color: style.iconColor, size: 26),
                 Text(
-                  l10n.tileName(type.id),
+                  tileDisplayName(l10n, controller.level, type),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelSmall,
@@ -157,7 +158,7 @@ class _TileCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n.tileName(type.id),
+                        tileDisplayName(l10n, controller.level, type),
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       Text(
@@ -180,9 +181,9 @@ class _TileCard extends StatelessWidget {
     // it plus the selected state, which the coloured border shows and nothing
     // else conveys.
     final spoken = selected
-        ? l10n.a11yTileSelected(l10n.tileName(type.id))
+        ? l10n.a11yTileSelected(tileDisplayName(l10n, controller.level, type))
         : l10n.a11yTileCard(
-            l10n.tileName(type.id),
+            tileDisplayName(l10n, controller.level, type),
             cost,
             remaining == null
                 ? l10n.a11yRemainingUnlimited
@@ -193,14 +194,14 @@ class _TileCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 3),
       child: Semantics(
         label: spoken,
-        hint: l10n.tileDescription(type.id),
+        hint: tileDisplayDescription(l10n, controller.level, type),
         button: true,
         selected: selected,
         container: true,
         excludeSemantics: true,
         onTap: () => controller.setBrush(type),
         child: Tooltip(
-          message: l10n.tileDescription(type.id),
+          message: tileDisplayDescription(l10n, controller.level, type),
           waitDuration: const Duration(milliseconds: 600),
           child: Draggable<TileType>(
             data: type,

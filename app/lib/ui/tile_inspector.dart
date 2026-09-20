@@ -5,6 +5,7 @@ import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
+import 'tile_naming.dart';
 import 'tile_style.dart';
 
 /// Per-cell values of every field for the selected cell.
@@ -57,7 +58,7 @@ class TileInspector extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      l10n.tileName(type.id),
+                      tileDisplayName(l10n, controller.level, type),
                       style: theme.textTheme.titleSmall,
                     ),
                   ),
@@ -69,7 +70,7 @@ class TileInspector extends StatelessWidget {
                 ],
               ),
               Text(
-                l10n.tileDescription(type.id),
+                tileDisplayDescription(l10n, controller.level, type),
                 style: theme.textTheme.bodySmall,
               ),
               const SizedBox(height: 6),
@@ -126,7 +127,7 @@ class TileInspector extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    '${l10n.inspectorTitle(x, y)} · ${l10n.tileName(type.id)}',
+                    '${l10n.inspectorTitle(x, y)} · ${tileDisplayName(l10n, controller.level, type)}',
                     style: theme.textTheme.titleSmall,
                   ),
                 ),
@@ -138,7 +139,7 @@ class TileInspector extends StatelessWidget {
               ],
             ),
             Text(
-              l10n.tileDescription(type.id),
+              tileDisplayDescription(l10n, controller.level, type),
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 6),
@@ -160,12 +161,14 @@ class TileInspector extends StatelessWidget {
               rows: sim.explainNoise(x, y),
               format: (c) => l10n.dbValue(n0.format(c.value)),
               cellSizeM: sim.params.cellSizeM,
+              level: controller.level,
             ),
             _Breakdown(
               title: l10n.breakdownAir,
               rows: sim.explainAir(x, y),
               format: (c) => n2.format(c.value),
               cellSizeM: sim.params.cellSizeM,
+              level: controller.level,
             ),
           ],
         );
@@ -181,12 +184,17 @@ class _Breakdown extends StatelessWidget {
     required this.rows,
     required this.format,
     required this.cellSizeM,
+    required this.level,
   });
 
   final String title;
   final List<Contribution> rows;
   final String Function(Contribution) format;
   final double cellSizeM;
+
+  /// For naming the contributing tile types: a level may call one of them
+  /// something else. See tile_naming.dart.
+  final Level? level;
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +223,7 @@ class _Breakdown extends StatelessWidget {
               Expanded(
                 child: Text(
                   l10n.breakdownRow(
-                    l10n.tileName(c.type.id),
+                    tileDisplayName(l10n, level, c.type),
                     c.count,
                     n0.format(c.nearestTiles * cellSizeM),
                   ),

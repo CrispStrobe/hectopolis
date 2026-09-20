@@ -22,6 +22,24 @@
       }
     }
   },
+  "tileSubtypeName": "{id, select, detached{Detached houses} terraced{Terraced houses} infill{Infill housing} modern_blocks{Modern apartment blocks} perimeter_blocks{Perimeter blocks} gruenderzeit{Gründerzeit blocks} other{Unknown}}",
+  "@tileSubtypeName": {
+    "description": "Display name of a tile sub-type a level selects",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "tileSubtypeDescription": "{id, select, detached{Single houses on their own plots. The fewest residents per hectare of any housing here, and the most unsealed garden.} terraced{Rows of houses sharing side walls. More residents on the same ground than detached houses, with gardens behind.} infill{The gaps between existing houses built up. The densest form without apartment blocks, and the least garden left over.} modern_blocks{Apartment buildings from the 1990s onwards, standing in open ground. The lightest touch of the block forms.} perimeter_blocks{Four-storey blocks around a planted courtyard. Dense, but the courtyard stays open.} gruenderzeit{Five-storey blocks from before 1918 with built-up rear yards. The densest and most sealed housing here.} other{}}",
+  "@tileSubtypeDescription": {
+    "description": "One-line description of a tile sub-type",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "@categoryName": {
     "placeholders": {
       "id": {
@@ -551,7 +569,16 @@
   },
   "statsNoise": "Mean exposure {value}",
   "statsRunoff": "Mean runoff {value} mm, {count} cells at risk",
-  "@statsRunoff": {"placeholders": {"value": {"type": "String"}, "count": {"type": "String"}}},
+  "@statsRunoff": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "@statsNoise": {
     "placeholders": {
       "value": {
@@ -918,10 +945,22 @@
   "coopCodeCopied": "Room code copied",
   "coopEndTurn": "End turn",
   "coopRound": "Round {round}",
-  "@coopRound": {"placeholders": {"round": {"type": "int"}}},
+  "@coopRound": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
   "coopYourTurn": "Your turn",
   "coopWaitingTurn": "Waiting for {name}",
-  "@coopWaitingTurn": {"placeholders": {"name": {"type": "String"}}},
+  "@coopWaitingTurn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "coopConnectionLost": "Connection lost. Your seat and district are still held for you.",
   "coopReconnect": "Reconnect",
   "lobbyTitle": "Local co-op",

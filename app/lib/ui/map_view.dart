@@ -11,6 +11,7 @@ import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
+import 'tile_naming.dart';
 import 'tile_style.dart';
 
 /// Zoom and pan state of the map (task T-202).
@@ -320,7 +321,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     return l10n.a11yMapCursor(
       cell % c.width,
       cell ~/ c.width,
-      l10n.tileName(c.sim.state.tiles[cell].id),
+      tileDisplayName(l10n, c.level, c.sim.state.tiles[cell]),
       f.noiseDb[cell].round().toString(),
       f.airIndex[cell].round().toString(),
     );
@@ -666,6 +667,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                             child: _PlacementPreviewCard(
                               preview: preview,
                               simpleMode: c.simpleMode,
+                              level: c.level,
                             ),
                           ),
                         if (c.brush case final brush?)
@@ -675,6 +677,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                             child: _PlacementModeChip(
                               tile: brush,
                               onCancel: c.clearBrush,
+                              level: c.level,
                             ),
                           ),
                         if (c.lastImpact case final impact?)
@@ -685,6 +688,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                               impact: impact,
                               simpleMode: c.simpleMode,
                               onClose: c.dismissImpact,
+                              level: c.level,
                             ),
                           ),
                       ],
@@ -701,10 +705,17 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
 }
 
 class _PlacementModeChip extends StatelessWidget {
-  const _PlacementModeChip({required this.tile, required this.onCancel});
+  const _PlacementModeChip({
+    required this.tile,
+    required this.onCancel,
+    required this.level,
+  });
 
   final TileType tile;
   final VoidCallback onCancel;
+
+  /// For the tile's name: a level may call this type something else.
+  final Level? level;
 
   @override
   Widget build(BuildContext context) {
@@ -713,7 +724,7 @@ class _PlacementModeChip extends StatelessWidget {
     return InputChip(
       elevation: 3,
       avatar: Icon(style.icon, size: 18, color: style.iconColor),
-      label: Text(l10n.placementMode(l10n.tileName(tile.id))),
+      label: Text(l10n.placementMode(tileDisplayName(l10n, level, tile))),
       deleteIcon: const Icon(Icons.close, size: 18),
       deleteButtonTooltipMessage: l10n.actionCancelPlacement,
       onDeleted: onCancel,
@@ -725,10 +736,12 @@ class _PlacementPreviewCard extends StatelessWidget {
   const _PlacementPreviewCard({
     required this.preview,
     required this.simpleMode,
+    required this.level,
   });
 
   final PlacementPreview preview;
   final bool simpleMode;
+  final Level? level;
 
   @override
   Widget build(BuildContext context) {
@@ -776,7 +789,7 @@ class _PlacementPreviewCard extends StatelessWidget {
                     Flexible(
                       child: Text(
                         l10n.placementPreviewTitle(
-                          l10n.tileName(preview.tile.id),
+                          tileDisplayName(l10n, level, preview.tile),
                         ),
                       ),
                     ),
@@ -881,11 +894,13 @@ class _BuildImpactCard extends StatelessWidget {
     required this.impact,
     required this.simpleMode,
     required this.onClose,
+    required this.level,
   });
 
   final BuildImpact impact;
   final bool simpleMode;
   final VoidCallback onClose;
+  final Level? level;
 
   @override
   Widget build(BuildContext context) {
@@ -917,8 +932,10 @@ class _BuildImpactCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       impact.removed
-                          ? l10n.impactRemoved(l10n.tileName(impact.tile.id))
-                          : l10n.impactBuilt(l10n.tileName(impact.tile.id)),
+                          ? l10n.impactRemoved(
+                              tileDisplayName(l10n, level, impact.tile))
+                          : l10n.impactBuilt(
+                              tileDisplayName(l10n, level, impact.tile)),
                       style: theme.textTheme.titleSmall,
                     ),
                   ),
