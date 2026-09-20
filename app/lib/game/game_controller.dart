@@ -438,6 +438,7 @@ class GameController extends ChangeNotifier {
       Indicator.air => MapOverlay.air,
       Indicator.noise => MapOverlay.noise,
       Indicator.housing => MapOverlay.attractiveness,
+      Indicator.flood => MapOverlay.heat,
       Indicator.economy || Indicator.budget => MapOverlay.jobs,
       Indicator.shopping => MapOverlay.retail,
       Indicator.recreation => MapOverlay.green,

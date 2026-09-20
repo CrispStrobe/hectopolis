@@ -17,6 +17,7 @@ enum Indicator {
   recreation,
   commuting,
   climate,
+  flood,
   budget,
 }
 
@@ -31,6 +32,8 @@ class IndicatorSnapshot {
     required this.budgetKEur,
     required this.budgetDeltaKEur,
     required this.meanNoiseDb,
+    required this.meanRunoffMm,
+    required this.floodRiskCells,
     required this.meanNightNoiseDb,
     required this.shareAboveNightGuideline,
     required this.shareAboveNightHighRisk,
@@ -52,6 +55,11 @@ class IndicatorSnapshot {
   final double budgetKEur;
   final double budgetDeltaKEur;
   final double meanNoiseDb;
+
+  /// Mean runoff depth over the map from the design storm, mm, and how many
+  /// cells shed more than `water.floodRiskMm` of it.
+  final double meanRunoffMm;
+  final int floodRiskCells;
 
   /// Resident-weighted mean night level, dB L_night.
   final double meanNightNoiseDb;
@@ -82,6 +90,8 @@ class IndicatorSnapshot {
         'budgetKEur': budgetKEur,
         'budgetDeltaKEur': budgetDeltaKEur,
         'meanNoiseDb': meanNoiseDb,
+        'meanRunoffMm': meanRunoffMm,
+        'floodRiskCells': floodRiskCells,
         'meanNightNoiseDb': meanNightNoiseDb,
         'shareAboveNightGuideline': shareAboveNightGuideline,
         'shareAboveNightHighRisk': shareAboveNightHighRisk,
@@ -210,6 +220,19 @@ IndicatorSnapshot computeIndicators(
   );
   final climate = 100 * (0.7 * co2Score + 0.3 * f.heatScoreOf(heat));
 
+  // Stormwater: the share of the design storm the ground keeps rather than
+  // sheds. Map-wide, not resident-weighted, because a catchment floods as a
+  // whole and the retention tiles work on their neighbourhood rather than on
+  // the cell a resident stands in.
+  //
+  // The reference is the design storm (KOSTRA, water.designStormMm), not the
+  // per-cell alarm threshold water.floodRiskMm: at today's parameters only
+  // road exceeds that threshold, so counting cells above it would score a
+  // player on how many roads they drew rather than on how much rain the
+  // landscape absorbs. `floodRiskCells` still reports that count alongside.
+  final flood = 100 *
+      clamp01(1 - f.meanRunoffMm / math.max(1e-9, p.water.designStormMm));
+
   final scores = <Indicator, double>{
     Indicator.biodiversity: f.biodiversityIndex,
     Indicator.air: air,
@@ -220,6 +243,7 @@ IndicatorSnapshot computeIndicators(
     Indicator.recreation: 100 * (0.7 * green + 0.3 * heatScore),
     Indicator.commuting: commuting,
     Indicator.climate: climate,
+    Indicator.flood: flood,
     Indicator.budget: clamp01(w.budgetKEur / p.economy.startBudgetKEur) * 100,
   };
 
@@ -233,6 +257,8 @@ IndicatorSnapshot computeIndicators(
     budgetKEur: w.budgetKEur,
     budgetDeltaKEur: budgetDeltaKEur,
     meanNoiseDb: noiseDb,
+    meanRunoffMm: f.meanRunoffMm,
+    floodRiskCells: f.floodRiskCells,
     meanNightNoiseDb: nightDb,
     shareAboveNightGuideline: aboveGuideline,
     shareAboveNightHighRisk: aboveHighRisk,

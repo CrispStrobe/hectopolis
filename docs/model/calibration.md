@@ -118,6 +118,33 @@ seasonal quantity can no longer be read as if it were an annual one.
 | industrial park | 0.78 | 1.89 | 84 (79–89) | 25 (20–30) |
 | mixed town | 0.92 | 2.12 | 75 (71–79) | 43 (39–48) |
 
+### Stormwater (2026-09-20, T-503)
+
+Same harness, same seven archetypes, reading the new flood indicator:
+
+| Archetype | mean runoff (mm) | flood-risk cells | flood score |
+|---|---|---|---|
+| forest | 0.00 | 0 | 100 |
+| meadow | 0.00 | 0 | 100 |
+| cropland | 0.76 | 0 | 97 |
+| village | 1.46 | 16 | 93 |
+| suburb | 2.27 | 31 | 90 |
+| industrial park | 3.13 | 16 | 86 |
+| mixed town | 3.49 | 31 | 84 |
+| dense quarter | 7.24 | 60 | 67 |
+
+The order is the sealing order, which is the check: the indicator separates a
+village from a suburb (3 points) and both from a dense quarter (23), so it is
+not a pass/fail on whether the map contains roads. A dense quarter at 67 is the
+intended shape — it is a real stormwater problem, not a catastrophe, and a
+player can move it with parks, ponds and wetland rather than by demolishing the
+quarter.
+
+The two columns disagree on purpose, and the disagreement is the argument for
+scoring the mean: the industrial park and the village both have 16 flood-risk
+cells — the same road count — while the industrial park sheds more than twice
+the water. A count cannot see that; the mean can.
+
 The spreads in brackets are the range over the twelve months. Before the heat
 fix the climate spread was not a spread at all in summer: every dense quarter
 scored the same 53.8 in July whether it had sixteen hectares of park or none,
