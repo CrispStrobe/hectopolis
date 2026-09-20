@@ -7,10 +7,14 @@ on:
       action:
         description: 'Audit, prepare App Store listing, or submit a build for TestFlight review'
         type: choice
-        options: [audit, listing, ready-store, submit-external, beta-links]
+        options: [audit, listing, ready-store, submit-external, beta-links, beta-link-enable]
         default: audit
       build_number:
         description: 'Optional exact CFBundleVersion; blank selects the newest build'
+        type: string
+        required: false
+      app_id:
+        description: 'beta-link-enable only: the app whose public link to turn on; blank means this app'
         type: string
         required: false
       platform:
@@ -39,6 +43,7 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
           ACTION: ${{ inputs.action }}
+          APP_ID: ${{ inputs.app_id }}
           BUILD_NUMBER: ${{ inputs.build_number }}
           PLATFORM: ${{ inputs.platform }}
         run: |
@@ -50,6 +55,13 @@ jobs:
           fi
           if [ "$ACTION" = listing ]; then
             python3 tools/asc/listing.py
+          elif [ "$ACTION" = beta-link-enable ]; then
+            # Turns ON one app's public link. A public link is a URL anyone can
+            # use to join the beta, and one that has been handed out cannot be
+            # recalled by turning the flag off, so this can only ever act on a
+            # single named app -- never the portfolio.
+            python3 tools/asc/beta_links.py enable \
+              --app "${APP_ID:-$ASC_APP_ID}"
           elif [ "$ACTION" = beta-links ]; then
             # Read-only: reports every app's external groups and whether a
             # public link exists. Turning one ON is deliberately not reachable
