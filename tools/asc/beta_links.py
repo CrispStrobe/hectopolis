@@ -35,10 +35,14 @@ def query(path: str, **params: str) -> str:
 
 def approved_build(group_id: str) -> tuple[str | None, str]:
     """The newest build in the group, and what beta review made of it."""
-    builds = client.paged(query(f"/v1/betaGroups/{group_id}/builds",
-                                sort="-uploadedDate", limit="10"))
+    # This relationship refuses `sort` (PARAMETER_ERROR.ILLEGAL), so order the
+    # page here instead of asking Apple to.
+    builds = client.paged(query(f"/v1/betaGroups/{group_id}/builds", limit="50"))
+    builds.sort(key=lambda b: b["attributes"].get("uploadedDate") or "",
+                reverse=True)
     if not builds:
         return None, "no build in the group"
+    builds = builds[:10]
     for build in builds:
         version = build["attributes"].get("version")
         status, doc = client.call(
