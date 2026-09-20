@@ -238,7 +238,35 @@ List<String> _auditPaths(
       ...awardableFromRandom,
       for (final run in medalRuns.values) ...run.challengesAtEnd,
     };
+    // A constraint medal is a promise that giving something up is hard. It is
+    // only worth earning if the constrained solution is worse in some way the
+    // player feels. Both medals that exist were measured and neither was: the
+    // ponds in `habitat` changed nothing at all (biodiversity 87 either way,
+    // the same 60 months, 400 k€ cheaper without them), and dropping the roads
+    // in `noise` took the score from 88 to 100 and saved 1 200 k€ -- it only
+    // cost three months, which is why the criterion below is deliberately
+    // strict rather than a judgement about money.
+    //
+    // Flagged when the constrained plan *dominates*: solves no later and
+    // places no more tiles. Then the constraint is not a sacrifice, it is a
+    // hint about the better line of play, and the medal rewards noticing it
+    // rather than giving anything up.
     for (final entry in medalRuns.entries) {
+      final variant = entry.value;
+      if (variant.solved &&
+          planned != null &&
+          planned.solved &&
+          variant.months <= planned.months &&
+          (variant.placementsBeforeEnd ?? 0) <=
+              (planned.placementsBeforeEnd ?? 0)) {
+        notes.add(
+          '${level.id}: the constrained plan for "${entry.key}" solves in '
+          '${variant.months} mo with ${variant.placementsBeforeEnd} tiles '
+          'against ${planned.months} mo and ${planned.placementsBeforeEnd} — '
+          'giving the tile up costs nothing, so the medal rewards noticing '
+          'rather than sacrificing',
+        );
+      }
       if (!entry.value.solved) {
         problems.add(
           '${level.id}: the plan variant for "${entry.key}" no longer solves '
@@ -276,6 +304,30 @@ List<String> _auditPaths(
       );
     } else if (!planned!.solved) {
       problems.add('${level.id}: the worked plan no longer solves the level');
+    }
+
+    // Which goals a player could meet by placing nothing at all. A goal that
+    // the starting map already satisfies, or that the treasury reaches on its
+    // own, is on the panel telling the player to do something they need not
+    // do -- and worse, it makes the mission look harder than it is. This is
+    // an observation rather than a failure: a goal can be deliberately
+    // non-binding, as a floor the player must not fall through. It was found
+    // on tuebingen, where housing is met in month one and the reserve target
+    // arrives by month six with an empty plan.
+    final idle = _idleGoals(level);
+    if (idle.reachedByWaiting.isNotEmpty) {
+      notes.add(
+        '${level.id}: goal(s) ${idle.reachedByWaiting.join(', ')} start unmet '
+        'and are reached with no tile placed — time alone solves them',
+      );
+    }
+    if (idle.floors.length + idle.reachedByWaiting.length ==
+            level.goals.length &&
+        level.goals.isNotEmpty) {
+      problems.add(
+        '${level.id}: every goal is met by doing nothing, so the level '
+        'solves itself',
+      );
     }
     if (learning == null) {
       if (level.goals.isNotEmpty) {
@@ -637,4 +689,54 @@ Directory _repoRoot() {
     dir = dir.parent;
   }
   throw StateError('run this from inside the repository');
+}
+
+/// What an empty plan achieves on a level, split by how.
+///
+/// The distinction is the point. A goal that is met at the start and stays met
+/// is a **floor**: "do not wreck the quiet you already have" is a real thing
+/// to ask, and it should not be reported as a defect. A goal that starts unmet
+/// and becomes met with no tile placed is different -- the clock alone solves
+/// it, so the panel asks the player for something the calendar delivers. That
+/// is worth a second look, which is why only the second kind is reported.
+///
+/// Found on tuebingen: housing is met in month one and never drops (a floor),
+/// while the reserve target arrives by month six on an empty map.
+class _IdleOutcome {
+  _IdleOutcome(this.floors, this.reachedByWaiting);
+
+  final List<String> floors;
+  final List<String> reachedByWaiting;
+}
+
+_IdleOutcome _idleGoals(Level level) {
+  final sim = level.start();
+  sim.apply(const AdvanceTick());
+  final metAtStart = [for (final g in level.goals) g.met(sim.indicators)];
+  final stillMet = [...metAtStart];
+  final everMet = [...metAtStart];
+  final months = level.turnLimitMonths ?? 120;
+  for (var m = 1; m < months; m++) {
+    sim.apply(const AdvanceTick());
+    final ind = sim.indicators;
+    for (var i = 0; i < level.goals.length; i++) {
+      if (level.goals[i].met(ind)) {
+        everMet[i] = true;
+      } else {
+        stillMet[i] = false;
+      }
+    }
+  }
+  String label(int i) =>
+      level.goals[i].indicator?.name ?? level.goals[i].metric ?? 'goal $i';
+  return _IdleOutcome(
+    [
+      for (var i = 0; i < level.goals.length; i++)
+        if (metAtStart[i] && stillMet[i]) label(i),
+    ],
+    [
+      for (var i = 0; i < level.goals.length; i++)
+        if (!metAtStart[i] && everMet[i]) label(i),
+    ],
+  );
 }

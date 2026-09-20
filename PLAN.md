@@ -420,6 +420,40 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   *Note 2026-09-08:* Added the reusable schema and localized learning notebook for all five
   scenarios; the noise mission is the complete first teaching slice. Playtesting and staged
   mission beats remain open.
+  *Note 2026-09-20:* Tübingen, the one mission with no beats and no prediction of its own, now
+  has both — and writing them turned up what the level is actually about, which was not what I
+  assumed. **The worked plan places no housing at all.** It converts industry, commercial and
+  farmed land into forest, park and wetland and puts transit on the existing roads. Measured with
+  an empty plan: housing is met in month one (95 against 88) and never drops, the reserve target
+  arrives by month six on its own, and biodiversity, recreation and climate all fail (35/38,
+  71/88, 71/84). Adding quarters makes biodiversity *worse* (35 → 33). So the prediction
+  `tuebingen_green` offers convert / expand / wait, and `convert` is right because it was measured
+  to be, not because it sounded like the lesson. Had I written the copy first I would have taught
+  the opposite.
+  That measurement also became a check. `learning_audit.dart` now runs every level with an empty
+  plan and separates two things that look alike: a **floor** (met at the start and never lost —
+  "do not wreck the quiet you already have", which is a legitimate goal) from a goal that **starts
+  unmet and is reached by waiting**, where the clock solves what the panel asks the player for.
+  Only the second is reported, and across all six levels it fires exactly once: tuebingen's reserve
+  target. A first, coarser version that reported anything met by an idle run flagged seven goals on
+  six levels and was mostly noise. A level where *every* goal is idle is a failure, not a note; that
+  branch was verified by lowering tuebingen's thresholds to 1.
+  *Note 2026-09-20 (2):* Constraint medals measured, and the comment in `level_plans.dart` that
+  said a constraint "only means something if the constrained solution costs something" is now a
+  check rather than a remark. Both medals were measured against their own plan variant:
+  `habitat_no_water` solves in the same 60 months with 205 tiles instead of 207 and 400 k€ less,
+  changing biodiversity not at all (87 either way) — it is free. `noise_no_roads` takes the noise
+  score from **88 to 100** and saves 1 200 k€, costing only three months (21 against 18).
+  Neither is a sacrifice; both reward noticing the better line of play.
+  The audit flags a medal whose constrained plan *dominates* — solves no later and places no more
+  tiles. That is deliberately strict: it reports `habitat_no_water` and stays silent on
+  `noise_no_roads`, whose three months are a real if small price. Re-pricing the medals is level
+  balance and so a design decision, left to the author; the check means it can no longer be
+  forgotten.
+  **Open, and a balance call rather than a model one:** tuebingen's `budgetKEur >= 50 000` cannot
+  be made to bind. Doing nothing ends at 376 000 and the worked plan at 244 000, so any threshold
+  the plan can survive is one an idle player also clears; its only honest role is a floor against
+  overspending, and 50 000 is too low to be even that. Raising it is a design decision.
   *Note 2026-09-16:* Staged mission beats added. `MissionBeat` in the sim package owns only
   when a beat fires — `afterMonths`, `afterTilesPlaced`, `afterGoalsMet`, `whenIndicatorBelow`
   — so a teaching moment arrives when the player can see what it is talking about rather than
@@ -871,6 +905,13 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   turned every real failure into a six-minute cascade that hid the failure itself. And it must
   install the same four localization delegates the app does: without the Cupertino one a German
   build logs a warning through `FlutterError`, which this test forwards rather than swallows.
+  *Note 2026-09-20 (2):* `docs/accessibility.md` collects the five audits, which until now existed
+  only as notes in this file. It is organised around one distinction — which WCAG criteria are held
+  by a test that fails, which by a person looking, and which by neither — because "accessible" is
+  easy to claim and the claim is what rots. It records the three findings worth carrying forward:
+  the worst point of a gauge scale is its middle rather than an end; a Flutter overflow is a 1.4.4
+  failure that no ordinary widget test can see, because it is reported rather than thrown; and a
+  stated height is a scaling bug waiting to happen, which scaling the literal does not fix.
   **Open:** testing with a real screen reader, which cannot be done from here.
 - [x] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
   *Note 2026-09-17:* The guarantee already held — there is no networking API anywhere in
