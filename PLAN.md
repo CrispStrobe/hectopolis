@@ -818,6 +818,33 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   test needs the same reduce-motion `MediaQuery` that `render_map_png.dart` documents or
   `pumpAndSettle` never returns; and what a test cannot check is whether the order *makes
   sense to a person*, only that nothing is unreachable.
+  *Note 2026-09-20:* Font scaling done, which was the last item in this task's own headline
+  with no note against it — and unlike the focus-order audit, it did not come back clean.
+  WCAG 1.4.4 asks for 200 % text without loss of content, and a Flutter overflow is exactly
+  that: the clipped part is still laid out, still in the semantics tree, and invisible. It is
+  *reported* rather than thrown, so every other widget test in `app/test` rendered these
+  screens and said nothing. `app/test/text_scaling_test.dart` installs its own
+  `FlutterError.onError` and sweeps three window sizes x four scales x two languages x simple
+  and expert mode — 48 configurations — attributing each overflow to the widget that caused it,
+  so a failure names a file rather than a pixel count.
+  It found three real defects, one of them at **default settings**: the compact palette strip
+  clipped by 4 px at 100 % text on any narrow window, in both languages, in shipped code. At
+  200 % that strip and the indicator strip clipped by up to 86 px, and the roomy app bar
+  overflowed by 87 px on a 1400 px desktop.
+  Two causes, both the same mistake. A horizontal list has to state its own height, and both
+  strips stated a literal that knew nothing about the text scaler; they now take their height
+  from their content with the old literal as a floor, so the default layout is unchanged.
+  **Scaling the literal by the text scaler was tried first and is not good enough** — the
+  content does not grow linearly (a 26 px icon does not scale at all, a line box grows faster
+  than its font size), so one factor was simultaneously too generous for the palette and 22 px
+  short for the indicators. The app bar's breakpoints were in pixels while what had to fit was
+  text: at 200 % a 1400 px window has the room of a 700 px one, so the breakpoints are now in
+  text-sized units and a large-text desktop falls back to the layouts small windows already use.
+  Two notes for whoever extends this. The test must restore `FlutterError.onError` **before**
+  it calls `expect`, or the binding asserts and the assertion arrives during teardown — which
+  turned every real failure into a six-minute cascade that hid the failure itself. And it must
+  install the same four localization delegates the app does: without the Cupertino one a German
+  build logs a warning through `FlutterError`, which this test forwards rather than swallows.
   **Open:** testing with a real screen reader, which cannot be done from here.
 - [x] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
   *Note 2026-09-17:* The guarantee already held — there is no networking API anywhere in

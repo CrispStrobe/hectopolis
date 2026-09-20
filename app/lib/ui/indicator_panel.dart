@@ -145,12 +145,21 @@ class IndicatorPanel extends StatelessWidget {
         ];
 
         if (compact) {
-          return SizedBox(
-            height: 64,
-            child: ListView(
+          // Same shape and the same reason as the palette strip, which carries
+          // the full note: a stated height clips the reading this exists to
+          // show as soon as the system font grows. See palette.dart.
+          return ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 64),
+            child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              children: tiles,
+              child: IntrinsicHeight(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: tiles,
+                ),
+              ),
             ),
           );
         }

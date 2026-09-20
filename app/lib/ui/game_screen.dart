@@ -225,8 +225,17 @@ class _GameScreenState extends State<GameScreen> {
       bindings: _globalShortcuts(),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 1000;
-          final roomyAppBar = constraints.maxWidth >= 1280;
+          // Both breakpoints are about whether text fits, so both are in
+          // text-sized units rather than pixels: at 200 % system font a
+          // 1400 px window has the room of a 700 px one, and asking the
+          // roomy app bar to lay its actions out inline there overflowed it
+          // by 87 px. Dividing the width by the scale makes a large-text
+          // desktop fall back to the same layouts a small window gets, which
+          // is the behaviour those layouts already exist for.
+          final textScale = MediaQuery.textScalerOf(context).scale(1);
+          final effectiveWidth = constraints.maxWidth / textScale;
+          final wide = effectiveWidth >= 1000;
+          final roomyAppBar = effectiveWidth >= 1280;
           return Scaffold(
             appBar: AppBar(
               leading: IconButton(

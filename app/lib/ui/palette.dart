@@ -32,12 +32,31 @@ class Palette extends StatelessWidget {
             ),
         ];
         if (horizontal) {
-          return SizedBox(
-            height: 92,
-            child: ListView(
+          // A horizontal list states its own height, because it cannot take
+          // one from its children -- and a stated height clips them as soon as
+          // the player raises the system font size. WCAG 1.4.4 asks for 200 %
+          // text without loss of content, and at 100 % the literal 92 was
+          // already 4 px short of the icon plus name plus cost.
+          //
+          // Scaling the literal by the text scaler was tried first and is not
+          // enough: the content does not grow linearly (a 26 px icon does not
+          // scale at all, a line box grows faster than its font size), so one
+          // factor was both too generous here and 22 px short in the indicator
+          // strip. The height therefore comes from the content, with the old
+          // literal kept as a floor so the default layout is unchanged.
+          // IntrinsicHeight, so every card is still as tall as the tallest.
+          return ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 92),
+            child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              children: cards,
+              child: IntrinsicHeight(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: cards,
+                ),
+              ),
             ),
           );
         }
