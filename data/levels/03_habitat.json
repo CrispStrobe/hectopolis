@@ -20,14 +20,14 @@
     "predictionId": "habitat_corridor",
     "challenges": [
       {
-        "id": "habitat_no_water",
-        "maxNewTiles": {
-          "water": 0
+        "id": "habitat_lean",
+        "minMetrics": {
+          "budgetKEur": 2000
         }
       },
       {
         "id": "habitat_fast",
-        "maxMonths": 120
+        "maxMonths": 66
       }
     ],
     "beats": [

@@ -63,6 +63,26 @@ jobs:
           tools/license_audit.sh
           git diff --exit-code -- THIRD_PARTY.md || echo "THIRD_PARTY.md changed; commit it"
 
+      # Every other accessibility test asserts Flutter's own semantics tree
+      # from inside the process. This one reads what a screen reader is
+      # actually handed: the real Linux build, under Xvfb, published through
+      # GTK's ATK bridge onto an AT-SPI bus, walked by a D-Bus client. It is
+      # the difference between "we labelled it" and "an assistive technology
+      # receives the label".
+      - name: Accessibility probe (AT-SPI)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq at-spi2-core xvfb dbus-x11 \
+            libgtk-3-dev ninja-build clang cmake pkg-config liblzma-dev
+          python3 -m pip install --quiet jeepney
+          cd app && flutter build linux --debug && cd ..
+          python3 tools/a11y_probe.py \
+            --bundle app/build/linux/x64/debug/bundle/hectopolis \
+            --expect "How Hectopolis works" \
+            --expect "Skip" \
+            --expect "Next" \
+            --min-nodes 15
+
       - name: Build web
         # Same engine hosting as the deploy (see pages.yml), so CI exercises
         # the configuration that actually ships.

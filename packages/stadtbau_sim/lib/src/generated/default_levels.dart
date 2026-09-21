@@ -118,7 +118,7 @@ const List<String> defaultLevelsJson = [
       },
       {
         "id": "noise_fast",
-        "maxMonths": 48
+        "maxMonths": 24
       }
     ],
     "beats": [
@@ -212,14 +212,14 @@ const List<String> defaultLevelsJson = [
     "predictionId": "habitat_corridor",
     "challenges": [
       {
-        "id": "habitat_no_water",
-        "maxNewTiles": {
-          "water": 0
+        "id": "habitat_lean",
+        "minMetrics": {
+          "budgetKEur": 2000
         }
       },
       {
         "id": "habitat_fast",
-        "maxMonths": 120
+        "maxMonths": 66
       }
     ],
     "beats": [

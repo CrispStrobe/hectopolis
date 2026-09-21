@@ -27,7 +27,7 @@
       },
       {
         "id": "noise_fast",
-        "maxMonths": 48
+        "maxMonths": 24
       }
     ],
     "beats": [
