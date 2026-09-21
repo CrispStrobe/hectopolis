@@ -253,7 +253,21 @@ List<String> _auditPaths(
     // rather than giving anything up.
     for (final entry in medalRuns.entries) {
       final variant = entry.value;
-      if (variant.solved &&
+      // Only a *ban* can be free. This note asks whether giving a tile up
+      // costs anything, and it measures that in months and tiles -- which is
+      // the whole cost of a ban and not the cost of a target. A medal that
+      // asks for a reserve or an indicator is not asking the player to give
+      // up a tile at all; it is asking them to end somewhere specific, and a
+      // plan that gets there sooner has not dodged the constraint.
+      final challenge = learning?.challenges
+          .where((c) => c.id == entry.key)
+          .firstOrNull;
+      final isPureBan = challenge != null &&
+          challenge.maxNewTiles.isNotEmpty &&
+          challenge.minMetrics.isEmpty &&
+          challenge.minIndicators.isEmpty;
+      if (isPureBan &&
+          variant.solved &&
           planned != null &&
           planned.solved &&
           variant.months <= planned.months &&
@@ -315,10 +329,23 @@ List<String> _auditPaths(
     // on tuebingen, where housing is met in month one and the reserve target
     // arrives by month six with an empty plan.
     final idle = _idleGoals(level);
-    if (idle.reachedByWaiting.isNotEmpty) {
+    // Reached by waiting is only half the question. The other half is whether
+    // the goal binds the *winning* line, and the answer is read at the moment
+    // the level is actually won rather than at the end of the term -- which is
+    // where this went wrong first time round. tuebingen's reserve target looks
+    // free over 120 idle months (376 000 against 50 000) and is anything but:
+    // the worked plan wins in month 23 with 50 517, a margin of one per cent.
+    // A goal is only worth reporting when the clock reaches it *and* the
+    // reference solution is nowhere near it.
+    final slack = <String>[];
+    for (final name in idle.reachedByWaiting) {
+      final margin = _planMargin(level, planned, name);
+      if (margin == null || margin > 0.10) slack.add(name);
+    }
+    if (slack.isNotEmpty) {
       notes.add(
-        '${level.id}: goal(s) ${idle.reachedByWaiting.join(', ')} start unmet '
-        'and are reached with no tile placed — time alone solves them',
+        '${level.id}: goal(s) ${slack.join(', ')} are reached by waiting and '
+        'the worked plan clears them with room to spare — they bind nobody',
       );
     }
     if (idle.floors.length + idle.reachedByWaiting.length ==
@@ -424,6 +451,7 @@ class _PathResult {
     this.challengesAtEnd = const {},
     this.decidedAtMonth,
     this.placementsBeforeEnd,
+    this.valueAtEnd = const {},
   });
 
   final bool solved;
@@ -439,6 +467,11 @@ class _PathResult {
 
   /// Month at which every goal was first met, or null if they never were.
   final int? decidedAtMonth;
+
+  /// Each goal's value at that moment, keyed by indicator or metric name.
+  /// Read here and not at the end of the term, because the game stops when
+  /// the goals are met and a later reading describes a game nobody plays.
+  final Map<String, double> valueAtEnd;
 
   /// Tiles of the plan that had been placed when the level ended. Fewer than
   /// the plan holds means the end screen appeared mid-build.
@@ -561,6 +594,11 @@ _PathResult _playPlan(Level level, List<Move> plan) {
       },
       guidanceTicks: guidanceTicks,
       guidanceWithoutTile: guidanceWithoutTile,
+      valueAtEnd: {
+        for (final goal in level.goals)
+          (goal.indicator?.name ?? goal.metric ?? '?'):
+              goal.current(sim.indicators),
+      },
     );
   }
 
@@ -739,4 +777,20 @@ _IdleOutcome _idleGoals(Level level) {
         if (!metAtStart[i] && everMet[i]) label(i),
     ],
   );
+}
+
+/// How much slack the worked plan leaves on [goalName], as a fraction of the
+/// threshold, at the moment the plan wins. Null when it cannot be measured.
+double? _planMargin(Level level, _PathResult? planned, String goalName) {
+  if (planned == null || !planned.solved) return null;
+  final month = planned.decidedAtMonth;
+  if (month == null) return null;
+  final goal = level.goals.firstWhere(
+    (g) => (g.indicator?.name ?? g.metric) == goalName,
+    orElse: () => level.goals.first,
+  );
+  if (goal.min <= 0) return null;
+  final value = planned.valueAtEnd[goalName];
+  if (value == null) return null;
+  return (value - goal.min) / goal.min;
 }

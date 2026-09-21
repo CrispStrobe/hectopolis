@@ -33,11 +33,16 @@ const plannedLevelIds = <String>[
 /// earned, keyed by the challenge id they earn.
 ///
 /// They are derived from the plan rather than written out, so they cannot fall
-/// out of step with it. Both of the ones here are the plan with something
-/// simply left out, and in both cases the level still solves — the side road
-/// in `noise` and the ponds in `habitat` cost budget and earn nothing, which is
-/// worth knowing about a constraint medal: it only means something if the
-/// constrained solution costs something.
+/// out of step with it: each is the plan with something left out.
+///
+/// A constraint medal only means something if the constrained solution costs
+/// something, and until 2026-09-21 neither of these did. Measured at the
+/// moment the level is actually won — which is where the game banks medals,
+/// not the end of the term — the noise plan without its side road solved three
+/// months later but scored 100 for quiet instead of 88 and saved 1 200 k€,
+/// and the habitat plan without its ponds was identical in every respect and
+/// 400 k€ cheaper. The first costs time, so it stays a ban. The second cost
+/// nothing, so it is now a reserve target priced above what the plan leaves.
 Map<String, List<Move>> medalPlansFor(String levelId) {
   final plan = planFor(levelId);
   if (plan == null) return const {};
@@ -49,9 +54,12 @@ Map<String, List<Move>> medalPlansFor(String levelId) {
       ],
     },
     'habitat' => {
-      'habitat_no_water': [
+      // Both the ponds and the parks, because that is what the medal is
+      // priced at: dropping either alone leaves 1 266 or 1 806 k€ against a
+      // 2 000 k€ target, and dropping both leaves 2 214.
+      'habitat_lean': [
         for (final move in plan)
-          if (move.$3 != TileType.water) move,
+          if (move.$3 != TileType.water && move.$3 != TileType.park) move,
       ],
     },
     _ => const {},

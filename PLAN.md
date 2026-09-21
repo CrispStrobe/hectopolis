@@ -450,10 +450,32 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   `noise_no_roads`, whose three months are a real if small price. Re-pricing the medals is level
   balance and so a design decision, left to the author; the check means it can no longer be
   forgotten.
-  **Open, and a balance call rather than a model one:** tuebingen's `budgetKEur >= 50 000` cannot
-  be made to bind. Doing nothing ends at 376 000 and the worked plan at 244 000, so any threshold
-  the plan can survive is one an idle player also clears; its only honest role is a floor against
-  overspending, and 50 000 is too low to be even that. Raising it is a design decision.
+  *Note 2026-09-21:* **The medals are priced, and one earlier conclusion here was wrong.**
+  I reported that tuebingen's `budgetKEur >= 50 000` could not be made to bind, comparing an idle
+  run and the worked plan *at month 120*. The game ends at the first moment every goal is met, and
+  that is where it banks stars and medals. Read there, the worked plan wins in month 23 with
+  **50 517 k€ against 50 000** — a margin of one per cent. The goal was already tight and needed no
+  change; the measurement did. Reading a level at the end of its term describes a game nobody
+  plays, and the audit's own `_playPlan` had that right all along.
+  Re-measured at the winning moment, each tile type in every worked plan was dropped in turn to
+  see what it is worth. On `habitat`, forest and meadow are required and water and park are free;
+  on `noise`, only the housing is required. So:
+  `habitat_no_water` became **`habitat_lean`**, a reserve target of 2 000 k€, priced from
+  measurement so that both the ponds and the parks have to go — the plan leaves 856, without ponds
+  1 266, without parks 1 806, without either 2 214. `habitat_fast` went 120 → 66 months against a
+  plan that takes 60, and `noise_fast` 48 → 24 against a plan that takes 18 and a no-road line that
+  takes 21, so both noise medals stay earnable together. `noise_no_roads` is unchanged: it costs
+  three months, which is a real if small price.
+  The audit's two checks were re-scoped in the same pass, because both were answering slightly the
+  wrong question. The "costs nothing" note now applies only to a **pure ban** — months and tiles are
+  the whole cost of giving a tile up and not the cost of hitting a target, so a reserve medal is no
+  longer mis-flagged. The "reached by waiting" note now also asks whether the worked plan clears the
+  goal with room to spare, measured at the winning moment: tuebingen's one per cent means it binds,
+  and it is correctly silent. Both were verified by re-breaking them — the free ban put back, and a
+  reserve threshold lowered to 40 000 where the plan clears it by 26 %.
+  `level_test.dart` had re-typed `maxMonths: 48` as a literal and failed on the re-pricing rather
+  than on a defect; it now asserts the property that matters, that a "finish quickly" medal asks for
+  less time than the level allows.
   *Note 2026-09-16:* Staged mission beats added. `MissionBeat` in the sim package owns only
   when a beat fires — `afterMonths`, `afterTilesPlaced`, `afterGoalsMet`, `whenIndicatorBelow`
   — so a teaching moment arrives when the player can see what it is talking about rather than
@@ -912,7 +934,27 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   the worst point of a gauge scale is its middle rather than an end; a Flutter overflow is a 1.4.4
   failure that no ordinary widget test can see, because it is reported rather than thrown; and a
   stated height is a scaling bug waiting to happen, which scaling the literal does not fix.
-  **Open:** testing with a real screen reader, which cannot be done from here.
+  *Note 2026-09-21:* **An assistive technology now reads this app, in CI.**
+  `tools/a11y_probe.py` stands up a private D-Bus session, an AT-SPI bus, Xvfb and the real Linux
+  build, then walks the tree over D-Bus the way a screen reader does and fails if the labels it is
+  told to expect are not announced. It reads the onboarding dialog unprompted — "How Hectopolis
+  works", "Step 1 of 3", "Place tiles", the body text, and the Skip and Next buttons as
+  `push button`. Every other accessibility test asserts Flutter's own semantics tree from inside
+  the process; this is the first that proves any of it survives the journey out through GTK's ATK
+  bridge onto the bus, which is where an assistive technology actually reads.
+  **A correction, because I reported the opposite.** I first concluded that Flutter was not
+  publishing semantics under AT-SPI — the tree stopped at the window — and changed `main.dart` to
+  force semantics on. That diagnosis was wrong and the change was reverted. GTK's bridge answers
+  `GetChildren` with an empty list while reporting a correct `ChildCount`, so my probe was blind,
+  not the app. A stock build with no flags exposes the whole tree. Real clients use
+  `GetChildAtIndex`, and the probe now does too.
+  Two environment traps are written into the tool: the AT-SPI bus puts its socket under `$HOME`,
+  and a home directory on a network filesystem cannot host a unix socket, so it points
+  `XDG_CACHE_HOME` at local scratch; and `at-spi2-core` is not on GitHub's Ubuntu image, so CI
+  installs it.
+  **Open:** the probe proves the labels reach the bus, not that they are *good* — nobody has sat
+  with Orca, VoiceOver or TalkBack and tried to play, which is the judgement a machine cannot
+  make. iOS and Android remain unexercised.
 - [x] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
   *Note 2026-09-17:* The guarantee already held — there is no networking API anywhere in
   first-party code, and the dependency list is seven packages none of which reports anything.

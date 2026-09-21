@@ -87,7 +87,15 @@ void main() {
     expect(noise.predictionId, 'noise_homes');
     expect(noise.has(MissionFeature.experiment), isTrue);
     expect(noise.challenges.first.maxNewTiles[TileType.road], 0);
-    expect(noise.challenges.last.maxMonths, 48);
+    // The number itself is balance and moves: it was 48 until the medals were
+    // priced against the worked plan on 2026-09-21. What must stay true is
+    // that a "finish quickly" medal asks for less time than the level allows,
+    // because a limit at or above the turn limit is earned by finishing at
+    // all. Re-typing the literal here is what made this test fail on a
+    // deliberate re-pricing instead of on a defect.
+    final fast = noise.challenges.last.maxMonths;
+    expect(fast, isNotNull);
+    expect(fast, lessThan(Level.byId('noise')!.turnLimitMonths!));
 
     final quarter = Level.byId('quarter')!.learning!;
     expect(quarter.tier, MissionTier.explorer);

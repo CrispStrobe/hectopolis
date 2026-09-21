@@ -19,8 +19,56 @@ already broken something, or turned one up on first run.
 | 2.4.3 Focus order | test, every app-bar action reachable | `app/test/focus_order_test.dart` |
 | 4.1.2 Name, role, value | test, asserts the semantics tree | `app/test/semantics_test.dart` |
 | 2.3.3 Animation from interactions | code honours `disableAnimations` | `map_view.dart`, `game_screen.dart` |
-| 1.1.1 Non-text content | labels exist; **no screen reader has run** | — |
+| 1.1.1 Non-text content | test, read back over AT-SPI by a real client | `tools/a11y_probe.py` |
 | 1.4.10 Reflow | partly: the 200 % sweep covers a 420 px viewport | `text_scaling_test.dart` |
+
+## The AT-SPI probe
+
+`tools/a11y_probe.py` is the only check here that leaves the process. It
+stands up a private D-Bus session, an AT-SPI bus, Xvfb and the real Linux
+build, then walks the tree over D-Bus the way a screen reader does, and fails
+if the labels it is told to expect are not announced. CI runs it on every push.
+
+It matters because every other test asserts Flutter's *own* semantics tree from
+inside the app. That is worth doing and it is a different claim: it cannot tell
+you whether any of it survives the journey out through GTK's ATK bridge onto
+the accessibility bus, which is where an assistive technology actually reads.
+
+What it currently reads, unprompted, on first launch:
+
+```
+application: 'com.crispstrobe.hectopolis'
+  frame: 'Hectopolis'
+    ...
+      panel: 'Alert'
+        panel: 'How Hectopolis works'
+          panel: 'Step 1 of 3'
+          panel: 'Place tiles'
+          panel: 'Drag a tile from the palette onto the map, or select it ...'
+        push button: 'Skip'
+        push button: 'Next'
+```
+
+**Walk by index, not by `GetChildren`.** GTK's bridge answers
+`org.a11y.atspi.Accessible.GetChildren` with an empty list while reporting a
+correct `ChildCount`, so a client that trusts `GetChildren` sees a window with
+nothing in it. That cost an afternoon and produced a confident wrong diagnosis
+— "Flutter is not publishing semantics", followed by a code change to force
+them — when the tree had been there the whole time and the probe was blind.
+The code change was reverted; a stock build exposes everything above. Real
+clients use `GetChildAtIndex`, and so does this one.
+
+Two environment notes for whoever runs it elsewhere: the AT-SPI bus puts its
+socket under `$HOME` by default, and a home directory on a network filesystem
+cannot host a unix socket (the bus dies with `Failed to bind socket ... Input/
+output error`), so the probe points `XDG_CACHE_HOME` at local scratch; and
+`at-spi2-core` is not on GitHub's Ubuntu image, so CI installs it.
+
+**What it still does not settle.** It proves the labels reach the bus. It does
+not prove they are *good* — that the reading order makes sense aloud, that a
+gauge announces its value usefully, or that the map is navigable by someone who
+cannot see it. And it is the Linux build; iOS VoiceOver and Android TalkBack
+remain unexercised.
 
 ## What a test can and cannot settle
 
@@ -30,8 +78,10 @@ node carries a label, whether a layout overflows. It cannot answer whether the
 order *makes sense to a person*, whether a label *reads* well aloud, or whether
 a colour pair is comfortable rather than merely above 4.5:1.
 
-So the open item has never moved: **nobody has run this app under a real
-screen reader.** The semantics tree is asserted, which is not the same thing.
+The open item has moved, but not all the way. An assistive-technology *client*
+now reads the app in CI over AT-SPI, so the tree demonstrably reaches the bus.
+Nobody has yet sat with Orca, VoiceOver or TalkBack and tried to play, which is
+the judgement a machine cannot make.
 
 ## Three things worth remembering
 
@@ -59,8 +109,13 @@ height from the content and keep the old literal as a floor.
 ## Running the checks
 
 ```bash
-tools/check.sh test-app          # all of the above
+tools/check.sh test-app          # every in-process test above
 cd app && flutter test test/text_scaling_test.dart
+
+# The AT-SPI probe needs a Linux build and at-spi2-core, so it is opt-in
+# locally and runs in CI on every push:
+cd app && flutter build linux --debug && cd ..
+tools/check.sh a11y
 ```
 
 Every one of these tests was verified by breaking the thing it guards and
