@@ -107,7 +107,9 @@ def main():
         "--expect",
         action="append",
         default=[],
-        help="a label the tree must contain; repeatable",
+        help="a label the tree must contain; repeatable. Alternatives are "
+             "separated by '|' and any one of them satisfies it, which is how "
+             "a bilingual app is checked without pinning a locale.",
     )
     p.add_argument("--min-nodes", type=int, default=10)
     args = p.parse_args()
@@ -231,8 +233,20 @@ def main():
             f"little inside it (expected at least {args.min_nodes})"
         )
     for wanted in args.expect:
-        if not any(wanted.lower() in label.lower() for label in labels):
-            failures.append(f"no node announces {wanted!r}")
+        # The app follows the platform locale, and a CI runner's is not the
+        # developer's: this passed locally in English and failed on GitHub,
+        # which starts it in German. Rather than pin a locale -- which needs
+        # one generated on the machine and would stop testing what a real
+        # user sees -- any listed alternative satisfies the expectation.
+        alternatives = [w.strip() for w in wanted.split("|") if w.strip()]
+        if not any(
+            alt.lower() in label.lower()
+            for alt in alternatives
+            for label in labels
+        ):
+            failures.append(
+                f"no node announces any of {alternatives!r}"
+            )
     if failures:
         for f in failures:
             print(f"a11y probe: {f}")

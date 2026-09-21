@@ -948,6 +948,16 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   `GetChildren` with an empty list while reporting a correct `ChildCount`, so my probe was blind,
   not the app. A stock build with no flags exposes the whole tree. Real clients use
   `GetChildAtIndex`, and the probe now does too.
+  *Note 2026-09-21 (2):* the probe's first CI run failed while passing locally, and the reason is
+  worth keeping: this box starts the app in English, GitHub's runner starts it in German, so the
+  expected labels never matched. `--expect` now takes `|` alternatives and the check lists both
+  languages — pinning a locale would need one generated on the machine and would stop testing what
+  a real user sees. Reproduced locally under `LC_ALL=de_DE.UTF-8` before and after the fix.
+  It also merged before CI ran, which is its own lesson: `main` has no branch protection, so there
+  are no required checks, so `gh pr merge --auto` has nothing to wait for and merges immediately.
+  Enabling `allow_auto_merge` on the repository was necessary but not sufficient; "merge when
+  green" needs required status checks, which is a policy decision left to the owner. Until then the
+  discipline is to wait for checks and merge by hand.
   Two environment traps are written into the tool: the AT-SPI bus puts its socket under `$HOME`,
   and a home directory on a network filesystem cannot host a unix socket, so it points
   `XDG_CACHE_HOME` at local scratch; and `at-spi2-core` is not on GitHub's Ubuntu image, so CI
