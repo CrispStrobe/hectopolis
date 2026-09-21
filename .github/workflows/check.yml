@@ -78,9 +78,9 @@ jobs:
           cd app && flutter build linux --debug && cd ..
           python3 tools/a11y_probe.py \
             --bundle app/build/linux/x64/debug/bundle/hectopolis \
-            --expect "How Hectopolis works" \
-            --expect "Skip" \
-            --expect "Next" \
+            --expect "How Hectopolis works|So funktioniert Hectopolis" \
+            --expect "Skip|Überspringen" \
+            --expect "Next|Weiter" \
             --min-nodes 15
 
       - name: Build web

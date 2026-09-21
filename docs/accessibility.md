@@ -58,6 +58,13 @@ them — when the tree had been there the whole time and the probe was blind.
 The code change was reverted; a stock build exposes everything above. Real
 clients use `GetChildAtIndex`, and so does this one.
 
+**The app follows the platform locale, and CI's is not yours.** The first CI
+run of this probe failed while passing locally: this box starts the app in
+English and GitHub's runner starts it in German, so the expected labels were
+never going to match. Pinning a locale would need one generated on the machine
+and would stop testing what a real user sees, so `--expect` takes `|`
+alternatives instead and the check lists both languages.
+
 Two environment notes for whoever runs it elsewhere: the AT-SPI bus puts its
 socket under `$HOME` by default, and a home directory on a network filesystem
 cannot host a unix socket (the bus dies with `Failed to bind socket ... Input/

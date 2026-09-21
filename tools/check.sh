@@ -84,8 +84,9 @@ run_stage() {
     # Needs a Linux build (flutter build linux --debug) and at-spi2-core.
     # Reads the app the way a screen reader does; see docs/accessibility.md.
     a11y)        python3 tools/a11y_probe.py \
-                   --expect "How Hectopolis works" --expect "Skip" \
-                   --expect "Next" --min-nodes 15 ;;
+                   --expect "How Hectopolis works|So funktioniert Hectopolis" \
+                   --expect "Skip|Überspringen" --expect "Next|Weiter" \
+                   --min-nodes 15 ;;
     *)           echo "unknown stage: $1" >&2; echo "stages: ${STAGES[*]}" >&2; exit 2 ;;
   esac
 }
