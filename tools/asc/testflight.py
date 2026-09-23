@@ -283,10 +283,31 @@ def prepare_store(
     )
     build = newest_build(app_id, build_number, wait_minutes, platform)
 
+    # An app with something live and something editable has *two* appInfo
+    # records: one for the version on sale and one for the version being
+    # prepared. Only the second can be edited, and the age rating declaration
+    # hangs off it -- so take it by state rather than assuming there is one.
     infos = client.paged(f"/v1/apps/{app_id}/appInfos?limit=50")
-    if len(infos) != 1:
-        raise SystemExit(f"expected one app info, found {len(infos)}")
-    rating_id = infos[0]["id"]
+    editable_infos = [
+        info
+        for info in infos
+        if info["attributes"].get("appStoreState") in EDITABLE_STATES
+        or info["attributes"].get("state") in EDITABLE_STATES
+    ]
+    if len(editable_infos) != 1:
+        states = {
+            info["id"]: (
+                info["attributes"].get("state")
+                or info["attributes"].get("appStoreState")
+            )
+            for info in infos
+        }
+        raise SystemExit(
+            f"expected one editable app info, found {len(editable_infos)}; "
+            f"app infos are {states}"
+        )
+    rating_id = editable_infos[0]["id"]
+    print("editable app info", rating_id)
     no_content_rating = {
         "advertising": False,
         "alcoholTobaccoOrDrugUseOrReferences": "NONE",
