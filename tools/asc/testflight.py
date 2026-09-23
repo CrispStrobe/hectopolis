@@ -233,22 +233,54 @@ def prepare_external(
     print("Public Beta group", group["id"], "build", build_id)
 
 
-def prepare_store(
-    app_id: str, build_number: str | None, wait_minutes: int, platform: str
-) -> None:
-    """Complete API-editable fields needed before full App Store review."""
+# App Store states in which a version's metadata and build can still be
+# changed. `PREPARE_FOR_SUBMISSION` is the obvious one and is not the only one:
+# a version the developer pulled back, or that Apple sent back, is editable
+# again and is exactly the version you want to fix and resubmit. Only
+# `PREPARE_FOR_SUBMISSION` was accepted here until 2026-09-23, so `ready-store`
+# refused to touch a `DEVELOPER_REJECTED` version -- the state this app's iOS
+# version was actually in.
+EDITABLE_STATES = (
+    "PREPARE_FOR_SUBMISSION",
+    "DEVELOPER_REJECTED",
+    "REJECTED",
+    "METADATA_REJECTED",
+    "INVALID_BINARY",
+)
+
+
+def editable_version(app_id: str, platform: str) -> dict:
+    """The one version of [platform] that can still be edited."""
     versions = client.paged(f"/v1/apps/{app_id}/appStoreVersions?limit=50")
     candidates = [
         version
         for version in versions
         if version["attributes"].get("platform") == platform
-        and version["attributes"].get("appStoreState") == "PREPARE_FOR_SUBMISSION"
+        and version["attributes"].get("appStoreState") in EDITABLE_STATES
     ]
     if len(candidates) != 1:
+        states = {
+            v["attributes"].get("versionString"): v["attributes"].get("appStoreState")
+            for v in versions
+            if v["attributes"].get("platform") == platform
+        }
         raise SystemExit(
-            f"expected one editable {platform} App Store version, found {len(candidates)}"
+            f"expected one editable {platform} App Store version, found "
+            f"{len(candidates)}; {platform} versions are {states}"
         )
-    version = candidates[0]
+    return candidates[0]
+
+
+def prepare_store(
+    app_id: str, build_number: str | None, wait_minutes: int, platform: str
+) -> None:
+    """Complete API-editable fields needed before full App Store review."""
+    version = editable_version(app_id, platform)
+    print(
+        "editable version",
+        version["attributes"].get("versionString"),
+        version["attributes"].get("appStoreState"),
+    )
     build = newest_build(app_id, build_number, wait_minutes, platform)
 
     infos = client.paged(f"/v1/apps/{app_id}/appInfos?limit=50")
@@ -387,14 +419,151 @@ def prepare_store(
     )
 
 
+def submit_store(app_id: str, platform: str, confirm: bool) -> None:
+    """Submit the editable App Store version for full App Store review.
+
+    This is the outward-facing one. Everything else in this file prepares
+    metadata that can be edited again afterwards; this hands the app to Apple
+    and, on approval, publishes it. So it refuses to run without --confirm,
+    and it prints what it is about to submit first.
+
+    Apple's current route is a reviewSubmission with the version as an item,
+    not the retired appStoreVersionSubmissions. An open submission is reused
+    rather than duplicated: a second one for the same app is rejected by the
+    API, and creating one is not something to retry blindly.
+    """
+    version = editable_version(app_id, platform)
+    attrs = version["attributes"]
+
+    status, doc = client.call("GET", f"/v1/appStoreVersions/{version['id']}/build")
+    build = doc.get("data") if status == 200 else None
+    if not build:
+        raise SystemExit(
+            f"{platform} version {attrs.get('versionString')} has no build "
+            f"attached; run `ready-store` first"
+        )
+
+    # Refuse to submit a build that is not the newest one available, which is
+    # the mistake App Store Connect warns about in its own words: "A newer
+    # build of your app is available."
+    newest = newest_build(app_id, None, 0, platform)
+    if newest["id"] != build["id"]:
+        raise SystemExit(
+            f"attached build is {build['attributes'].get('version')} but "
+            f"{newest['attributes'].get('version')} is newer; run "
+            f"`ready-store` to attach it before submitting"
+        )
+
+    print(
+        f"about to submit {platform} version {attrs.get('versionString')} "
+        f"(state {attrs.get('appStoreState')}) with build "
+        f"{build['attributes'].get('version')} "
+        f"uploaded {build['attributes'].get('uploadedDate')} "
+        f"for full App Store review"
+    )
+    if not confirm:
+        raise SystemExit(
+            "refusing to submit without --confirm: this hands the app to "
+            "Apple and publishes it on approval"
+        )
+
+    open_states = ("READY_FOR_REVIEW", "UNRESOLVED_ISSUES")
+    existing = [
+        s
+        for s in client.paged(
+            query(f"/v1/apps/{app_id}/reviewSubmissions", limit="50")
+        )
+        if s["attributes"].get("platform") == platform
+        and s["attributes"].get("state") in open_states
+    ]
+    if existing:
+        submission = existing[0]
+        print("reusing open review submission", submission["id"],
+              submission["attributes"].get("state"))
+    else:
+        submission = client.expect(
+            "POST",
+            "/v1/reviewSubmissions",
+            {
+                "data": {
+                    "type": "reviewSubmissions",
+                    "attributes": {"platform": platform},
+                    "relationships": {
+                        "app": {"data": {"type": "apps", "id": app_id}}
+                    },
+                }
+            },
+        )["data"]
+        print("created review submission", submission["id"])
+
+    items = client.paged(
+        query(f"/v1/reviewSubmissions/{submission['id']}/items", limit="50")
+    )
+    already = any(
+        (item.get("relationships", {}).get("appStoreVersion", {}).get("data") or {})
+        .get("id")
+        == version["id"]
+        for item in items
+    )
+    if already:
+        print("version already an item of this submission")
+    else:
+        client.expect(
+            "POST",
+            "/v1/reviewSubmissionItems",
+            {
+                "data": {
+                    "type": "reviewSubmissionItems",
+                    "relationships": {
+                        "reviewSubmission": {
+                            "data": {
+                                "type": "reviewSubmissions",
+                                "id": submission["id"],
+                            }
+                        },
+                        "appStoreVersion": {
+                            "data": {
+                                "type": "appStoreVersions",
+                                "id": version["id"],
+                            }
+                        },
+                    },
+                }
+            },
+        )
+        print("added version to the submission")
+
+    result = client.expect(
+        "PATCH",
+        f"/v1/reviewSubmissions/{submission['id']}",
+        {
+            "data": {
+                "type": "reviewSubmissions",
+                "id": submission["id"],
+                "attributes": {"submitted": True},
+            }
+        },
+    )
+    print(
+        "submitted:",
+        result.get("data", {}).get("attributes", {}).get("state"),
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "action", choices=("audit", "ready-store", "submit-external")
+        "action",
+        choices=("audit", "ready-store", "submit-external", "submit-store"),
     )
     parser.add_argument("--build-number")
     parser.add_argument("--platform", choices=("IOS", "MAC_OS"), default="IOS")
     parser.add_argument("--wait-minutes", type=int, default=30)
+    parser.add_argument(
+        "--confirm",
+        action="store_true",
+        help="submit-store only: actually submit for App Store review",
+    )
     args = parser.parse_args()
     app_id = os.environ.get("ASC_APP_ID") or client.app_id(META["bundleId"])
     if not app_id:
@@ -403,6 +572,8 @@ def main() -> None:
         audit(app_id)
     elif args.action == "ready-store":
         prepare_store(app_id, args.build_number, args.wait_minutes, args.platform)
+    elif args.action == "submit-store":
+        submit_store(app_id, args.platform, args.confirm)
     else:
         prepare_external(app_id, args.build_number, args.wait_minutes, args.platform)
 

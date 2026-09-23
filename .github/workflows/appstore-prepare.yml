@@ -7,7 +7,7 @@ on:
       action:
         description: 'Audit, prepare App Store listing, or submit a build for TestFlight review'
         type: choice
-        options: [audit, listing, ready-store, submit-external, beta-links, beta-link-enable]
+        options: [audit, listing, ready-store, submit-external, submit-store, beta-links, beta-link-enable]
         default: audit
       build_number:
         description: 'Optional exact CFBundleVersion; blank selects the newest build'
@@ -22,6 +22,10 @@ on:
         type: choice
         options: [IOS, MAC_OS]
         default: IOS
+      confirm:
+        description: 'submit-store only: type "submit" to hand the app to Apple for App Store review'
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -43,6 +47,7 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
           ACTION: ${{ inputs.action }}
+          CONFIRM: ${{ inputs.confirm }}
           APP_ID: ${{ inputs.app_id }}
           BUILD_NUMBER: ${{ inputs.build_number }}
           PLATFORM: ${{ inputs.platform }}
@@ -53,7 +58,18 @@ jobs:
           if [ -n "$BUILD_NUMBER" ]; then
             args+=(--build-number "$BUILD_NUMBER")
           fi
-          if [ "$ACTION" = listing ]; then
+          if [ "$ACTION" = submit-store ]; then
+            # The only action here that is not reversible from this workflow:
+            # it hands the app to Apple for App Store review and, on approval,
+            # publishes it. So it needs the word typed out, and the tool needs
+            # --confirm on top of that.
+            if [ "$CONFIRM" != submit ]; then
+              echo "::error::submit-store needs confirm=submit, got: $CONFIRM"
+              exit 1
+            fi
+            python3 tools/asc/testflight.py submit-store \
+              --platform "$PLATFORM" --confirm
+          elif [ "$ACTION" = listing ]; then
             python3 tools/asc/listing.py
           elif [ "$ACTION" = beta-link-enable ]; then
             # Turns ON one app's public link. A public link is a URL anyone can
