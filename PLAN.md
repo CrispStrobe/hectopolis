@@ -624,9 +624,9 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   signer was present. Flatpak remains open.
   *Note 2026-09-26 (2):* Linux packaging now also builds a single-file Flatpak from the same
   release bundle against `org.freedesktop.Platform//25.08`, with only display/GPU and networking
-  sandbox permissions and no host-filesystem access. The workflow imports the bundle as a
-  structural check, installs it into an isolated user Flatpak installation and launches the real
-  app under Xvfb before retaining or releasing it. See `docs/release/linux.md`. A future Flathub
+  sandbox permissions and no host-filesystem access. The workflow installs the bundle into an
+  isolated user Flatpak installation and launches the real app under Xvfb before retaining or
+  releasing it. See `docs/release/linux.md`. A future Flathub
   listing is separate source-manifest/review work, not required for the downloadable installer.
 - [x] **T-405 About / licenses screen.** Shows AGPL, the section 7 exception, third-party
   licenses (`THIRD_PARTY.md`), data attributions, link to source repository.

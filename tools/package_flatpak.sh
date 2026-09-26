@@ -79,5 +79,4 @@ flatpak build-bundle \
   --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
   "$repo" "$out" "$APP_ID" stable
 
-flatpak build-import-bundle "$work/verify-repo" "$out"
 echo "wrote $out ($(du -h "$out" | cut -f1))"

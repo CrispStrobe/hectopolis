@@ -38,9 +38,9 @@ cd app && flutter build linux --release && cd ..
 tools/package_flatpak.sh dist
 ```
 
-The packaging script exports an OSTree repository, creates the single-file bundle, then imports
-that bundle into a fresh repository as a structural check. CI additionally installs it in an
-isolated user installation and launches the real application under Xvfb.
+The packaging script exports an OSTree repository and creates the single-file bundle. CI then
+installs that exact bundle into an isolated user installation and launches the real application
+under Xvfb, which checks both its import and its runtime dependencies.
 
 A GitHub release bundle is not a Flathub submission. Flathub requires a source-based manifest,
 review and ongoing runtime maintenance; prepare that separately if store discovery becomes a
