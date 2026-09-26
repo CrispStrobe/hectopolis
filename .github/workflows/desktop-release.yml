@@ -64,7 +64,7 @@ jobs:
       - name: Package (Unix)
         if: matrix.target != 'windows'
         run: |
-          mkdir -p $GITHUB_WORKSPACE/dist
+          mkdir -p "$GITHUB_WORKSPACE/dist"
           cd ${{ matrix.output_dir }}
           ${{ matrix.zip_cmd }}
         shell: bash
@@ -75,6 +75,73 @@ jobs:
           New-Item -ItemType Directory -Force -Path $env:GITHUB_WORKSPACE\dist
           cd ${{ matrix.output_dir }}
           ${{ matrix.zip_cmd }}
+        shell: powershell
+
+      # This proves the MSIX recipe on a real Windows runner. The msix package's
+      # bundled certificate is a public development key, so this artifact is
+      # deliberately separate from dist/ and is never attached to a release.
+      - name: Package and validate MSIX (Windows test certificate)
+        if: matrix.target == 'windows'
+        run: |
+          $versionLine = Select-String -Path app/pubspec.yaml -Pattern '^version:\s*(.+)$'
+          if ($null -eq $versionLine) {
+            throw 'No version found in app/pubspec.yaml'
+          }
+          $pubVersion = $versionLine.Matches[0].Groups[1].Value.Trim()
+          $versionParts = $pubVersion -split '\+'
+          $buildNumber = if ($versionParts.Length -gt 1) { $versionParts[1] } else { '0' }
+          $msixVersion = "$($versionParts[0]).$buildNumber"
+          if ($msixVersion -notmatch '^\d+\.\d+\.\d+\.\d+$') {
+            throw "Cannot convert pub version '$pubVersion' to an MSIX version"
+          }
+
+          $outputDir = Join-Path $env:GITHUB_WORKSPACE 'msix-dist'
+          New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
+          Push-Location app
+          dart run msix:create `
+            --version $msixVersion `
+            --output-path $outputDir `
+            --output-name "hectopolis-windows-$msixVersion-test-signed"
+          if ($LASTEXITCODE -ne 0) {
+            throw "msix:create failed with exit code $LASTEXITCODE"
+          }
+          Pop-Location
+
+          $packages = @(Get-ChildItem -Path $outputDir -Filter '*.msix')
+          if ($packages.Count -ne 1) {
+            throw "Expected exactly one MSIX in $outputDir, found $($packages.Count)"
+          }
+          $package = $packages[0]
+
+          $makeAppx = Get-ChildItem `
+            -Path "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\makeappx.exe" |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+          if ($null -eq $makeAppx) {
+            throw 'Could not find makeappx.exe in the Windows SDK'
+          }
+          $unpacked = Join-Path $env:RUNNER_TEMP 'hectopolis-msix-unpacked'
+          & $makeAppx.FullName unpack /p $package.FullName /d $unpacked
+          if ($LASTEXITCODE -ne 0) {
+            throw "MakeAppx validation failed with exit code $LASTEXITCODE"
+          }
+          if (-not (Test-Path (Join-Path $unpacked 'AppxManifest.xml'))) {
+            throw 'The MSIX has no AppxManifest.xml'
+          }
+          if (-not (Test-Path (Join-Path $unpacked 'hectopolis.exe'))) {
+            throw 'The MSIX has no hectopolis.exe'
+          }
+
+          $signature = Get-AuthenticodeSignature $package.FullName
+          if ($null -eq $signature.SignerCertificate) {
+            throw 'The MSIX has no signer certificate'
+          }
+          if ($signature.SignerCertificate.NotAfter -le (Get-Date)) {
+            throw 'The MSIX test certificate has expired'
+          }
+          Write-Output "MSIX: $($package.Name) ($($package.Length) bytes)"
+          Write-Output "Signer: $($signature.SignerCertificate.Subject)"
+          Write-Output "Signature status: $($signature.Status) (untrusted is expected for the test certificate)"
         shell: powershell
 
       # The zip is the raw bundle; the AppImage is the thing a Linux user can
@@ -92,6 +159,15 @@ jobs:
         with:
           name: hectopolis-${{ matrix.target }}
           path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload MSIX validation artifact
+        if: matrix.target == 'windows'
+        uses: actions/upload-artifact@v7
+        with:
+          name: hectopolis-windows-msix-test-signed
+          path: msix-dist/*.msix
           if-no-files-found: error
           retention-days: 14
 

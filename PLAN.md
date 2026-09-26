@@ -611,6 +611,17 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   The workflow now retains one 14-day artifact per platform on every run. Verified on the
   branch in run 35438349043: Linux (22.1 MB), macOS (58.3 MB) and Windows (13.5 MB) all
   built, packaged and uploaded through the Node 24 action without creating a release.
+  *Note 2026-09-26:* The Windows job now also creates an MSIX with the `msix` package,
+  unpacks it with the Windows SDK to validate its manifest and payload, checks its signer and
+  retains it as a separately named 14-day artifact. It is explicitly a CI-only test package:
+  the dependency's bundled development certificate has a public private key, so the workflow
+  neither trusts it nor copies it into `dist/`, and tag releases cannot attach it by accident.
+  A distributable MSIX remains blocked on either a Partner Center product identity (the Store
+  signs the upload) or a private code-signing certificate. The exact handoff is documented in
+  `docs/release/windows.md`. Verified in the complete hosted desktop matrix (run 36235351467):
+  the Windows SDK unpacked the 16.24 MB `0.1.1.5` package, its manifest contained the x64 app,
+  English/German resources and both internet/LAN capabilities, and the expected untrusted test
+  signer was present. Flatpak remains open.
 - [x] **T-405 About / licenses screen.** Shows AGPL, the section 7 exception, third-party
   licenses (`THIRD_PARTY.md`), data attributions, link to source repository.
   *Note 2026-09-05:* `AboutScreen` like the sibling apps: header with version, provider, contact, privacy, disclaimer, license + section 7 exception, data sources, `showLicensePage` with the bundled AGPL/exception texts and data-source entries registered via `LicenseRegistry`. Widget tests in DE and EN.

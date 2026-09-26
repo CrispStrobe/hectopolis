@@ -56,7 +56,11 @@ list_packages() {
 import re, sys, os
 pub_cache, flutter_root = sys.argv[1], sys.argv[2]
 text = open('pubspec.lock').read()
-for name, body in re.findall(r'\n  ([A-Za-z0-9_]+):\n((?:    .*\n)+)', text):
+# Anchor at the start of a package line instead of consuming the preceding
+# newline. Consuming it makes adjacent matches overlap and silently skips
+# every second package in the lockfile.
+for name, body in re.findall(
+        r'^  ([A-Za-z0-9_]+):\n((?:    .*\n)+)', text, re.MULTILINE):
     src = re.search(r'source: (\S+)', body)
     ver = re.search(r'version: "([^"]+)"', body)
     src = src.group(1) if src else '?'
