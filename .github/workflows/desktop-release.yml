@@ -37,7 +37,13 @@ jobs:
 
       - name: Install Linux Dependencies
         if: matrix.target == 'linux'
-        run: sudo apt-get update && sudo apt-get install -y ninja-build libgtk-3-dev pkg-config
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak ninja-build libgtk-3-dev pkg-config xvfb
+          flatpak remote-add --if-not-exists --user flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --noninteractive --user flathub \
+            org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
 
       - uses: subosito/flutter-action@v2
         with:
@@ -149,6 +155,22 @@ jobs:
       - name: Package AppImage (Linux)
         if: matrix.target == 'linux'
         run: tools/package_appimage.sh "$GITHUB_WORKSPACE/dist"
+        shell: bash
+
+      - name: Package and smoke-test Flatpak (Linux)
+        if: matrix.target == 'linux'
+        run: |
+          tools/package_flatpak.sh "$GITHUB_WORKSPACE/dist"
+          flatpak install --noninteractive --user "$GITHUB_WORKSPACE"/dist/*.flatpak
+          set +e
+          timeout 15s xvfb-run -a flatpak run com.crispstrobe.hectopolis
+          status=$?
+          set -e
+          if [ "$status" -ne 124 ]; then
+            echo "Flatpak exited during its launch smoke test (status $status)" >&2
+            exit "$status"
+          fi
+          flatpak info --user --show-permissions com.crispstrobe.hectopolis
         shell: bash
 
       # Manual dispatch is the cross-platform dry run. Keep its output useful

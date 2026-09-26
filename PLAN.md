@@ -622,6 +622,12 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   the Windows SDK unpacked the 16.24 MB `0.1.1.5` package, its manifest contained the x64 app,
   English/German resources and both internet/LAN capabilities, and the expected untrusted test
   signer was present. Flatpak remains open.
+  *Note 2026-09-26 (2):* Linux packaging now also builds a single-file Flatpak from the same
+  release bundle against `org.freedesktop.Platform//25.08`, with only display/GPU and networking
+  sandbox permissions and no host-filesystem access. The workflow imports the bundle as a
+  structural check, installs it into an isolated user Flatpak installation and launches the real
+  app under Xvfb before retaining or releasing it. See `docs/release/linux.md`. A future Flathub
+  listing is separate source-manifest/review work, not required for the downloadable installer.
 - [x] **T-405 About / licenses screen.** Shows AGPL, the section 7 exception, third-party
   licenses (`THIRD_PARTY.md`), data attributions, link to source repository.
   *Note 2026-09-05:* `AboutScreen` like the sibling apps: header with version, provider, contact, privacy, disclaimer, license + section 7 exception, data sources, `showLicensePage` with the bundled AGPL/exception texts and data-source entries registered via `LicenseRegistry`. Widget tests in DE and EN.
