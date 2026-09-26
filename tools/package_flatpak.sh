@@ -58,13 +58,8 @@ install -m 0644 app/linux/packaging/hectopolis.desktop \
 install -m 0644 app/linux/packaging/com.crispstrobe.hectopolis.metainfo.xml \
   "$build/files/share/metainfo/$APP_ID.metainfo.xml"
 
-if command -v convert >/dev/null 2>&1; then
-  convert app/assets/icon/icon-1024.png -resize 512x512 \
-    "$build/files/share/icons/hicolor/512x512/apps/$APP_ID.png"
-else
-  install -m 0644 app/assets/icon/icon-1024.png \
-    "$build/files/share/icons/hicolor/512x512/apps/$APP_ID.png"
-fi
+install -m 0644 app/web/icons/Icon-512.png \
+  "$build/files/share/icons/hicolor/512x512/apps/$APP_ID.png"
 
 # Flutter needs a display and GPU access. Hectopolis networking is opt-in LAN
 # multiplayer; Flatpak exposes networking as one coarse permission, so the

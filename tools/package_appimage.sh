@@ -36,12 +36,10 @@ cp app/linux/packaging/hectopolis.desktop "$appdir/usr/share/applications/$APP_I
 cp app/linux/packaging/hectopolis.desktop "$appdir/$APP_ID.desktop"
 
 # AppImage wants the icon at the top of the AppDir under the Icon= name, and
-# again in the hicolor theme for desktops that install the AppImage.
-if command -v convert >/dev/null 2>&1; then
-  convert app/assets/icon/icon-1024.png -resize 512x512 "$appdir/$APP_ID.png"
-else
-  cp app/assets/icon/icon-1024.png "$appdir/$APP_ID.png"
-fi
+# again in the hicolor theme for desktops that install the AppImage. Use the
+# generated asset whose actual dimensions match that theme directory; CI does
+# not promise ImageMagick is installed.
+cp app/web/icons/Icon-512.png "$appdir/$APP_ID.png"
 cp "$appdir/$APP_ID.png" "$appdir/usr/share/icons/hicolor/512x512/apps/$APP_ID.png"
 
 cat > "$appdir/AppRun" <<'RUN'
