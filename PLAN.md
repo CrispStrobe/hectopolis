@@ -628,6 +628,10 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   isolated user Flatpak installation and launches the real app under Xvfb before retaining or
   releasing it. See `docs/release/linux.md`. A future Flathub
   listing is separate source-manifest/review work, not required for the downloadable installer.
+  Verified in hosted matrix run 36236387010: the 8.0 MB bundle installed as
+  `app/com.crispstrobe.hectopolis/x86_64/stable`, stayed alive for the launch probe, reported the
+  intended network/IPC/display/GPU permissions and no filesystem grant, and the other three
+  desktop artifacts still built successfully.
 - [x] **T-405 About / licenses screen.** Shows AGPL, the section 7 exception, third-party
   licenses (`THIRD_PARTY.md`), data attributions, link to source repository.
   *Note 2026-09-05:* `AboutScreen` like the sibling apps: header with version, provider, contact, privacy, disclaimer, license + section 7 exception, data sources, `showLicensePage` with the bundled AGPL/exception texts and data-source entries registered via `LicenseRegistry`. Widget tests in DE and EN.
