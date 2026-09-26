@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: FSFAP -->
+<component type="desktop-application">
+  <id>com.crispstrobe.hectopolis</id>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>AGPL-3.0-or-later</project_license>
+  <name>Hectopolis</name>
+  <developer id="com.crispstrobe">
+    <name>CrispStrobe</name>
+  </developer>
+  <summary>Build a town and understand its trade-offs</summary>
+  <summary xml:lang="de">Baue eine Stadt und verstehe ihre Zielkonflikte</summary>
+  <description>
+    <p>
+      Hectopolis is a tile-placement simulation about urban habitat, ecology,
+      mobility and public budgets. Its short scenarios make their causal model
+      visible instead of hiding it behind a score.
+    </p>
+    <p xml:lang="de">
+      Hectopolis ist eine Legespiel-Simulation über städtische Lebensräume,
+      Ökologie, Mobilität und öffentliche Haushalte. Kurze Szenarien machen
+      ihr Wirkungsmodell sichtbar, statt es hinter einer Punktzahl zu verstecken.
+    </p>
+  </description>
+  <launchable type="desktop-id">com.crispstrobe.hectopolis.desktop</launchable>
+  <url type="homepage">https://crispstrobe.github.io/stadtbau/</url>
+  <url type="bugtracker">https://github.com/CrispStrobe/hectopolis/issues</url>
+  <url type="vcs-browser">https://github.com/CrispStrobe/hectopolis</url>
+  <content_rating type="oars-1.1" />
+</component>
