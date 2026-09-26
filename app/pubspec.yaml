@@ -29,6 +29,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  msix: ^3.18.0
 
 flutter:
   uses-material-design: true
@@ -48,3 +49,17 @@ flutter:
           weight: 500
         - asset: assets/fonts/Roboto-Bold.ttf
           weight: 700
+
+# These values describe CI's development package. A Microsoft Store package
+# must replace the identity and publisher with the values assigned by Partner
+# Center; see docs/release/windows.md.
+msix_config:
+  display_name: Hectopolis
+  publisher_display_name: CrispStrobe
+  identity_name: com.crispstrobe.hectopolis
+  logo_path: web/icons/Icon-512.png
+  architecture: x64
+  languages: en-us, de-de
+  capabilities: internetClient,privateNetworkClientServer
+  build_windows: false
+  install_certificate: false
