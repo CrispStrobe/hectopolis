@@ -9,7 +9,7 @@ COPY pubspec.yaml pubspec.lock ./
 RUN dart pub get
 COPY bin ./bin
 COPY lib ./lib
-RUN dart compile exe bin/relay.dart -o /out/relay
+RUN mkdir -p /out && dart compile exe bin/relay.dart -o /out/relay
 
 FROM scratch
 # The Dart runtime's minimal system libraries, as the official image intends.
