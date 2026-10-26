@@ -12,7 +12,8 @@ only the mechanics.
 data/params/tiles.json                       the parameters, each with a source
 packages/stadtbau_sim/lib/src/tile_type.dart the enum value and its id
 app/lib/ui/tile_style.dart                   colour and icon
-app/lib/ui/map_view.dart                     how it is drawn
+app/lib/ui/map/map_painter.dart              which painter draws it (_drawTile)
+app/lib/ui/map/tiles_*.dart                  how it is drawn (nature, built, transport)
 app/lib/l10n/app_en.arb, app_de.arb          name and description, both files
 dart run tools/gen_params.dart               regenerate the mirror
 tools/check.sh                               analyze, tests, i18n lint, licences
@@ -80,8 +81,8 @@ pair (`w` water / `W` wetland, `h` low density / `H` high).
 ## 3. What the compiler will catch, and what it will not
 
 The analyzer finds exhaustive `switch` statements over `TileType` — there are
-two, in `game_controller.dart` (which overlay a placement previews) and
-`map_view.dart` (how a tile is drawn). Fix those and it goes quiet.
+two, in `game/overlay_math.dart` (which overlay a placement previews) and
+`ui/map/map_painter.dart` (how a tile is drawn). Fix those and it goes quiet.
 
 **It will not find these:**
 

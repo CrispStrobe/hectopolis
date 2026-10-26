@@ -23,10 +23,10 @@ import 'doc_links.dart';
 /// passed. `app/test/contrast_test.dart` sweeps every reading for this
 /// reason.
 Color indicatorBarColor(double value, {required bool dark}) => Color.lerp(
-      dark ? const Color(0xFFF06D16) : const Color(0xFFCF5B0D),
-      dark ? const Color(0xFF3490CE) : const Color(0xFF2A79B0),
-      value.clamp(0, 100) / 100,
-    )!;
+  dark ? const Color(0xFFF06D16) : const Color(0xFFCF5B0D),
+  dark ? const Color(0xFF3490CE) : const Color(0xFF2A79B0),
+  value.clamp(0, 100) / 100,
+)!;
 
 /// Opens the detail sheet of one indicator: name, hint, current detail line,
 /// how the score is computed and a link into `docs/model` (T-204).
@@ -220,9 +220,9 @@ class _Gauge extends StatelessWidget {
       showIndicatorDetails(context, indicator: indicator, detail: detail);
 
   Color _color(BuildContext context) => indicatorBarColor(
-        value,
-        dark: Theme.of(context).brightness == Brightness.dark,
-      );
+    value,
+    dark: Theme.of(context).brightness == Brightness.dark,
+  );
 
   /// Simple mode's face for a score.
   ///

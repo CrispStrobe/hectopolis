@@ -129,7 +129,9 @@ Future<void> showMissionBriefing(
                       onChanged: (value) => setState(() => prediction = value),
                       child: Column(
                         children: [
-                          for (final choice in predictionChoicesFor(predictionId))
+                          for (final choice in predictionChoicesFor(
+                            predictionId,
+                          ))
                             RadioListTile<String>(
                               contentPadding: EdgeInsets.zero,
                               title: Text(l10n.missionPredictionChoice(choice)),

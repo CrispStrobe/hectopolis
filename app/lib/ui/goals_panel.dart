@@ -135,8 +135,9 @@ class _GoalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color =
-        met ? goalMetColor(theme.brightness) : theme.colorScheme.onSurfaceVariant;
+    final color = met
+        ? goalMetColor(theme.brightness)
+        : theme.colorScheme.onSurfaceVariant;
     return Row(
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [
@@ -217,8 +218,11 @@ class _GuidanceCard extends StatelessWidget {
       1 => l10n.guidanceSeeOverlay,
       2 => l10n.guidanceThinkCause,
       _ => switch (tile) {
-        null => protectOnly ? l10n.guidanceProtect(target) : l10n.guidanceExplore,
-        final t => l10n.guidanceTryTile(tileDisplayName(l10n, controller.level, t)),
+        null =>
+          protectOnly ? l10n.guidanceProtect(target) : l10n.guidanceExplore,
+        final t => l10n.guidanceTryTile(
+          tileDisplayName(l10n, controller.level, t),
+        ),
       },
     };
     return Card(
