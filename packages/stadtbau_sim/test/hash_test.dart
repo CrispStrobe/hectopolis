@@ -1,30 +1,39 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The world hash is compared between a co-op host and its guests, which may be
 // a native app and a browser, so it must come out the same on both. Run in
-// the VM and in Chrome (`dart test -p chrome`); the expected values were
-// computed in the VM.
+// the VM and in Chrome (`dart test -p chrome`).
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 import 'package:test/test.dart';
 
+import '../tool/world_hashes.dart';
+import 'world_hashes.g.dart';
+
 void main() {
   test('a world hashes the same on every platform', () {
-    // Doubles that are integral (budgets), fractional populations and an
-    // infinite sandbox budget: everything that printed differently before.
-    final sandbox = Simulation.sandbox(width: 8, height: 8)
-      ..apply(const PlaceTile(2, 2, TileType.housingHigh))
-      ..apply(const AdvanceTick(5));
-    expect(sandbox.state.hash(), 532814957);
+    // Built directly, so the value does not move with the model: integral
+    // and fractional doubles and an unlimited budget, everything that printed
+    // differently in JavaScript before the hash was made canonical.
+    final world = WorldState.fromJson({
+      'width': 2,
+      'height': 2,
+      'tick': 7,
+      'budgetKEur': 'unlimited',
+      'seed': 3,
+      'tiles': ['meadow', 'housing_high', 'road', 'park'],
+      'tileAge': [0, 12, 3, 240],
+      'population': [0, 1500.0, 0.125, 28.716823772356285],
+    });
+    expect(world.hash(), 1845398304);
   });
 
-  test('a level a year in hashes the same on every platform', () {
-    // Thirteen months of simulation: if the platforms' floating-point maths
-    // drifted apart, the worlds themselves would differ, and this would say.
-    for (final (id, expected) in [
-      ('village', 2585897395),
-      ('tuebingen', 19036017),
-    ]) {
-      final sim = Level.byId(id)!.start()..apply(const AdvanceTick(13));
-      expect(sim.state.hash(), expected, reason: id);
-    }
+  test('simulated worlds hash as the VM computed them', () {
+    // In the VM this checks the generated file is current; in Chrome it
+    // checks a browser simulates and hashes exactly what the VM does.
+    expect(
+      simulatedWorldHashes(),
+      simulatedWorldHashesInVm,
+      reason:
+          'if the model changed, regenerate: dart run tool/world_hashes.dart',
+    );
   });
 }
