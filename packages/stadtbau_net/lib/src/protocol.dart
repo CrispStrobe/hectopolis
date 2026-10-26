@@ -18,7 +18,9 @@ import 'package:stadtbau_sim/stadtbau_sim.dart';
 /// Incremented when the meaning of a field changes. Clients and hosts refuse
 /// each other on a mismatch; there is no negotiation, because a game that
 /// silently disagrees about the rules is worse than one that will not start.
-const int protocolVersion = 1;
+// 2 (2026-10-26): `hash` now means the platform-independent
+// WorldState.hash(); a v1 peer computes another number for the same world.
+const int protocolVersion = 2;
 
 /// Why a host turned a client away.
 enum RejectReason {
