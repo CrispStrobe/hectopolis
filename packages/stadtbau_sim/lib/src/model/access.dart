@@ -111,3 +111,72 @@ void computeAccess(WorldState w, SimParams p, Fields f) {
     f.jobAccess[i] = clamp01(jobs / ap.jobReferenceJobs);
   }
 }
+
+/// The green weight of every green cell within reach of [cell], including
+/// the cell itself. Green access is the best of them plus a variety bonus,
+/// so the strongest source is the one that sets it.
+Map<int, double> greenSources(WorldState w, SimParams p, int cell) {
+  final greenWeightOf = TileLookup.of(p).greenWeight;
+  final offsets = Offsets.radius(p.access.greenRadiusTiles);
+  final x = cell % w.width;
+  final y = cell ~/ w.width;
+  final out = <int, double>{};
+  final own = greenWeightOf[w.tiles[cell].index];
+  if (own > 0) out[cell] = own;
+  for (var k = 0; k < offsets.length; k++) {
+    final nx = x + offsets.dx[k];
+    final ny = y + offsets.dy[k];
+    if (!w.inBounds(nx, ny)) continue;
+    final j = ny * w.width + nx;
+    final gw = greenWeightOf[w.tiles[j].index];
+    if (gw > 0) out[j] = gw;
+  }
+  return out;
+}
+
+/// The Huff-weighted retail floor each shop within reach adds to [cell]'s
+/// supply, before it is normalised and capped. Same weights as
+/// [computeAccess].
+Map<int, double> retailSources(WorldState w, SimParams p, int cell) {
+  final ap = p.access;
+  final retailFloorOf = TileLookup.of(p).retailFloorM2;
+  final offsets = Offsets.radius(ap.retailRadiusTiles);
+  final x = cell % w.width;
+  final y = cell ~/ w.width;
+  final out = <int, double>{};
+  final own = retailFloorOf[w.tiles[cell].index];
+  if (own > 0) out[cell] = own / math.pow(0.5, ap.huffLambda);
+  for (var k = 0; k < offsets.length; k++) {
+    final nx = x + offsets.dx[k];
+    final ny = y + offsets.dy[k];
+    if (!w.inBounds(nx, ny)) continue;
+    final j = ny * w.width + nx;
+    final floor = retailFloorOf[w.tiles[j].index];
+    if (floor <= 0) continue;
+    out[j] = floor / math.pow(math.max(offsets.dist[k], 0.5), ap.huffLambda);
+  }
+  return out;
+}
+
+/// The distance-decayed jobs each job cell on the map adds to [cell]'s job
+/// access, before it is normalised and capped. Same kernel as
+/// [computeAccess].
+Map<int, double> jobSources(WorldState w, SimParams p, int cell) {
+  final jobsPerHaOf = TileLookup.of(p).jobsPerHa;
+  final decay = DecayTables.get(
+    maxDist2: w.width * w.width + w.height * w.height,
+    cellSizeM: p.cellSizeM,
+    decayM: p.access.jobDecayM,
+  ).values;
+  final x = cell % w.width;
+  final y = cell ~/ w.width;
+  final out = <int, double>{};
+  for (var j = 0; j < w.cellCount; j++) {
+    final jobs = jobsPerHaOf[w.tiles[j].index];
+    if (jobs <= 0) continue;
+    final dx = j % w.width - x;
+    final dy = j ~/ w.width - y;
+    out[j] = jobs * decay[dx * dx + dy * dy];
+  }
+  return out;
+}
