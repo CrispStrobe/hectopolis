@@ -36,8 +36,7 @@
       },
       "recoveryMonths": {
         "value": 120,
-        "source": "BfN-Schriften 721 / Kompensationspraxis: Entwicklung artenreichen Grünlands 10–15 Jahre",
-        "note": "initial estimate"
+        "source": "Walker et al. 2004 (Biol. Conserv. 119, 1–18), via the Conservation Evidence summary: species-rich grassland sown on ex-arable land reached 50–81 % similarity to the target within 2–5 years, restoration by management alone gained slowly over 4–14 years; 10 years sits between the two. (An earlier citation of BfN-Schriften 721 for '10–15 years' is not supported by that text.)"
       },
       "noiseEmissionDb": {
         "value": 0,
@@ -147,8 +146,8 @@
         "source": "UBA, Emissionen der Landnutzung (LULUCF), Berichtsjahr 2024: Ackerland 17,5 Mt CO2-Äq.; bezogen auf 11,66 Mio. ha Ackerland (Destatis, Flächen nach Hauptnutzungsarten 2025) sind das 1,50 t/ha/a. 62 % davon stammen aus organischen Böden, mineralische Ackerböden liegen darunter"
       },
       "buildCostKEur": {
-        "value": 2,
-        "source": "initial estimate"
+        "value": 0.3,
+        "source": "Rheinischer Landwirtschafts-Verband / LWK NRW, Erfahrungssätze für überbetriebliche Maschinenarbeiten im Rheinland 2024 (net, March 2024), items 202, 209, 213, 214, 301: plough 110 + seedbed combination 41.50 + drill 48.50 ≈ 200 €/ha, about 300 €/ha with deep loosening or a rotary tiller when breaking grassland"
       },
       "maintenanceKEurYear": {
         "value": 0,
@@ -182,14 +181,12 @@
         "source": "BKompV Anlage 2: 43.07.05M Buchen(misch)wald frischer basenreicher Standorte, mittlere Ausprägung = 16; 43.07.02M Eichen-Hainbuchenwald mittlere Ausprägung = 20; mean 18"
       },
       "biotopeStart": {
-        "value": 0.4,
-        "source": "BKompV Anlage 2: young plantation below Vorwald (42.03.02 Vorwald frischer Standorte = 13); 0.4·18 ≈ 7",
-        "note": "initial estimate"
+        "value": 0.6,
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): a new native broadleaf planting is 43.09J Laub(misch)holzforst einheimischer Baumarten, junge Ausprägung = 11; 11/18 ≈ 0.6"
       },
       "recoveryMonths": {
-        "value": 240,
-        "source": "BKompV Anlage 2 distinguishes junge / mittlere / alte Ausprägung; mittlere Ausprägung after ~20–40 years",
-        "note": "initial estimate"
+        "value": 360,
+        "source": "BfN-Schriften 721 (Tschiche, Bildstein, Ackermann 2025, Kartieranleitung für die Biotoptypen nach Anlage 2 BKompV), p. 208: junge Ausprägung < 30 Jahre, mittlere 30–80 Jahre; the tile's value (18) is a mittlere Ausprägung, reached at 30 years. BKompV Anlage 5 B puts arable land to old beech forest at > 100 years, so 360 months is already a compression"
       },
       "noiseEmissionDb": {
         "value": 0,
@@ -224,12 +221,12 @@
         "source": "Rate eines neu begründeten, wachsenden Bestandes, nicht des deutschen Waldes im Mittel. Waldgesamtrechnung (Thünen-Institut im Auftrag des Statistischen Bundesamtes): 52,5 Mt CO2 netto auf 10,7 Mio. ha Wald (2021) = 4,9 t/ha/a; die II. Altersklasse (21–40 Jahre) bindet am meisten, ein sich etablierender Mischwald rund 2,4 t C/ha/a = 8,8 t CO2/ha/a. Gegenprobe und Warnung: nach der Bundeswaldinventur 2022 ist der deutsche Wald 2017–2022 durch Kalamitäten zur Quelle geworden (UBA-Inventar 2024: Wald +2,1 Mt), der Spielwert gilt also für eine Aufforstung unter günstigen Bedingungen"
       },
       "buildCostKEur": {
-        "value": 20,
-        "source": "Aufforstung 1–2 €/m² (initial estimate)"
+        "value": 12,
+        "source": "Staatsbetrieb Sachsenforst, Walderneuerung und Erstaufforstung (Stand 30.11.2016), Tab. 4 p. 22: oak/beech plants and planting 5.3–9.0 k€/ha + site preparation 0.3–0.5 + fence 400 m 1.0–2.8 + three years of tending 1.0–1.5 + browse protection 0.3–0.6 = 8–14 k€/ha"
       },
       "maintenanceKEurYear": {
-        "value": 1,
-        "source": "initial estimate"
+        "value": 0.5,
+        "source": "Staatsbetrieb Sachsenforst 2016, Tab. 4 p. 22: Kulturpflege 350–500 €/ha (read here as annual young-stand tending; the table does not state the period)"
       },
       "noiseNightReductionDb": {
         "value": 0,
@@ -255,17 +252,16 @@
         "source": "n/a"
       },
       "biotopeValue": {
-        "value": 16,
-        "source": "BKompV Anlage 2: 24.03b sonstige natürliche mesotrophe Gewässer = 19; constructed pond assumed below natural, 16",
-        "note": "initial estimate"
+        "value": 15,
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): a constructed pond left to develop naturally is 24.04c Naturnahe eutrophe Gewässer, inkl. sich selbst überlassene Abbaugewässer = 15 (BfN-Schriften 721 (Tschiche, Bildstein, Ackermann 2025, Kartieranleitung für die Biotoptypen nach Anlage 2 BKompV) pp. 137–138: 'künstlich entstandenes … Stillgewässer … mit ungestörter Entwicklung'); 24.03b (19) covers natural waters only"
       },
       "biotopeStart": {
-        "value": 0.5,
-        "source": "design: new pond matures over years"
+        "value": 0.67,
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): 24.07.12c Junge Abbaugewässer … mit naturnaher Entwicklung = 10; 10/15"
       },
       "recoveryMonths": {
         "value": 120,
-        "source": "initial estimate"
+        "source": "Williams, Whitfield & Biggs 2008 (Hydrobiologia 597, 137–148), abstract: a new pond complex exceeded reference ponds in plant and invertebrate richness within 7 years of monitoring; 120 months is the conservative end"
       },
       "noiseEmissionDb": {
         "value": 0,
@@ -301,11 +297,11 @@
       },
       "buildCostKEur": {
         "value": 200,
-        "source": "Teichbau/Renaturierung ~20 €/m² (initial estimate)"
+        "source": "design: no source found for digging a 1 ha pond; UBA (Finanzierung und Förderung von Gewässerrenaturierungen, 2022, after Baur 2017) gives about 10 €/m of watercourse for small measures and 600 €/m and more for technical rebuilds, which does not cover a pond"
       },
       "maintenanceKEurYear": {
         "value": 2,
-        "source": "initial estimate"
+        "source": "design: no source found for municipal upkeep of a 1 ha pond"
       },
       "noiseNightReductionDb": {
         "value": 0,
@@ -323,8 +319,8 @@
         "source": "n/a"
       },
       "jobsPerHa": {
-        "value": 2,
-        "source": "Grünflächenamt/Gastronomie (initial estimate)"
+        "value": 0.3,
+        "source": "design: no source found; derived from the park's own upkeep (20 k€/ha/a, GALK), about 70 % of it labour at 50–60 k€ per full-time job, giving 0.25–0.3. A café or kiosk would add more"
       },
       "sealing": {
         "value": 0.1,
@@ -335,14 +331,12 @@
         "source": "BKompV Anlage 2: 51.06a.03 intensiv gepflegte Parkanlage mit altem Baumbestand = 13 (51.06a.02.01 extensiv gepflegt = 16)"
       },
       "biotopeStart": {
-        "value": 0.5,
-        "source": "BKompV Anlage 2: park without old trees; grows into 13 as trees age",
-        "note": "initial estimate"
+        "value": 0.77,
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): 51.06a.04 Intensiv gepflegte Parkanlage ohne alten Baumbestand = 10; 10/13"
       },
       "recoveryMonths": {
         "value": 240,
-        "source": "tree maturity 20–40 years",
-        "note": "initial estimate"
+        "source": "design: BfN-Schriften 721 (Tschiche, Bildstein, Ackermann 2025, Kartieranleitung für die Biotoptypen nach Anlage 2 BKompV) pp. 232–233 counts a park 'mit altem Baumbestand' (13) only with a substantial share of trees over 80 years, i.e. 960 months; 240 is a game-time compression"
       },
       "noiseEmissionDb": {
         "value": 0,
@@ -377,8 +371,8 @@
         "source": "Nowak et al. 2013 (Environmental Pollution 178, 229–236): städtische Bäume binden brutto 0,28 kg C je m² Kronenfläche und Jahr; bei der Kronenfläche 0,5 dieses Tiles sind das 1,4 t C = 5,1 t CO2/ha/a im ausgewachsenen Zustand. Angesetzt sind 3,0, weil co2PerHaYear nicht mit dem Tile altert und ein Park seine ersten zwei Jahrzehnte darunter liegt"
       },
       "buildCostKEur": {
-        "value": 400,
-        "source": "Parkneubau 30–50 €/m² (initial estimate)"
+        "value": 600,
+        "source": "InfrastrukturFolgekostenSchätzer 6.1 (Gertz Gutsche Rümenapp für MIL Brandenburg; Leitfaden Teil B/E, Gutsche 21.06.2019), Blatt 'Referenzkosten TI und Grün': Allgemeine Grünfläche, Herstellung 60 €/m² (reference prices; 79 €/m² after the tool's year and region adjustment) × 10 000 m²"
       },
       "maintenanceKEurYear": {
         "value": 20,
@@ -401,7 +395,7 @@
       },
       "jobsPerHa": {
         "value": 3,
-        "source": "home offices, local trades (initial estimate)"
+        "source": "Statistisches Amt Kanton Zürich, Nutzungsdichte im Kanton Zürich (OGD, KTZH_00002622_00005364, Beschaeftigte_pro_ha_Wohnzone), 2012–2019: residential zones run 0.07–0.09 jobs per resident; municipalities at 32–48 residents/ha have a median of 2.6–3.7 jobs/ha"
       },
       "sealing": {
         "value": 0.45,
@@ -433,17 +427,15 @@
       },
       "shade": {
         "value": 0.15,
-        "source": "InVEST Urban Cooling: shade = canopy fraction; garden trees over ~15 % of an EFH plot",
-        "note": "initial estimate"
+        "source": "design: InVEST defines shade as the share of tree canopy ≥ 2 m and gives no residential value; the Berlin vegetation share (0.58 of the tile) is an upper bound that includes lawns"
       },
       "albedo": {
         "value": 0.2,
         "source": "InVEST Urban Cooling"
       },
       "eti": {
-        "value": 0.3,
-        "source": "InVEST Urban Cooling: lawns and gardens ~40 % of plot, Kc ~0.7",
-        "note": "initial estimate"
+        "value": 0.45,
+        "source": "Umweltatlas Berlin 05.09 Vegetationshöhen 2020 (anteil_veg_2020) joined to 05.07 Stadtstruktur 2020: blocks of 'Freistehende Einfamilienhäuser mit Gärten' are 65.5 % vegetated (area-weighted, 4 769 blocks); 0.88 of the tile × 0.655 ≈ 0.58 vegetated × the meadow ETI (0.8) ≈ 0.46. InVEST Urban Cooling: ETI = Kc·ET0/ETmax. The same method gives park 0.72, matching its 0.7"
       },
       "greenWeight": {
         "value": 0.0,
@@ -455,11 +447,11 @@
       },
       "buildCostKEur": {
         "value": 200,
-        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Einzelhausgebiet liegt mit 20 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
+        "source": "The municipality's net share, because the model's revenue is taxes only and leaves out the contributions that repay the rest (BauGB § 129: street contributions up to 90 %; sewers and water from fees). InfrastrukturFolgekostenSchätzer 6.1 (Gertz Gutsche Rümenapp für MIL Brandenburg; Leitfaden Teil B/E, Gutsche 21.06.2019), Blatt 'Referenzkosten TI und Grün', Teil E worked example: about 15 000 € per home for the municipality, at its density about 165 k€/ha. Gross public works are about 300–350 k€/ha: Koziol & Walther, Abschätzung der Infrastrukturfolgekosten, in Preuß & Floeting (Hrsg.), Folgekosten der Siedlungsentwicklung, REFINA Band III, Difu 2009, Tab. 3 p. 78, 215–226 k€/ha (2008) raised by the road-construction price index (Baupreisindex BW 2024, Straßenbau, 2008 → 2023 ×1.61)"
       },
       "maintenanceKEurYear": {
-        "value": 2,
-        "source": "initial estimate"
+        "value": 3,
+        "source": "InfrastrukturFolgekostenSchätzer 6.1 (Gertz Gutsche Rümenapp für MIL Brandenburg; Leitfaden Teil B/E, Gutsche 21.06.2019), Blatt 'Referenzkosten TI und Grün': operation only, 200 m/ha × (street 1.0 × 5.5 m + footway 0.7 × 4.5 m + street green 2.1 × 1.5 m, €/m²/a) ≈ 2.4 k€/ha/a, 3.1 after adjustment; sewers and water are fee-financed and left out"
       },
       "noiseNightReductionDb": {
         "value": 5,
@@ -478,7 +470,7 @@
       },
       "jobsPerHa": {
         "value": 15,
-        "source": "ground-floor services (initial estimate)"
+        "source": "Statistisches Amt Kanton Zürich, Nutzungsdichte (as for housing_low): 0.08–0.09 jobs per resident × 180 residents/ha ≈ 15; Zürich city's residential zone (122 residents/ha) has 19.8 jobs/ha"
       },
       "sealing": {
         "value": 0.75,
@@ -517,8 +509,8 @@
         "source": "InVEST Urban Cooling"
       },
       "eti": {
-        "value": 0.15,
-        "source": "InVEST Urban Cooling"
+        "value": 0.23,
+        "source": "Umweltatlas Berlin 05.09 / 05.07 (as for housing_low): apartment blocks are 25–39 % vegetated; 0.88 × 0.32 × 0.8 ≈ 0.23"
       },
       "greenWeight": {
         "value": 0.0,
@@ -529,12 +521,12 @@
         "source": "UBA, Energieverbrauch privater Haushalte: direkte CO2-Emissionen der Feuerungsanlagen privater Haushalte 77 Mt (2024) auf 4,1 Mrd. m² Wohnfläche (Destatis, Wohnungsbestand Ende 2024) = 18,8 kg CO2/m²/a. Bei 49,2 m² je Einwohner und 180 EW/ha sind das 166,5 t/ha/a. Fern- und Stromwärme (rund 15 % des Wärmeverbrauchs, dena-Gebäudereport 2025) stecken nicht darin, weil das Inventar sie der Energiewirtschaft zurechnet. Ein- und Mehrfamilienhäuser unterscheiden sich laut UBA je m² nur geringfügig, der Unterschied zwischen den Wohn-Tiles kommt also aus der Dichte"
       },
       "buildCostKEur": {
-        "value": 400,
-        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Geschosswohnungsbau mit höherem Infrastrukturaufwand liegt mit 40 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
+        "value": 200,
+        "source": "Same as housing_low: network cost per hectare barely depends on density (Gutsche, Siedeln kostet Geld, in REFINA Band III p. 35: about 200 m of street and networks per ha; Koziol & Walther, Abschätzung der Infrastrukturfolgekosten, in Preuß & Floeting (Hrsg.), Folgekosten der Siedlungsentwicklung, REFINA Band III, Difu 2009 p. 78). Schools and day care, the real cost of density, are tiles of their own here"
       },
       "maintenanceKEurYear": {
         "value": 4,
-        "source": "initial estimate"
+        "source": "InfrastrukturFolgekostenSchätzer 6.1 (Gertz Gutsche Rümenapp für MIL Brandenburg; Leitfaden Teil B/E, Gutsche 21.06.2019), Blatt 'Referenzkosten TI und Grün', reasoned: wider streets and larger pipes than housing_low (3), a modest increase"
       },
       "noiseNightReductionDb": {
         "value": 5,
@@ -609,11 +601,11 @@
       },
       "buildCostKEur": {
         "value": 300,
-        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Gewerbe liegt mit 30 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
+        "source": "Koziol & Walther, Abschätzung der Infrastrukturfolgekosten, in Preuß & Floeting (Hrsg.), Folgekosten der Siedlungsentwicklung, REFINA Band III, Difu 2009 p. 79: per-hectare network costs for commercial land taken as residential; gross, since a municipality usually develops commercial land at its own expense to attract employers"
       },
       "maintenanceKEurYear": {
-        "value": 3,
-        "source": "initial estimate"
+        "value": 4,
+        "source": "Koziol & Walther, Abschätzung der Infrastrukturfolgekosten, in Preuß & Floeting (Hrsg.), Folgekosten der Siedlungsentwicklung, REFINA Band III, Difu 2009 p. 82: commercial areas run about one third above residential annual costs; 3 × 1.33 ≈ 4"
       },
       "noiseNightReductionDb": {
         "value": 8,
@@ -684,11 +676,11 @@
       },
       "buildCostKEur": {
         "value": 300,
-        "source": "Kein offener Datensatz deutscher Erschließungskosten je m² ist auffindbar: die etablierten Werkzeuge (Difu-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, alle aus dem REFINA-Programm) führen ihre Kostenkennwerte intern. Aus der Baupraxis werden 15–40 €/m² Grundstücksfläche für die Erschließung berichtet (bis 100 €/m² einschließlich Hausanschlüssen). Industrie liegt mit 30 €/m² in dieser Spanne. Bleibt eine Schätzung, bis ein zitierbarer Kennwertsatz vorliegt (initial estimate)"
+        "source": "Koziol & Walther, Abschätzung der Infrastrukturfolgekosten, in Preuß & Floeting (Hrsg.), Folgekosten der Siedlungsentwicklung, REFINA Band III, Difu 2009 p. 79, as for commercial land"
       },
       "maintenanceKEurYear": {
-        "value": 3,
-        "source": "initial estimate"
+        "value": 4,
+        "source": "Koziol & Walther, Abschätzung der Infrastrukturfolgekosten, in Preuß & Floeting (Hrsg.), Folgekosten der Siedlungsentwicklung, REFINA Band III, Difu 2009 p. 82, as for commercial land"
       },
       "noiseNightReductionDb": {
         "value": 5,
@@ -760,12 +752,11 @@
       },
       "buildCostKEur": {
         "value": 300,
-        "source": "Hauptstraße ~2–4 M€/km inkl. Knoten → 100 m Abschnitt (initial estimate)"
+        "source": "design: InfrastrukturFolgekostenSchätzer 6.1 (Gertz Gutsche Rümenapp für MIL Brandenburg; Leitfaden Teil B/E, Gutsche 21.06.2019), Blatt 'Referenzkosten TI und Grün', Sammelstraße (16.5 m) 1 620 €/m reference, 2 000 €/m adjusted, gives 160–200 k€ per 100 m; a main road with junctions sits above that, for which no direct source was found"
       },
       "maintenanceKEurYear": {
         "value": 10,
-        "source": "Straßenerhaltung 1.5–3 €/m² Fahrbahn/a (Difu/KfW Kommunalpanel: Erhaltungsbedarf) für ~2 000 m² Fahrbahn je 100 m Hauptstraße plus Beleuchtung, Reinigung, Winterdienst ≈ 10 k€/a",
-        "note": "initial estimate"
+        "source": "InfrastrukturFolgekostenSchätzer 6.1 (Gertz Gutsche Rümenapp für MIL Brandenburg; Leitfaden Teil B/E, Gutsche 21.06.2019), Blatt 'Referenzkosten TI und Grün', Sammelstraße, 100 m with about 1 000 m² carriageway and 1 000 m² footway: operation (1.2 + 0.75 €/m²/a) 1.95 k€ + renewal ((90 + 70 €/m²) × 1 000 m² / 25 a) 6.4 k€ = 8.4 k€/a at reference prices, 10.9 adjusted"
       },
       "noiseNightReductionDb": {
         "value": 6.5,
@@ -791,19 +782,16 @@
         "source": "unsealed by definition"
       },
       "biotopeValue": {
-        "value": 22,
-        "source": "BKompV Anlage 2: Roehrichte und Grossseggenriede sit among the highest-valued biotope types, above open water (16) and below the scale maximum (24)",
-        "note": "initial estimate within the BKompV range"
+        "value": 16,
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): a rewetted field develops tall graminoid stands, 38.03 Rohrkolbenröhricht = 16 or 37.02 Nährstoffreiches Großseggenried = 16 (38.02.01 Schilf-Wasserröhricht = 19 is the upper end); rewetted fens stay distinct from natural ones (Kreyling et al. 2021, Nat. Commun. 12, 5693, abstract). Only intact fen (35.01a, 24) and fen meadows (23) rank higher"
       },
       "biotopeStart": {
-        "value": 0.35,
-        "source": "a newly created wetland is bare mud before the reed establishes",
-        "note": "initial estimate"
+        "value": 0.375,
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): it starts as cropland, 33.0x.03 = 6; 6/16"
       },
       "recoveryMonths": {
         "value": 180,
-        "source": "reed and sedge stands establish over roughly 15 years",
-        "note": "initial estimate"
+        "source": "BKompV Anlage 5 B (Berücksichtigung von Entwicklungszeiten): a Großseggenried target from a drained, eutrophied sedge stand or a former gravel pit takes < 30 years; a full fen 30–100 years"
       },
       "noiseEmissionDb": {
         "value": 0,
@@ -843,8 +831,7 @@
       },
       "maintenanceKEurYear": {
         "value": 1,
-        "source": "occasional reed cutting",
-        "note": "initial estimate"
+        "source": "design: occasional reed cutting; no source found"
       },
       "retailFloorM2": {
         "value": 0,
@@ -866,9 +853,8 @@
         "source": "n/a"
       },
       "jobsPerHa": {
-        "value": 0.5,
-        "source": "Freiflaechen-PV needs little on-site labour beyond maintenance",
-        "note": "initial estimate"
+        "value": 0.3,
+        "source": "Rutovitz, Dominish & Downes 2015 (Calculating global energy sector jobs, ISF/UTS), Table 1 and Appendix 3: O&M 0.2–0.3 jobs/MW in Germany; ÷ 0.88 ha/MW (Kelm & Stauch, ZSW 2025, Flächeninanspruchnahme von PV-Freiflächenanlagen, Update 2024, Fig. 3) ≈ 0.23–0.34 jobs/ha, many of them with off-site service firms"
       },
       "sealing": {
         "value": 0.1,
@@ -876,19 +862,16 @@
         "note": "initial estimate"
       },
       "biotopeValue": {
-        "value": 8,
-        "source": "BKompV Anlage 2: extensively managed grassland under the modules, well below meadow (18) because of shading and access tracks",
-        "note": "initial estimate"
+        "value": 10,
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): no PV type exists; BfN-Schriften 721 (Tschiche, Bildstein, Ackermann 2025, Kartieranleitung für die Biotoptypen nach Anlage 2 BKompV) p. 242 lumps 'Solaranlage' into 53.01.20a (2) and p. 239 leaves mapping the open ground separately to the developer. Mapped separately: 0.9 × 34.08a.02 Extensiv genutztes Dauergrünland (11) + 0.1 × gravel track 52.02.04a (4) ≈ 10. bne (Peschel et al. 2019, Solarparks – Gewinne für die Biodiversität) finds markedly more diversity than on the surrounding farmland"
       },
       "biotopeStart": {
         "value": 0.7,
-        "source": "the grassland is sown with the installation",
-        "note": "initial estimate"
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): sown at installation, 34.08.02 Frisches Ansaatgrünland = 7; (0.9 × 7 + 0.4) / 10 ≈ 0.67"
       },
       "recoveryMonths": {
         "value": 60,
-        "source": "sward establishes within about five years",
-        "note": "initial estimate"
+        "source": "bne 2024 (Artenvielfalt im Solarpark, provisional handout) p. 3: grasshoppers in the hundreds within the first year; Peschel et al. 2019 pp. 31, 46: sand lizards fourfold within 4 years; Walker et al. 2004: sown ex-arable grassland converges in 2–5 years"
       },
       "noiseEmissionDb": {
         "value": 0,
@@ -925,14 +908,12 @@
         "note": "this is an AVOIDED emission, an order of magnitude larger than any emitted value in this table; see docs/model/tiles.md"
       },
       "buildCostKEur": {
-        "value": 700,
-        "source": "Freiflaechen-PV investment is roughly 500-700 EUR/kWp, so about 0.7 MWp/ha gives 350-490 kEUR plus grid connection",
-        "note": "initial estimate"
+        "value": 800,
+        "source": "Fraunhofer ISE, Stromgestehungskosten Erneuerbare Energien, Juli 2024, Tab. 1 p. 12: ground-mounted PV 700–900 €/kWp (2024 prices) × about 1.1 MWp/ha (C.A.R.M.E.N., Positionspapier Freiflächen- und Agri-PV, 22.09.2025, p. 2: about 0.9 ha/MWp) = 0.78–1.0 M€/ha"
       },
       "maintenanceKEurYear": {
-        "value": 8,
-        "source": "PV operation and maintenance runs a low single-digit percent of investment per year",
-        "note": "initial estimate"
+        "value": 15,
+        "source": "Fraunhofer ISE, Stromgestehungskosten Erneuerbare Energien, Juli 2024, Tab. 2 p. 13: fixed OPEX 13.3 €/kW/a for ground-mounted PV × about 1 100 kW/ha = 14.8 k€/ha/a"
       },
       "retailFloorM2": {
         "value": 0,
@@ -1041,19 +1022,16 @@
         "source": "design: buildings and a hard yard, with a sports field and planting; above detached housing (0.45) and well below commercial (0.85)"
       },
       "biotopeValue": {
-        "value": 6,
-        "source": "BKompV Anlage 2: school grounds with lawn and trees, above apartment blocks (4) and near cropland (6)",
-        "note": "initial estimate"
+        "value": 5,
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): area-weighted, 0.5 sealed (0) + 0.25 × 51.11a.01 Sportrasenplatz (7) + 0.25 × Grünanlage (51.07a.02 = 9, or 51.07a.01 = 13 with old trees) = 4.0–5.0; the lumped type 53.01.05b (public large building with its open space) is 4"
       },
       "biotopeStart": {
         "value": 0.8,
-        "source": "grounds are planted with the building",
-        "note": "initial estimate"
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): the same weighting with young grounds (4.0) over the mature value (5.0)"
       },
       "recoveryMonths": {
         "value": 120,
-        "source": "yard trees take a decade to matter",
-        "note": "initial estimate"
+        "source": "design: 'alter Baumbestand' means trees over 80 years (BfN-Schriften 721 (Tschiche, Bildstein, Ackermann 2025, Kartieranleitung für die Biotoptypen nach Anlage 2 BKompV) p. 233); 120 months is a game-time compression"
       },
       "noiseEmissionDb": {
         "value": 52,
@@ -1202,19 +1180,16 @@
         "source": "design: a 3 m asphalt path in a green corridor seals a third of the hectare, far less than a main road (0.95)"
       },
       "biotopeValue": {
-        "value": 12,
-        "source": "BKompV Anlage 2: a path through a green verge keeps most of the hectare vegetated; between park (13) and school grounds (6)",
-        "note": "initial estimate"
+        "value": 7,
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): 0.35 sealed path (52.02.01a = 0) + 0.65 × 52.01.08n.03 Funktionsgrün mit artenreicher Krautschicht oder mit Gehölzbestand mittlerer bis alter Ausprägung (11) = 7.2"
       },
       "biotopeStart": {
-        "value": 0.6,
-        "source": "the verge is sown with the path",
-        "note": "initial estimate"
+        "value": 0.64,
+        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): young verge 52.01.08a.02 = 7; 0.65 × 7 / 7.2"
       },
       "recoveryMonths": {
         "value": 120,
-        "source": "verge trees and hedges take a decade",
-        "note": "initial estimate"
+        "source": "BfN-Schriften 721 (Tschiche, Bildstein, Ackermann 2025, Kartieranleitung für die Biotoptypen nach Anlage 2 BKompV) p. 237: 52.01.08n.03 is also reached through a species-rich herb layer, which takes about as long as a meadow (Walker et al. 2004)"
       },
       "noiseEmissionDb": {
         "value": 0,
@@ -1442,9 +1417,8 @@
       "source": "InVEST Urban Cooling"
     },
     "uhiMaxC": {
-      "value": 3.0,
-      "source": "InVEST Urban Cooling: UHI_max is a user input (rural–urban maximum difference); DWD reports 2–4 K for German mid-size cities",
-      "note": "initial estimate"
+      "value": 2.0,
+      "source": "DWD, UHI-MAP – Urban Heat Island Rasterdatensatz für Deutschland, Version 7.0 (2024, CC BY 4.0), uhi_daymax_mean, 2022–24, maximum within 2 km of the centre of 12 towns of 6 000–23 000 residents: annual median about 0.8 K (0.2–1.8), summer about 1.1 K, hottest day about 2.4 K; cities of 75 000–770 000 reach 2.3–3.4 K. The model applies uhiMaxC as an annual-mean ceiling scaled by a monthly factor averaging 1, and a 1 ha hot spot runs hotter than a 1 km² mean, so 2 K for a small town. Cross-check: Dienst, Lindén & Esper 2018 (Clim. Res. 76, 1–15): Geisenheim, summer UHI 1.1 °C in nightly minima"
     },
     "greenPatchMinHa": {
       "value": 2,
@@ -1486,7 +1460,7 @@
     },
     "jobDecayM": {
       "value": 2000,
-      "source": "MiD 2017: median commute ~ 10 km, but local job access decays within few km (initial estimate)"
+      "source": "design: the local job-access indicator, jobs within cycling reach. Commutes decay far more slowly (commute.commuteDecayM, about 10 km), but on a 1.6–6.4 km map a 10 km kernel makes every cell's job access nearly equal, so the indicator would show nothing"
     },
     "jobReferenceJobs": {
       "value": 400,
@@ -1591,9 +1565,13 @@
       "value": 3,
       "source": "design: 300 m to a main road counts as connected"
     },
+    "commuteDecayM": {
+      "value": 10000,
+      "source": "Östh, Lyhagen & Reggiani 2016 (EJTIR 16(2), 344–363), Eq. 17: half-life method β = ln 2 / median distance. Dauth & Haller, IAB-Kurzbericht 10/2018, pp. 1–4: median commute 10.5 km by road, about 30 % shorter straight-line, so about 7.4 km; 7.4 / 0.693 ≈ 10.6 km on the straight-line distances the map measures. A fit to IAB's distance classes gives about 14 km on road distances"
+    },
     "externalCommuteKm": {
-      "value": 15,
-      "source": "MiD 2017: mean commute ~ 16 km for out-commuters (initial estimate)"
+      "value": 20,
+      "source": "MiD 2017 Ergebnisbericht (BMVI/infas), pp. 62–63, Tables 8–9: mean work trip 16 km, 18–19 km in small-town and village areas, including trips that never leave the municipality, so those who leave travel further; BBSR (Pendeln 2023, press release 22.08.2024): mean one-way trip 17.2 km, a lower bound. 17–29 km is plausible"
     },
     "externalCarShare": {
       "value": 0.8,
@@ -1656,8 +1634,8 @@
       "source": "design: enough for a 12-tile main road plus a mixed quarter of ~25 tiles"
     },
     "demolitionCostKEur": {
-      "value": 50,
-      "source": "initial estimate"
+      "value": 250,
+      "source": "Sachsen, FRL Städtebauliche Erneuerung (15.02.2024), Nr. 5.2 c: demolition funded at up to 110 € per m² of demolished living space. Floor area per hectare is assumed, not sourced: about 1 400 m² in detached housing (11 homes × 130 m²) → 157 k€, about 4 700 m² in apartment blocks (67 × 70 m²) → 517 k€; 250 is one value across built tiles"
     },
     "immigrationRate": {
       "value": 0.08,

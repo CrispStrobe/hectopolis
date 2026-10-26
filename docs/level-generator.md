@@ -136,7 +136,7 @@ tools/level_from_landcover.py --input .../LBMDE.gpkg --profile lbm-de2021 \
 # 3. write it
 tools/level_from_landcover.py --input .../LBMDE.gpkg --profile lbm-de2021 \
     --origin 503053,5373078 --size 24x24 --id mytown --order 7 \
-    --budget 34000 --months 120 --out data/levels/07_mytown.json
+    --budget 67000 --months 120 --out data/levels/07_mytown.json
 ```
 
 Then do the part the tool cannot:
@@ -145,9 +145,12 @@ Then do the part the tool cannot:
    from the housing the extract contains, which is a placeholder: on a town
    that already exists it is met at month 0. Run the level, read the starting
    indicators, and set goals that ask for a change.
-2. **Set the budget against the tile allowance**, not by feel. The `tuebingen`
-   allowance costs 28 950 k€ at the build costs in `tiles.json`, so a smaller
-   budget would make the level about waiting for tax revenue.
+2. **Set the budget against the tile allowance and the worked plan**, not by
+   feel. The `tuebingen` allowance costs 52 880 k€ at the build costs in
+   `tiles.json`, and its worked plan 57 370 k€ once its 103 demolitions are
+   counted (250 k€ each), so the level has 67 000 k€: a smaller budget would
+   make it about waiting for tax revenue. Build on an existing town replaces
+   built tiles, and demolition is what such a plan mostly pays for.
 3. **Add a solution to `level_solutions_test.dart`.** Every built-in level
    must be winnable with three stars by a written plan. This is not a
    formality: the first goal set for `tuebingen` asked for biodiversity 50,
