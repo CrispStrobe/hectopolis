@@ -356,6 +356,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   retail access, habitat quality. Colour-blind-safe palettes; legend with units.
   *Note 2026-09-05:* Nine overlays with colour-blind-safe ramps and legend.
   *Note 2026-09-07:* Overlay UX now identifies helpful versus harmful directions, uses simple-mode wording, preserves more of the base map, marks causal source cells optionally, closes directly from the legend, and corrects the air-quality layer's formerly inverted palette semantics.
+  *Note 2026-10-26:* Causal markers now follow the model. The rings and the source lines had separate hand-written lists that disagreed (habitat marked the habitat instead of its threats); one rule, read off the parameters, drives both (`overlay_math.isCausalSource`, tested against the fields). The lines are ranked by contribution through `Simulation.sources`, which takes a reading apart before its cap (docs/model/README.md), so a saturated job access still points at the estate rather than the house next door.
   *Note 2026-09-08:* Starter overlays use three readable bands; applicable fields draw
   reference-threshold contours. Selecting a cell traces its nearest plausible sources, and
   what-if experiments switch the heatmap to a before/after improvement delta.
