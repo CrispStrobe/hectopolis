@@ -9,7 +9,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 PUB_CACHE="${PUB_CACHE:-$HOME/.pub-cache}"
-FLUTTER_ROOT="${FLUTTER_ROOT:-$(dirname "$(dirname "$(command -v flutter)")")}"
+# realpath: a package-manager install (Homebrew) puts a symlink on PATH, and
+# the SDK root is two levels above the real binary, not above the link.
+FLUTTER_ROOT="${FLUTTER_ROOT:-$(dirname "$(dirname "$(realpath "$(command -v flutter)")")")}"
 failures=0
 
 echo "== SPDX headers"
