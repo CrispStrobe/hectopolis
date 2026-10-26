@@ -901,7 +901,7 @@ class GameController extends ChangeNotifier {
     final cells = <int>[
       for (var i = 0; i < sim.state.cellCount; i++)
         if (i != selected &&
-            overlays.isCausalSource(overlay, sim.state.tiles[i]))
+            overlays.isCausalSource(overlay, sim.state.tiles[i], sim))
           i,
     ];
     cells.sort((a, b) {

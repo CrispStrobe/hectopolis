@@ -10,6 +10,7 @@ import 'package:intl/intl.dart' show NumberFormat;
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 import '../game/game_controller.dart';
+import '../game/overlay_math.dart' show isCausalSource;
 import '../l10n/generated/app_localizations.dart';
 import 'tile_naming.dart';
 import 'tile_style.dart';

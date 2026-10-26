@@ -287,6 +287,109 @@ void main() {
       }
     });
 
+    // An empty meadow sandbox in July, when the heat island is at its
+    // height (in January there is nothing for a park to cool).
+    Simulation july() =>
+        Simulation.sandbox(width: 15, height: 15)..apply(const AdvanceTick(6));
+
+    // A 3 x 3 block of [tile] in the middle: big enough to count as a green
+    // patch, and to cross the "affected" threshold for the weaker threats.
+    Simulation withBlock(Simulation base, TileType tile) {
+      final after = base.copy();
+      for (var y = 6; y <= 8; y++) {
+        for (var x = 6; x <= 8; x++) {
+          after.apply(PlaceTile(x, y, tile));
+        }
+      }
+      return after;
+    }
+
+    // What the model does: the tile types whose block moves [overlay] on
+    // some cell outside it by more than the app's own "affected" threshold.
+    Set<TileType> measuredSources(MapOverlay overlay, {double? threshold}) {
+      final base = july();
+      final limit = threshold ?? previewThreshold(overlay);
+      bool moves(Simulation after) => _outside(
+        base,
+      ).any((i) => fieldDifference(overlay, base, after, i) > limit);
+      return {
+        for (final tile in TileType.values)
+          if (tile != TileType.meadow && moves(withBlock(base, tile))) tile,
+      };
+    }
+
+    Set<TileType> markedSources(MapOverlay overlay) {
+      final sim = july();
+      return {
+        for (final tile in TileType.values)
+          if (isCausalSource(overlay, tile, sim)) tile,
+      };
+    }
+
+    test('causal sources are exactly the tiles that move single-field '
+        'overlays', () {
+      for (final overlay in [
+        MapOverlay.noise,
+        MapOverlay.air,
+        MapOverlay.green,
+        MapOverlay.retail,
+      ]) {
+        expect(
+          markedSources(overlay),
+          measuredSources(overlay),
+          reason: '$overlay',
+        );
+      }
+      // Detached houses are a weak threat (weight 0.3): real, but under the
+      // display threshold even as a block.
+      expect(
+        markedSources(MapOverlay.habitat),
+        measuredSources(MapOverlay.habitat, threshold: 1e-9),
+      );
+    });
+
+    test('job sources are the built tiles with jobs', () {
+      final measured = measuredSources(MapOverlay.jobs);
+      final marked = markedSources(MapOverlay.jobs);
+      // The farm and the park have a job or two per hectare. The model
+      // counts them; the map leaves them out so that a line from a home
+      // points at a workplace rather than at the nearest field.
+      final incidental = {TileType.cropland, TileType.park};
+      expect(marked, measured.difference(incidental));
+      expect(measured, containsAll(incidental));
+    });
+
+    test('heat sources are the green land that cools a built-up block '
+        'better than meadow does', () {
+      for (final ground in [TileType.housingLow, TileType.housingHigh]) {
+        final base = july();
+        for (var i = 0; i < base.state.cellCount; i++) {
+          base.state.tiles[i] = ground;
+        }
+        base.recompute();
+        // The most a block of [tile] cools any cell around it.
+        double cooling(TileType tile) {
+          final after = withBlock(base, tile);
+          return _outside(base)
+              .map(
+                (i) => base.fields.heatDeltaC[i] - after.fields.heatDeltaC[i],
+              )
+              .reduce((a, b) => a > b ? a : b);
+        }
+
+        final meadow = cooling(TileType.meadow);
+        expect(meadow, greaterThan(0), reason: 'meadow cools $ground');
+        for (final tile in TileType.values) {
+          if (tile == ground || tile == TileType.meadow) continue;
+          expect(
+            isCausalSource(MapOverlay.heat, tile, base),
+            cooling(tile) > meadow + 1e-9,
+            reason: '$tile next to $ground',
+          );
+        }
+      }
+    });
+
     test('only noise, heat and traffic read high as bad', () {
       expect(MapOverlay.values.where(overlayHighIsBadFor).toSet(), {
         MapOverlay.noise,
@@ -295,4 +398,13 @@ void main() {
       });
     });
   });
+}
+
+/// The cells of a 15 x 15 map outside the 3 x 3 block in its middle.
+Iterable<int> _outside(Simulation sim) sync* {
+  for (var i = 0; i < sim.state.cellCount; i++) {
+    final x = i % sim.state.width;
+    final y = i ~/ sim.state.width;
+    if (x < 6 || x > 8 || y < 6 || y > 8) yield i;
+  }
 }

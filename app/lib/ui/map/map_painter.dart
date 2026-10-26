@@ -188,7 +188,7 @@ class _MapPainter extends CustomPainter {
             ).withValues(alpha: 0.56),
         );
         if (c.experience.causalHighlights &&
-            _isCausalSource(c.overlay, state.tiles[i])) {
+            isCausalSource(c.overlay, state.tiles[i], c.sim)) {
           canvas.drawCircle(
             rect.topRight + Offset(-rect.width * 0.14, rect.height * 0.14),
             math.max(1.5 / scale, rect.width * 0.055),
@@ -557,29 +557,6 @@ class _MapPainter extends CustomPainter {
     draw();
     canvas.restore();
   }
-
-  bool _isCausalSource(MapOverlay overlay, TileType tile) => switch (overlay) {
-    MapOverlay.noise =>
-      tile == TileType.road ||
-          tile == TileType.industry ||
-          tile == TileType.commercial,
-    MapOverlay.air => c.sim.params.tile(tile).airEmission.value > 0,
-    MapOverlay.heat => c.sim.params.tile(tile).sealing.value >= 0.5,
-    MapOverlay.green =>
-      tile == TileType.park ||
-          tile == TileType.forest ||
-          tile == TileType.water,
-    MapOverlay.retail => tile == TileType.commercial,
-    MapOverlay.jobs => tile == TileType.commercial || tile == TileType.industry,
-    MapOverlay.habitat =>
-      tile == TileType.forest ||
-          tile == TileType.meadow ||
-          tile == TileType.water,
-    MapOverlay.traffic => tile == TileType.road,
-    MapOverlay.attractiveness =>
-      tile == TileType.housingLow || tile == TileType.housingHigh,
-    MapOverlay.none => false,
-  };
 
   /// Fine speckle in the ground colour, seeded by the cell, so that no two
   /// tiles of a type are identical and none of them is flat.

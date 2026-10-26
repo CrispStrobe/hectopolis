@@ -129,31 +129,65 @@ bool overlayHighIsBadFor(MapOverlay value) => switch (value) {
   _ => false,
 };
 
-/// Whether a [type] tile plausibly contributes to the [overlay] value of a
-/// nearby cell.
-bool isCausalSource(MapOverlay overlay, TileType type) => switch (overlay) {
-  MapOverlay.noise || MapOverlay.air =>
-    type == TileType.road ||
-        type == TileType.industry ||
-        type == TileType.commercial ||
-        type == TileType.housingHigh ||
-        type == TileType.housingLow,
-  MapOverlay.green =>
-    type == TileType.park ||
-        type == TileType.forest ||
-        type == TileType.meadow ||
-        type == TileType.water,
-  MapOverlay.retail => type == TileType.commercial,
-  MapOverlay.jobs => type == TileType.commercial || type == TileType.industry,
-  MapOverlay.habitat =>
-    type == TileType.road ||
-        type == TileType.industry ||
-        type == TileType.commercial ||
-        type == TileType.housingHigh,
-  MapOverlay.traffic => type == TileType.road,
-  MapOverlay.heat || MapOverlay.attractiveness => type != TileType.meadow,
-  MapOverlay.none => false,
-};
+/// Whether a [type] tile moves the [overlay] value of the cells around it.
+///
+/// Read off the parameters each field is computed from, not listed by hand:
+/// a hand-written list here once disagreed with a second one in the map
+/// painter on half the overlays, and both had missed the tiles added since.
+/// `game_controller_test.dart` checks this against what the model does when
+/// a tile is placed.
+bool isCausalSource(MapOverlay overlay, TileType type, Simulation sim) {
+  final p = sim.params;
+  final tile = p.tile(type);
+  bool noise(TileParams t) => t.noiseEmissionDb.value > 0;
+  bool air(TileParams t) => t.airEmission.value > 0;
+  // Green access is the best green weight in reach; meadow is the ground
+  // everything starts on, so only greener land lifts it.
+  bool green(TileParams t) =>
+      t.greenWeight.value > p.tile(TileType.terrain).greenWeight.value;
+  bool retail(TileParams t) => t.retailFloorM2.value > 0;
+  // Built land with jobs. A farm or a park has a job or two per hectare too,
+  // which the model counts, but a line from a home to the nearest field
+  // would not say where the jobs are.
+  bool jobs(TileParams t) => t.category.isBuilt && t.jobsPerHa.value > 0;
+  // A neighbour can only cool a cell, never heat it: heat.dart takes the
+  // larger of a cell's own cooling capacity and that of the green patches
+  // around it. Next to a built-up block all green land cools; marked is the
+  // land that cools better than the meadow the map starts as, which is what
+  // a player can change.
+  bool heat(TileParams t) {
+    final hp = p.heat;
+    final growth = p.seasons.growthAt(sim.state.tick);
+    double capacity(TileParams x) =>
+        hp.shadeWeight * x.shade.value +
+        hp.albedoWeight * x.albedo.value +
+        hp.etiWeight * x.eti.value * growth;
+    return t.category.isGreen &&
+        capacity(t) > capacity(p.tile(TileType.terrain));
+  }
+
+  return switch (overlay) {
+    MapOverlay.noise => noise(tile),
+    MapOverlay.air => air(tile),
+    MapOverlay.heat => heat(tile),
+    MapOverlay.green => green(tile),
+    MapOverlay.retail => retail(tile),
+    MapOverlay.jobs => jobs(tile),
+    MapOverlay.habitat => p.habitat.threats.containsKey(type),
+    // Commuters start at homes and end at workplaces; the road only carries
+    // them.
+    MapOverlay.traffic => tile.residentsPerHa.value > 0 || jobs(tile),
+    // Attractiveness is a weighted sum of the other readings (stocks.dart).
+    MapOverlay.attractiveness =>
+      noise(tile) ||
+          air(tile) ||
+          green(tile) ||
+          retail(tile) ||
+          jobs(tile) ||
+          heat(tile),
+    MapOverlay.none => false,
+  };
+}
 
 /// The overlay the goal hint opens first, so the player sees the problem on
 /// the map before being handed a tile.
