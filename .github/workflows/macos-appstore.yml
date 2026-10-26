@@ -134,7 +134,9 @@ jobs:
         run: |
           set -euo pipefail
           cd app
-          flutter build macos --release
+          # App Store builds leave relay play out for now
+          # (app/lib/game/build_features.dart); tools/check.sh store-flags.
+          flutter build macos --release --dart-define=HECTOPOLIS_RELAY=false
           app_path="$PWD/build/macos/Build/Products/Release/Hectopolis.app"
           [ -d "$app_path" ] || { echo "::error::Mac app not found"; exit 1; }
           cp "$RUNNER_TEMP/hectopolis.provisionprofile" "$app_path/Contents/embedded.provisionprofile"

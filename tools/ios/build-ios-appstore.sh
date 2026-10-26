@@ -107,7 +107,10 @@ if [ "$DO_BUILD" = 1 ]; then
   # --config-only writes Generated.xcconfig and the CocoaPods integration
   # (Flutter.framework search paths a bare xcodebuild would otherwise miss)
   # without building or signing anything.
-  ( cd "$APP_DIR" && PATH="/usr/bin:$PATH" flutter build ios --release --config-only --no-codesign )
+  # App Store builds leave relay play out for now (app/lib/game/build_features.dart);
+  # --config-only writes the define into Generated.xcconfig, where the archive's
+  # Dart build picks it up. tools/check.sh store-flags checks it stays here.
+  ( cd "$APP_DIR" && PATH="/usr/bin:$PATH" flutter build ios --release --config-only --no-codesign --dart-define=HECTOPOLIS_RELAY=false )
 
   # `env -u GEM_HOME -u GEM_PATH -u RUBYOPT`: the runner (and Homebrew Macs)
   # export a Ruby environment that the system CocoaPods refuses to load.

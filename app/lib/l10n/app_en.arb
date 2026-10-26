@@ -754,6 +754,10 @@
   "aboutContact": "Contact",
   "aboutPrivacy": "Privacy",
   "aboutPrivacyText": "Hectopolis stores only your saved game and best results on your device. There are no accounts, ads, analytics or data sent to us or to third parties. If you deliberately host or join a co-op game, game commands travel directly between devices on your local network.",
+  "aboutPrivacyTextRelay": "Hectopolis stores only your saved game and best results on your device. There are no accounts, ads, analytics or data sent to us or to third parties. If you deliberately host or join a co-op game, game commands travel directly between devices on your local network, or through a relay you choose, encrypted end to end so the relay cannot read them.",
+  "@aboutPrivacyTextRelay": {
+    "description": "As aboutPrivacyText, in builds that can play through a relay (HECTOPOLIS_RELAY)."
+  },
   "aboutDisclaimer": "Disclaimer",
   "aboutDisclaimerText": "Hectopolis is a game. Its model simplifies real planning science and uses published averages, not local measurements. It is provided as is, without warranty of any kind, and is not planning, legal or environmental advice.",
   "aboutLicense": "License",
@@ -931,15 +935,51 @@
   "actionMore": "More",
   "coopMenuTitle": "Build together",
   "coopMenuSubtitle": "Two to four people on the same wifi build one shared town.",
+  "coopMenuSubtitleRelay": "Two to four people build one shared town, on the same wifi or anywhere through a relay.",
+  "@coopMenuSubtitleRelay": {
+    "description": "As coopMenuSubtitle, in builds that can play through a relay (HECTOPOLIS_RELAY)."
+  },
   "coopSetupTitle": "Local co-op",
+  "coopSetupTitleRelay": "Co-op",
+  "@coopSetupTitleRelay": {
+    "description": "As coopSetupTitle, in builds that can play through a relay (HECTOPOLIS_RELAY)."
+  },
   "coopPlayerName": "Your name",
   "coopRoomCode": "Room code or address",
+  "coopRelayAddress": "Relay address",
+  "@coopRelayAddress": {
+    "description": "Field label: the address of a self-hosted relay server, such as relay.example.org."
+  },
+  "coopRelayAddressHint": "relay.example.org",
+  "@coopRelayAddressHint": {
+    "description": "Placeholder in the relay address field: an example host name (example.org is reserved for examples)."
+  },
+  "coopHostRelay": "Host through a relay",
+  "@coopHostRelay": {
+    "description": "Button: host a co-op game through a relay instead of on the local wifi."
+  },
+  "coopRelayExplainer": "For players who are not on the same wifi. A relay that you or someone you trust runs forwards the game; it is encrypted end to end with the room code, so the relay cannot read it. Leave the address empty to play on the local wifi.",
+  "@coopRelayExplainer": {
+    "description": "Shown above the relay address field."
+  },
+  "coopRelayAddressInvalid": "Enter the relay's address, for example relay.example.org. It has to be reachable over wss://.",
+  "@coopRelayAddressInvalid": {
+    "description": "Shown when the typed relay address cannot be used."
+  },
   "coopHost": "Host a game",
   "coopJoin": "Join a game",
   "coopHostingUnsupported": "This platform can join a game but cannot host one.",
   "coopConnectionFailed": "Could not connect. Check the room code and that both devices are on the same network.",
+  "coopConnectionFailedRelay": "Could not connect. Check the room code, and that both devices are on the same network or the relay is running.",
+  "@coopConnectionFailedRelay": {
+    "description": "As coopConnectionFailed, in builds that can play through a relay (HECTOPOLIS_RELAY)."
+  },
   "coopRoomInstructions": "Share one of these codes with the people joining. Nothing is broadcast to the rest of the wifi.",
   "coopDirectPrivacy": "Co-op sends game commands directly between your devices. Nothing goes to us or to a third party.",
+  "coopDirectPrivacyRelay": "Co-op sends game commands directly between your devices. Nothing goes to us or to a third party. Through a relay, the game passes a server of your choosing, encrypted with the room code so that server cannot read it.",
+  "@coopDirectPrivacyRelay": {
+    "description": "As coopDirectPrivacy, in builds that can play through a relay (HECTOPOLIS_RELAY)."
+  },
   "coopRoomCodeLabel": "Room code",
   "coopCopyCode": "Copy room code",
   "coopCodeCopied": "Room code copied",
@@ -964,6 +1004,10 @@
   "coopConnectionLost": "Connection lost. Your seat and district are still held for you.",
   "coopReconnect": "Reconnect",
   "lobbyTitle": "Local co-op",
+  "lobbyTitleRelay": "Co-op",
+  "@lobbyTitleRelay": {
+    "description": "As lobbyTitle, in builds that can play through a relay: the lobby is not only local then."
+  },
   "lobbyPlayers": "Players",
   "lobbyYou": "you",
   "lobbyHostLabel": "host",

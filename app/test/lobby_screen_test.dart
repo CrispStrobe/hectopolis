@@ -76,6 +76,28 @@ void main() {
     expect(find.byType(QrImageView), findsOneWidget);
   });
 
+  testWidgets('a screen reader hears the room code, not an empty field', (
+    tester,
+  ) async {
+    // The selectable code exposed only an empty "Room code" text field on
+    // the web, so a host using a screen reader could not hear what to share.
+    final handle = tester.ensureSemantics();
+    final s = await _pair();
+    addTearDown(() async {
+      await s.host.close();
+      await s.guest.close();
+    });
+    const code = '192.168.1.20:43123/test-secret';
+    await tester.pumpWidget(_app(s.host, roomCodes: const [code]));
+    await tester.pumpAndSettle();
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    final node = tester.getSemantics(
+      find.bySemanticsLabel(l10n.coopRoomCodeLabel),
+    );
+    expect(node.value, code);
+    handle.dispose();
+  });
+
   testWidgets('the host sees a guest arrive', (tester) async {
     final s = await _pair();
     addTearDown(() async {

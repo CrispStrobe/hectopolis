@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stadtbau_net/stadtbau_net.dart';
 
+import '../game/build_features.dart';
 import '../game/session_controller.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -75,7 +76,9 @@ class _LobbyScreenState extends State<LobbyScreen> {
     final rejected = c.rejectReason;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.lobbyTitle)),
+      appBar: AppBar(
+        title: Text(relayEnabled ? l10n.lobbyTitleRelay : l10n.lobbyTitle),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 640),
@@ -110,8 +113,18 @@ class _LobbyScreenState extends State<LobbyScreen> {
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.key),
-                      title: Text(l10n.coopRoomCodeLabel),
-                      subtitle: SelectableText(code),
+                      // One node that says the code: the selectable text
+                      // exposed only an empty "Room code" field, so a screen
+                      // reader host could not hear what to share.
+                      title: Semantics(
+                        container: true,
+                        label: l10n.coopRoomCodeLabel,
+                        value: code,
+                        child: ExcludeSemantics(
+                          child: Text(l10n.coopRoomCodeLabel),
+                        ),
+                      ),
+                      subtitle: ExcludeSemantics(child: SelectableText(code)),
                       trailing: IconButton(
                         tooltip: l10n.coopCopyCode,
                         icon: const Icon(Icons.copy),

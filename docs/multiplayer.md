@@ -37,6 +37,21 @@ single tick. `SessionClient.resyncCount` counts the repairs; a healthy session
 never needs one, and a test asserts exactly that, so a determinism bug becomes
 a failing test rather than a bug report nobody can reproduce.
 
+**The hash has to be the same on every platform**, because a host and a guest
+can be a native app and a browser. Until protocol version 2 (2026-10-26) it
+was not: it hashed `toJson().toString()`, where a double such as 1500.0 prints
+"1500.0" in the VM and "1500" in JavaScript, and its multiply passed 2^53,
+where JavaScript numbers stop being exact. A browser and an app never agreed on
+a snapshot, and a guest threw at once. Nobody had seen it, because no web build
+had ever been in a session with a native one: the relay is the first route
+that allows it. The hash now writes numbers in a form both platforms produce
+digit for digit and multiplies in 16-bit halves.
+`packages/stadtbau_sim/test/hash_test.dart` pins the values, and CI runs it in
+Chrome as well as the VM; it also shows that thirteen months of simulation come
+out bit-identical in both, so the platforms' floating-point maths has not
+drifted apart. A peer on version 1 is refused with a version error rather than
+a mismatch.
+
 ## Messages
 
 JSON, one `type` tag, and `v` on every frame. There is no negotiation: a peer
@@ -228,14 +243,59 @@ Two rules, learned the hard way, both about `flutter_test`'s faked clock:
   close outside message delivery does its work synchronously, so the other
   side has already noticed by the next line.
 
+## Internet play through a relay (T-606)
+
+A relay is a small server that someone the players trust runs
+(`docs/relay-hosting.md`; there is no project relay). The host connects *out*
+to it, so hosting works where a LAN listener cannot, a browser included, and
+guests connect to it too. The protocol above does not change: the relay only
+carries its frames.
+
+**Room code.** `wss://relay.example.org/r/<secret>`, the relay's address and a
+fresh 128-bit secret. The `/r/` segment keeps it apart from a LAN code. The
+relay is told `relayRoomId(secret)`, a one-way SHA-256 of the secret, and the
+endpoints are `/v1/host/<room id>` and `/v1/join/<room id>`. Only `wss://` is
+accepted, except for a relay on the device itself.
+
+**The host's one connection carries every guest.** The relay wraps each
+guest's frames in an envelope, `{"op": "open" | "data" | "close", "ch": n,
+"m": frame}`, and `RelayHostLink` undoes it into one `Transport` per guest, the
+same shape `LanServer.connections` gives a LAN host.
+
+**Every channel is sealed end to end** (`SecureChannel`). The guest opens with
+a random 32-byte salt in the clear; both ends derive a key per direction from
+the secret and that salt with HKDF-SHA256, so every connection has its own
+keys. Each message is sealed with ChaCha20-Poly1305 under a 96-bit nonce that
+counts up from zero and is never sent. The receiver expects exactly the next
+count, so a frame the relay altered, replayed, reordered or dropped does not
+open, and the channel closes. The protocol already recovers from a closed
+channel by reconnecting (T-605). The host remembers every salt it has
+accepted, so a recorded connection cannot be replayed from its first frame.
+
+**Threat model.** The relay operator, and anyone who can watch the relay, can
+see that a room exists, how many guests it has, when frames pass and how big
+they are, and the addresses connecting. They cannot read or alter a game, join
+a room, or tie a room id to a game without its code. They can refuse service:
+drop a room, or close channels. Someone holding the room code can join, as on a
+LAN; the code is the admission secret.
+
+`test/secure_channel_test.dart` puts a relay in the middle that misbehaves in
+exactly one way per test (alters, replays, drops, holds another secret, replays
+a whole connection); `test/relay_session_test.dart` plays a real session with
+two guests through a real relay over local sockets; and the app's
+`relay_session_test.dart` does the same through `LanSession`, with the code
+the lobby shows.
+
 ## What is not here yet
 
-Automatic mDNS discovery is deliberately deferred. Native hosts instead show
+The relay address is typed each time; the app does not remember it, so that
+remembering it is a decision with its own storage key and privacy note, not a
+side effect. Automatic mDNS discovery is deliberately deferred. Native hosts instead show
 one room code per usable IPv4 address as text and a QR code, and guests can
 paste or type that code. There is no camera scanner yet. A web build served
 over HTTPS generally cannot open the host's plain `ws://` LAN connection due
-to browser mixed-content rules, so the reachable first release is native to
-native. T-606's `wss://` internet relay is the route to browser cross-play.
+to browser mixed-content rules, so a LAN game is native to native. Browser
+cross-play goes through a relay (below).
 
 The game screen now draws every district, names the active player and round,
 uses each player's private stock in the palette, and disables single-player

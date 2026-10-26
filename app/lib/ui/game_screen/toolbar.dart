@@ -188,7 +188,13 @@ class _CoopTurnBanner extends StatelessWidget {
                       final ok = await controller.reconnectCooperative();
                       if (!ok && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.coopConnectionFailed)),
+                          SnackBar(
+                            content: Text(
+                              relayEnabled
+                                  ? l10n.coopConnectionFailedRelay
+                                  : l10n.coopConnectionFailed,
+                            ),
+                          ),
                         );
                       }
                     },
