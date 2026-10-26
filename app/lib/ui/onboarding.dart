@@ -63,10 +63,15 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
             children: [
               Text(
                 l10n.onboardingStepCounter(_index + 1, _steps.length),
-                style: theme.textTheme.labelMedium?.copyWith(color: theme.hintColor),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.hintColor,
+                ),
               ),
               const SizedBox(height: 8),
-              Text(l10n.onboardingStepTitle(step.name), style: theme.textTheme.titleMedium),
+              Text(
+                l10n.onboardingStepTitle(step.name),
+                style: theme.textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               Text(l10n.onboardingStepBody(step.name)),
               const SizedBox(height: 16),
@@ -82,7 +87,9 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
                       margin: const EdgeInsets.symmetric(horizontal: 3),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: i == _index ? theme.colorScheme.primary : theme.dividerColor,
+                        color: i == _index
+                            ? theme.colorScheme.primary
+                            : theme.dividerColor,
                       ),
                     ),
                 ],
@@ -92,7 +99,10 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.onboardingSkip)),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.onboardingSkip),
+        ),
         FilledButton(
           onPressed: _next,
           child: Text(_isLast ? l10n.onboardingDone : l10n.onboardingNext),
@@ -111,10 +121,10 @@ class _StepIllustration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => switch (step) {
-        OnboardingStep.tiles => const _TilesIllustration(),
-        OnboardingStep.overlays => const _OverlaysIllustration(),
-        OnboardingStep.loop => const _LoopIllustration(),
-      };
+    OnboardingStep.tiles => const _TilesIllustration(),
+    OnboardingStep.overlays => const _OverlaysIllustration(),
+    OnboardingStep.loop => const _LoopIllustration(),
+  };
 }
 
 /// Three tiles from the palette and the grid they are dropped onto.
@@ -136,7 +146,11 @@ class _TilesIllustration extends StatelessWidget {
               // Onboarding runs before any level is chosen, so there is
               // no sub-type to apply: these are the class names.
               message: l10n.tileName(t.id),
-              child: _Swatch(color: TileStyle.of(t).color, icon: TileStyle.of(t).icon, iconColor: TileStyle.of(t).iconColor),
+              child: _Swatch(
+                color: TileStyle.of(t).color,
+                icon: TileStyle.of(t).icon,
+                iconColor: TileStyle.of(t).iconColor,
+              ),
             ),
           ),
         Icon(Icons.arrow_right_alt, color: theme.hintColor),
@@ -182,7 +196,12 @@ class _MiniMap extends StatelessWidget {
 class _OverlaysIllustration extends StatelessWidget {
   const _OverlaysIllustration();
 
-  static const _overlays = [MapOverlay.noise, MapOverlay.air, MapOverlay.heat, MapOverlay.green];
+  static const _overlays = [
+    MapOverlay.noise,
+    MapOverlay.air,
+    MapOverlay.heat,
+    MapOverlay.green,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -198,7 +217,10 @@ class _OverlaysIllustration extends StatelessWidget {
               children: [
                 SizedBox(
                   width: 92,
-                  child: Text(l10n.overlayName(o.name), style: theme.textTheme.bodySmall),
+                  child: Text(
+                    l10n.overlayName(o.name),
+                    style: theme.textTheme.bodySmall,
+                  ),
                 ),
                 Expanded(
                   child: ClipRRect(
@@ -210,7 +232,10 @@ class _OverlaysIllustration extends StatelessWidget {
                           for (var i = 0; i < 8; i++)
                             Expanded(
                               child: ColoredBox(
-                                color: overlayColor(i / 7, highIsBad: o != MapOverlay.green),
+                                color: overlayColor(
+                                  i / 7,
+                                  highIsBad: o != MapOverlay.green,
+                                ),
                                 child: const SizedBox(height: 10),
                               ),
                             ),
@@ -229,7 +254,12 @@ class _OverlaysIllustration extends StatelessWidget {
             const SizedBox(width: 8),
             Icon(Icons.touch_app, size: 18, color: theme.colorScheme.primary),
             const SizedBox(width: 8),
-            Expanded(child: Text(l10n.inspectorEmpty, style: theme.textTheme.bodySmall)),
+            Expanded(
+              child: Text(
+                l10n.inspectorEmpty,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
           ],
         ),
       ],
@@ -242,7 +272,13 @@ class _OverlaysIllustration extends StatelessWidget {
 class _LoopIllustration extends StatelessWidget {
   const _LoopIllustration();
 
-  static const _chain = ['homes', 'residents', 'traffic', 'noise', 'attractiveness'];
+  static const _chain = [
+    'homes',
+    'residents',
+    'traffic',
+    'noise',
+    'attractiveness',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -255,7 +291,13 @@ class _LoopIllustration extends StatelessWidget {
       Color(0xFFD95F0E), // noise and air
       Color(0xFF2C7FB8), // attractiveness
     ];
-    const icons = [Icons.apartment, Icons.groups, Icons.directions_car, Icons.volume_up, Icons.favorite];
+    const icons = [
+      Icons.apartment,
+      Icons.groups,
+      Icons.directions_car,
+      Icons.volume_up,
+      Icons.favorite,
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -265,10 +307,19 @@ class _LoopIllustration extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             for (var i = 0; i < _chain.length; i++) ...[
-              _Chip(label: l10n.onboardingLoopNode(_chain[i]), color: colors[i], icon: icons[i]),
-              if (i < _chain.length - 1) Icon(Icons.arrow_right_alt, size: 18, color: theme.hintColor),
+              _Chip(
+                label: l10n.onboardingLoopNode(_chain[i]),
+                color: colors[i],
+                icon: icons[i],
+              ),
+              if (i < _chain.length - 1)
+                Icon(Icons.arrow_right_alt, size: 18, color: theme.hintColor),
             ],
-            Icon(Icons.subdirectory_arrow_left, size: 18, color: theme.hintColor),
+            Icon(
+              Icons.subdirectory_arrow_left,
+              size: 18,
+              color: theme.hintColor,
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -290,7 +341,11 @@ class _LoopIllustration extends StatelessWidget {
 
 /// A rounded colour swatch with a Material Symbols glyph.
 class _Swatch extends StatelessWidget {
-  const _Swatch({required this.color, required this.icon, required this.iconColor});
+  const _Swatch({
+    required this.color,
+    required this.icon,
+    required this.iconColor,
+  });
 
   final Color color;
   final IconData icon;
@@ -298,11 +353,14 @@ class _Swatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: 34,
-        height: 34,
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
-        child: Icon(icon, size: 20, color: iconColor),
-      );
+    width: 34,
+    height: 34,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(6),
+    ),
+    child: Icon(icon, size: 20, color: iconColor),
+  );
 }
 
 /// A labelled node of the feedback loop.
@@ -315,16 +373,27 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onColor = ThemeData.estimateBrightnessForColor(color) == Brightness.dark ? Colors.white : Colors.black87;
+    final onColor =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+        ? Colors.white
+        : Colors.black87;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: onColor),
           const SizedBox(width: 4),
-          Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: onColor)),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: onColor),
+          ),
         ],
       ),
     );

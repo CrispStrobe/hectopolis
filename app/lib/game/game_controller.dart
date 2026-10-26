@@ -7,88 +7,12 @@ import 'package:stadtbau_net/stadtbau_net.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 import 'experience_settings.dart';
+import 'game_types.dart';
+import 'overlay_math.dart' as overlays;
 import 'save_store.dart';
 import 'session_controller.dart';
 
-/// Colour overlays the player can toggle on the map.
-enum MapOverlay {
-  none,
-  noise,
-  air,
-  heat,
-  green,
-  retail,
-  jobs,
-  habitat,
-  traffic,
-  attractiveness,
-}
-
-/// Read-only result of applying a prospective tile placement to a copy of the
-/// current simulation. The renderer uses this for the ghost tile, affected
-/// cells and score deltas; the authoritative simulation is never mutated.
-class PlacementPreview {
-  const PlacementPreview({
-    required this.cell,
-    required this.tile,
-    required this.costKEur,
-    required this.error,
-    required this.indicatorDeltas,
-    required this.affectedCells,
-    required this.affectedOverlay,
-  });
-
-  final int cell;
-  final TileType tile;
-  final double? costKEur;
-  final CommandError? error;
-  final Map<Indicator, double> indicatorDeltas;
-  final Set<int> affectedCells;
-  final MapOverlay affectedOverlay;
-
-  bool get isValid => error == null;
-}
-
-class BuildImpact {
-  const BuildImpact({
-    required this.cell,
-    required this.tile,
-    required this.removed,
-    required this.costKEur,
-    required this.indicatorDeltas,
-    required this.affectedCells,
-    required this.affectedOverlay,
-    required this.createdAtMs,
-  });
-
-  final int cell;
-  final TileType tile;
-  final bool removed;
-  final double costKEur;
-  final Map<Indicator, double> indicatorDeltas;
-  final Set<int> affectedCells;
-  final MapOverlay affectedOverlay;
-  final int createdAtMs;
-}
-
-class IndicatorHistorySample {
-  const IndicatorHistorySample({required this.tick, required this.scores});
-
-  final int tick;
-  final Map<Indicator, double> scores;
-}
-
-class GoalGuidance {
-  const GoalGuidance({
-    required this.indicator,
-    required this.metric,
-    required this.tile,
-  });
-
-  final Indicator? indicator;
-  final String? metric;
-  final TileType? tile;
-}
+export 'game_types.dart';
 
 /// UI-facing state around the simulation: level, brush, overlay, selection,
 /// clock, autosave.
@@ -179,12 +103,7 @@ class GameController extends ChangeNotifier {
   Map<Indicator, double> get experimentDeltas {
     final baseline = _experimentBaseline;
     if (baseline == null) return const {};
-    return {
-      for (final indicator in Indicator.values)
-        indicator:
-            sim.indicators.score(indicator) -
-            baseline.indicators.score(indicator),
-    };
+    return overlays.indicatorDeltas(baseline, sim);
   }
 
   ExperienceSettings experience = const ExperienceSettings();
@@ -423,33 +342,13 @@ class GameController extends ChangeNotifier {
     if (guidanceStage < 3) {
       guidanceStage++;
       if (guidanceStage == 1) {
-        overlay = _guidanceOverlay(guidance);
+        overlay = overlays.guidanceOverlay(guidance);
       }
     } else if (guidance.tile != null) {
       setBrush(guidance.tile);
       return;
     }
     notifyListeners();
-  }
-
-  static MapOverlay _guidanceOverlay(GoalGuidance guidance) {
-    return switch (guidance.indicator) {
-      Indicator.biodiversity => MapOverlay.habitat,
-      Indicator.air => MapOverlay.air,
-      Indicator.noise => MapOverlay.noise,
-      Indicator.housing => MapOverlay.attractiveness,
-      Indicator.flood => MapOverlay.heat,
-      Indicator.economy || Indicator.budget => MapOverlay.jobs,
-      Indicator.shopping => MapOverlay.retail,
-      Indicator.recreation => MapOverlay.green,
-      Indicator.commuting => MapOverlay.traffic,
-      Indicator.climate => MapOverlay.heat,
-      null => switch (guidance.metric) {
-        'population' => MapOverlay.attractiveness,
-        'jobs' || 'budgetKEur' => MapOverlay.jobs,
-        _ => MapOverlay.none,
-      },
-    };
   }
 
   void _evaluate() {
@@ -601,7 +500,7 @@ class GameController extends ChangeNotifier {
         error: error,
         indicatorDeltas: const {},
         affectedCells: {cell},
-        affectedOverlay: _previewOverlay(tile),
+        affectedOverlay: overlays.previewOverlayFor(tile),
       );
     }
     if (!forecast) {
@@ -612,79 +511,27 @@ class GameController extends ChangeNotifier {
         error: null,
         indicatorDeltas: const {},
         affectedCells: {cell},
-        affectedOverlay: _previewOverlay(tile),
+        affectedOverlay: overlays.previewOverlayFor(tile),
       );
     }
 
     final prospective = sim.copy();
     prospective.apply(PlaceTile(x, y, tile));
-    final deltas = <Indicator, double>{
-      for (final indicator in Indicator.values)
-        indicator:
-            prospective.indicators.score(indicator) -
-            sim.indicators.score(indicator),
-    };
-    final affectedOverlay = _previewOverlay(tile);
-    final affected = <int>{cell};
-    for (var i = 0; i < sim.state.cellCount; i++) {
-      if (_fieldDifference(affectedOverlay, sim, prospective, i) >
-          _previewThreshold(affectedOverlay)) {
-        affected.add(i);
-      }
-    }
+    final affectedOverlay = overlays.previewOverlayFor(tile);
     return PlacementPreview(
       cell: cell,
       tile: tile,
       costKEur: cost,
       error: null,
-      indicatorDeltas: deltas,
-      affectedCells: affected,
+      indicatorDeltas: overlays.indicatorDeltas(sim, prospective),
+      affectedCells: overlays.affectedCells(
+        affectedOverlay,
+        sim,
+        prospective,
+        cell,
+      ),
       affectedOverlay: affectedOverlay,
     );
-  }
-
-  static MapOverlay _previewOverlay(TileType tile) => switch (tile) {
-    TileType.forest || TileType.meadow => MapOverlay.habitat,
-    TileType.water || TileType.park || TileType.wetland => MapOverlay.green,
-    TileType.cyclePath => MapOverlay.green,
-    TileType.cropland => MapOverlay.heat,
-    TileType.housingLow || TileType.housingHigh => MapOverlay.attractiveness,
-    TileType.commercial || TileType.mixedUse => MapOverlay.retail,
-    TileType.school => MapOverlay.jobs,
-    // Dark modules are the one thing a solar field does to its surroundings
-    // that the map can show; the CO2 it displaces has no overlay.
-    TileType.solarField => MapOverlay.heat,
-    TileType.industry => MapOverlay.air,
-    TileType.road || TileType.tramStop => MapOverlay.noise,
-  };
-
-  static double _previewThreshold(MapOverlay overlay) => switch (overlay) {
-    MapOverlay.noise => 0.15,
-    MapOverlay.air || MapOverlay.traffic => 0.1,
-    _ => 0.005,
-  };
-
-  static double _fieldDifference(
-    MapOverlay overlay,
-    Simulation before,
-    Simulation after,
-    int i,
-  ) {
-    final a = before.fields;
-    final b = after.fields;
-    return switch (overlay) {
-      MapOverlay.noise => (b.noiseDb[i] - a.noiseDb[i]).abs(),
-      MapOverlay.air => (b.airIndex[i] - a.airIndex[i]).abs(),
-      MapOverlay.heat => (b.heatDeltaC[i] - a.heatDeltaC[i]).abs(),
-      MapOverlay.green => (b.greenAccess[i] - a.greenAccess[i]).abs(),
-      MapOverlay.retail => (b.retailAccess[i] - a.retailAccess[i]).abs(),
-      MapOverlay.jobs => (b.jobAccess[i] - a.jobAccess[i]).abs(),
-      MapOverlay.habitat => (b.habitatQuality[i] - a.habitatQuality[i]).abs(),
-      MapOverlay.traffic => (b.traffic[i] - a.traffic[i]).abs(),
-      MapOverlay.attractiveness =>
-        (b.attractiveness[i] - a.attractiveness[i]).abs(),
-      MapOverlay.none => 0,
-    };
   }
 
   /// Move the keyboard cursor by [dx]/[dy] cells, clamped to the grid. The
@@ -911,26 +758,14 @@ class GameController extends ChangeNotifier {
     required bool removed,
     required double costKEur,
   }) {
-    final affectedOverlay = _previewOverlay(tile);
-    final affected = <int>{cell};
-    for (var i = 0; i < sim.state.cellCount; i++) {
-      if (_fieldDifference(affectedOverlay, before, sim, i) >
-          _previewThreshold(affectedOverlay)) {
-        affected.add(i);
-      }
-    }
+    final affectedOverlay = overlays.previewOverlayFor(tile);
     lastImpact = BuildImpact(
       cell: cell,
       tile: tile,
       removed: removed,
       costKEur: costKEur,
-      indicatorDeltas: {
-        for (final indicator in Indicator.values)
-          indicator:
-              sim.indicators.score(indicator) -
-              before.indicators.score(indicator),
-      },
-      affectedCells: affected,
+      indicatorDeltas: overlays.indicatorDeltas(before, sim),
+      affectedCells: overlays.affectedCells(affectedOverlay, before, sim, cell),
       affectedOverlay: affectedOverlay,
       createdAtMs: DateTime.now().millisecondsSinceEpoch,
     );
@@ -1029,14 +864,16 @@ class GameController extends ChangeNotifier {
   double overlayValue(int cell) {
     final baseline = _experimentBaseline;
     if (showExperimentDelta && baseline != null) {
-      final current = _normalOverlayValue(sim, cell);
-      final previous = _normalOverlayValue(baseline, cell);
+      final current = overlays.normalOverlayValue(overlay, sim, cell);
+      final previous = overlays.normalOverlayValue(overlay, baseline, cell);
       final direction = overlayHighIsBadFor(overlay) ? -1.0 : 1.0;
       return _displayOverlayValue(
         (0.5 + (current - previous) * direction * 2).clamp(0, 1),
       );
     }
-    return _displayOverlayValue(_normalOverlayValue(sim, cell));
+    return _displayOverlayValue(
+      overlays.normalOverlayValue(overlay, sim, cell),
+    );
   }
 
   double _displayOverlayValue(double value) {
@@ -1046,23 +883,12 @@ class GameController extends ChangeNotifier {
     return 1;
   }
 
-  double? get overlayThreshold => switch (overlay) {
-    MapOverlay.noise => (55 - 35) / 40,
-    MapOverlay.heat =>
-      sim.fields.uhiMaxNowC <= 0 ? null : 2 / sim.fields.uhiMaxNowC,
-    MapOverlay.green ||
-    MapOverlay.retail ||
-    MapOverlay.jobs ||
-    MapOverlay.habitat ||
-    MapOverlay.attractiveness => 0.5,
-    MapOverlay.traffic => 0.5,
-    MapOverlay.none || MapOverlay.air => null,
-  };
+  double? get overlayThreshold => overlays.overlayThresholdFor(overlay, sim);
 
   bool overlayMeetsThreshold(int cell) {
     final threshold = overlayThreshold;
     if (threshold == null || showExperimentDelta) return false;
-    return _normalOverlayValue(sim, cell) >= threshold;
+    return overlays.normalOverlayValue(overlay, sim, cell) >= threshold;
   }
 
   /// Nearby cells that plausibly contribute to the selected overlay value.
@@ -1070,35 +896,13 @@ class GameController extends ChangeNotifier {
   List<int> get selectedCausalSourceCells {
     final selected = selectedCell;
     if (selected == null || overlay == MapOverlay.none) return const [];
-    bool isSource(TileType type) => switch (overlay) {
-      MapOverlay.noise || MapOverlay.air =>
-        type == TileType.road ||
-            type == TileType.industry ||
-            type == TileType.commercial ||
-            type == TileType.housingHigh ||
-            type == TileType.housingLow,
-      MapOverlay.green =>
-        type == TileType.park ||
-            type == TileType.forest ||
-            type == TileType.meadow ||
-            type == TileType.water,
-      MapOverlay.retail => type == TileType.commercial,
-      MapOverlay.jobs =>
-        type == TileType.commercial || type == TileType.industry,
-      MapOverlay.habitat =>
-        type == TileType.road ||
-            type == TileType.industry ||
-            type == TileType.commercial ||
-            type == TileType.housingHigh,
-      MapOverlay.traffic => type == TileType.road,
-      MapOverlay.heat || MapOverlay.attractiveness => type != TileType.meadow,
-      MapOverlay.none => false,
-    };
     final sx = selected % width;
     final sy = selected ~/ width;
     final cells = <int>[
       for (var i = 0; i < sim.state.cellCount; i++)
-        if (i != selected && isSource(sim.state.tiles[i])) i,
+        if (i != selected &&
+            overlays.isCausalSource(overlay, sim.state.tiles[i], sim))
+          i,
     ];
     cells.sort((a, b) {
       int distance(int i) {
@@ -1112,42 +916,12 @@ class GameController extends ChangeNotifier {
     return cells.take(6).toList(growable: false);
   }
 
-  double _normalOverlayValue(Simulation source, int cell) {
-    final f = source.fields;
-    switch (overlay) {
-      case MapOverlay.none:
-        return 0;
-      case MapOverlay.noise:
-        return ((f.noiseDb[cell] - 35) / 40).clamp(0, 1);
-      case MapOverlay.air:
-        return (1 - f.airIndex[cell] / 100).clamp(0, 1);
-      case MapOverlay.heat:
-        return source.fields.uhiMaxNowC <= 0
-            ? 0.0
-            : (f.heatDeltaC[cell] / source.fields.uhiMaxNowC).clamp(0.0, 1.0);
-      case MapOverlay.green:
-        return f.greenAccess[cell];
-      case MapOverlay.retail:
-        return f.retailAccess[cell];
-      case MapOverlay.jobs:
-        return f.jobAccess[cell];
-      case MapOverlay.habitat:
-        return f.habitatQuality[cell];
-      case MapOverlay.traffic:
-        return (f.traffic[cell] / 20000).clamp(0, 1);
-      case MapOverlay.attractiveness:
-        return f.attractiveness[cell];
-    }
-  }
-
   /// Whether high overlay values are "bad" (drawn warm) or "good" (drawn cool).
   bool get overlayHighIsBad =>
       !showExperimentDelta && overlayHighIsBadFor(overlay);
 
-  bool overlayHighIsBadFor(MapOverlay value) => switch (value) {
-    MapOverlay.noise || MapOverlay.heat || MapOverlay.traffic => true,
-    _ => false,
-  };
+  bool overlayHighIsBadFor(MapOverlay value) =>
+      overlays.overlayHighIsBadFor(value);
 
   @override
   void dispose() {

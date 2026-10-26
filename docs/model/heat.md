@@ -55,7 +55,7 @@ behind the rural reference in July than in January. That signal lives in the
 `growth` factor, in the numerator, where it belongs. What is gone is the part
 that came from measuring a summer number against an annual yardstick.
 
-The map's terrain tint (`_warmth` in `map_view.dart`) is the deliberate
+The map's terrain tint (`_warmth` in `app/lib/ui/map/map_painter.dart`) is the deliberate
 exception: it keeps the absolute scale, because a tint should say "this place
 is hot right now" and a July city ought to look hotter than the same city in
 January.

@@ -16,7 +16,8 @@ class AboutScreen extends StatelessWidget {
 
   // Provider identification (Impressum), the same developer as our sibling
   // apps. Not localised: an address is an address in every language.
-  static const provider = 'Christian Ströbele\nNikolausstr. 5\n70190 Stuttgart\nDeutschland / Germany';
+  static const provider =
+      'Christian Ströbele\nNikolausstr. 5\n70190 Stuttgart\nDeutschland / Germany';
   static const email = 'postmaster@crispstro.be';
   static const phone = '+49 176 6421 8601';
   static const phoneUri = 'tel:+4917664218601';
@@ -36,7 +37,11 @@ class AboutScreen extends StatelessWidget {
             children: [
               const _AppHeader(),
               const SizedBox(height: 12),
-              _SectionCard(icon: Icons.business, label: l10n.aboutProvider, child: const Text(provider)),
+              _SectionCard(
+                icon: Icons.business,
+                label: l10n.aboutProvider,
+                child: const Text(provider),
+              ),
               _SectionCard(
                 icon: Icons.alternate_email,
                 label: l10n.aboutContact,
@@ -51,8 +56,16 @@ class AboutScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              _SectionCard(icon: Icons.privacy_tip_outlined, label: l10n.aboutPrivacy, child: Text(l10n.aboutPrivacyText)),
-              _SectionCard(icon: Icons.gavel, label: l10n.aboutDisclaimer, child: Text(l10n.aboutDisclaimerText)),
+              _SectionCard(
+                icon: Icons.privacy_tip_outlined,
+                label: l10n.aboutPrivacy,
+                child: Text(l10n.aboutPrivacyText),
+              ),
+              _SectionCard(
+                icon: Icons.gavel,
+                label: l10n.aboutDisclaimer,
+                child: Text(l10n.aboutDisclaimerText),
+              ),
               _SectionCard(
                 icon: Icons.copyright,
                 label: l10n.aboutLicense,
@@ -78,7 +91,10 @@ class AboutScreen extends StatelessWidget {
                     for (final s in dataSources)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 2),
-                        child: Text('• ${s.title} — ${s.license}', style: Theme.of(context).textTheme.bodySmall),
+                        child: Text(
+                          '• ${s.title} — ${s.license}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ),
                     const SizedBox(height: 8),
                     const _LinkText(text: modelDocsUrl, uri: modelDocsUrl),
@@ -107,7 +123,10 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _showLicenses(BuildContext context, AppLocalizations l10n) async {
+  Future<void> _showLicenses(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
     ensureCustomLicensesRegistered();
     final info = await PackageInfo.fromPlatform();
     if (!context.mounted) return;
@@ -135,25 +154,42 @@ class _AppHeader extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: scheme.primaryContainer, borderRadius: BorderRadius.circular(12)),
-              child: Icon(Icons.location_city, size: 28, color: scheme.onPrimaryContainer),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.location_city,
+                size: 28,
+                color: scheme.onPrimaryContainer,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.appTitle, style: Theme.of(context).textTheme.headlineSmall),
+                  Text(
+                    l10n.appTitle,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: 4),
                   FutureBuilder<PackageInfo>(
                     future: PackageInfo.fromPlatform(),
                     builder: (context, snap) => Text(
-                      snap.hasData ? l10n.aboutVersionLabel('${snap.data!.version}+${snap.data!.buildNumber}') : '…',
+                      snap.hasData
+                          ? l10n.aboutVersionLabel(
+                              '${snap.data!.version}+${snap.data!.buildNumber}',
+                            )
+                          : '…',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(l10n.aboutTagline, style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    l10n.aboutTagline,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ),
             ),
@@ -166,7 +202,11 @@ class _AppHeader extends StatelessWidget {
 
 /// A labelled card section with a leading icon.
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.icon, required this.label, required this.child});
+  const _SectionCard({
+    required this.icon,
+    required this.label,
+    required this.child,
+  });
 
   final IconData icon;
   final String label;
@@ -185,7 +225,12 @@ class _SectionCard extends StatelessWidget {
               children: [
                 Icon(icon, size: 18),
                 const SizedBox(width: 8),
-                Expanded(child: Text(label, style: Theme.of(context).textTheme.titleSmall)),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -213,7 +258,10 @@ class _LinkText extends StatelessWidget {
       },
       child: Text(
         text,
-        style: TextStyle(color: Theme.of(context).colorScheme.primary, decoration: TextDecoration.underline),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.primary,
+          decoration: TextDecoration.underline,
+        ),
       ),
     );
   }

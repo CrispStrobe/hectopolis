@@ -35,3 +35,11 @@ __pycache__/
 
 # Local handover notes, not part of the project
 HANDOVER.md
+
+# Signing material and personal credential helpers never enter the repo;
+# CI reads them from secrets (docs/release/ios.md), tools/asc/client.py mints tokens
+*.mobileprovision
+*.p8
+*.p12
+*.cer
+gen_token.py
