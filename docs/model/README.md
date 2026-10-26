@@ -67,7 +67,7 @@ January and in July.
 |---|---|---|
 | noise | sound energy 10^(L/10) after divergence and screening | 10·log10(background + Σ) |
 | air | concentration before deposition | Σ, times the cell's deposition factor |
-| heat | cooling capacity × distance weight, green patches ≥ 2 ha | ΔT from max(own CC, best source) |
+| heat | cooling capacity × distance weight, green patches ≥ 2 ha, where it beats the cell's own capacity | ΔT from max(own CC, best source) |
 | green | green weight in reach | best + variety bonus, capped |
 | retail | Huff-weighted floor area | Σ / reference supply, capped |
 | jobs | jobs × exp(−d / 2 km) | Σ / reference jobs, capped |

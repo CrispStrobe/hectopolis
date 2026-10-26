@@ -105,9 +105,11 @@ Uint8List _coolsNeighbours(WorldState w, SimParams p) {
 }
 
 /// The cooling each green cell in reach offers [cell]: its cooling capacity
-/// times the distance weight, as [computeHeat] uses them. The cell's heat
-/// comes from the largest of these and its own capacity, so the strongest
-/// source is the one that sets it.
+/// times the distance weight, as [computeHeat] uses them, for the cells that
+/// beat [cell]'s own capacity. The cell's heat comes from the largest of these
+/// and its own, so a source weaker than the cell itself cools nothing (a
+/// detached house's garden often out-cools the meadow next to it), and the
+/// strongest is the one that sets it.
 Map<int, double> coolingSources(WorldState w, SimParams p, Fields f, int cell) {
   final hp = p.heat;
   final cools = _coolsNeighbours(w, p);
@@ -122,7 +124,8 @@ Map<int, double> coolingSources(WorldState w, SimParams p, Fields f, int cell) {
     final j = ny * w.width + nx;
     if (cools[j] == 0) continue;
     final weight = 1 - offsets.dist[k] / (hp.coolingDistanceTiles + 1);
-    out[j] = f.coolingCapacity[j] * weight;
+    final offered = f.coolingCapacity[j] * weight;
+    if (offered > f.coolingCapacity[cell]) out[j] = offered;
   }
   return out;
 }
