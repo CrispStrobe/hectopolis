@@ -1567,7 +1567,7 @@
     },
     "commuteDecayM": {
       "value": 10000,
-      "source": "Östh, Lyhagen & Reggiani 2016 (EJTIR 16(2), 344–363), Eq. 17: half-life method β = ln 2 / median distance. Dauth & Haller, IAB-Kurzbericht 10/2018, pp. 1–4: median commute 10.5 km by road, about 30 % shorter straight-line, so about 7.4 km; 7.4 / 0.693 ≈ 10.6 km on the straight-line distances the map measures. A fit to IAB's distance classes gives about 14 km on road distances"
+      "source": "Östh, Lyhagen & Reggiani 2016 (EJTIR 16(2), 344–363), Eq. 17: half-life method beta = ln 2 / median distance. Dauth & Haller, IAB-Kurzbericht 10/2018, pp. 1–4: median commute 10.5 km by road, about 30 % shorter straight-line, so about 7.4 km; 7.4 / 0.693 ≈ 10.6 km on the straight-line distances the map measures. A fit to IAB's distance classes gives about 14 km on road distances"
     },
     "externalCommuteKm": {
       "value": 20,
