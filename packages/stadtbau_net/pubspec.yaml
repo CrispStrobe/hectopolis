@@ -11,6 +11,7 @@ environment:
 resolution: workspace
 
 dependencies:
+  cryptography: ^2.9.0
   meta: ^1.16.0
   shelf: ^1.4.2
   shelf_web_socket: ^3.0.0
@@ -19,4 +20,7 @@ dependencies:
 
 dev_dependencies:
   lints: ^6.0.0
+  # The relay server, to play a real session through it (relay_session_test).
+  stadtbau_relay:
+    path: ../stadtbau_relay
   test: ^1.25.0
