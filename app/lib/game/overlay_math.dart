@@ -189,6 +189,20 @@ bool isCausalSource(MapOverlay overlay, TileType type, Simulation sim) {
   };
 }
 
+/// The sim field whose sources [overlay] can be traced to directly, or null
+/// for the two that do not split into a sum over source cells (traffic is
+/// routed, attractiveness mixes the others).
+SourceField? sourceFieldFor(MapOverlay overlay) => switch (overlay) {
+  MapOverlay.noise => SourceField.noise,
+  MapOverlay.air => SourceField.air,
+  MapOverlay.heat => SourceField.heat,
+  MapOverlay.green => SourceField.green,
+  MapOverlay.retail => SourceField.retail,
+  MapOverlay.jobs => SourceField.jobs,
+  MapOverlay.habitat => SourceField.habitat,
+  MapOverlay.traffic || MapOverlay.attractiveness || MapOverlay.none => null,
+};
+
 /// The overlay the goal hint opens first, so the player sees the problem on
 /// the map before being handed a tile.
 MapOverlay guidanceOverlay(GoalGuidance guidance) {

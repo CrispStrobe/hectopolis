@@ -12,5 +12,6 @@ export 'src/loops.dart';
 export 'src/model/noise.dart' show Contribution;
 export 'src/params.dart';
 export 'src/simulation.dart';
+export 'src/sources.dart';
 export 'src/tile_type.dart';
 export 'src/world.dart';

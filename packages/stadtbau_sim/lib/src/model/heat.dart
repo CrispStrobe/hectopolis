@@ -43,14 +43,38 @@ void computeHeat(WorldState w, SimParams p, Fields f) {
   final span = math.max(1e-6, ccRef - ccMin);
 
   final cc = f.coolingCapacity;
+  for (var i = 0; i < n; i++) {
+    cc[i] = capacity(p.tile(w.tiles[i]));
+  }
+  final cools = _coolsNeighbours(w, p);
+
+  final offsets = Offsets.radius(hp.coolingDistanceTiles);
+  for (var i = 0; i < n; i++) {
+    final x = i % width;
+    final y = i ~/ width;
+    var hm = cc[i];
+    for (var k = 0; k < offsets.length; k++) {
+      final nx = x + offsets.dx[k];
+      final ny = y + offsets.dy[k];
+      if (!w.inBounds(nx, ny)) continue;
+      final j = ny * width + nx;
+      if (cools[j] == 0) continue;
+      final weight = 1 - offsets.dist[k] / (hp.coolingDistanceTiles + 1);
+      hm = math.max(hm, cc[j] * weight);
+    }
+    f.heatDeltaC[i] = uhiMax * clamp01((ccRef - hm) / span);
+  }
+}
+
+/// 1 for every cell that cools its neighbours: green, and part of a connected
+/// green patch (8-neighbourhood) of at least `greenPatchMinHa`.
+Uint8List _coolsNeighbours(WorldState w, SimParams p) {
+  final n = w.cellCount;
+  final width = w.width;
   final isGreen = Uint8List(n);
   for (var i = 0; i < n; i++) {
-    final tp = p.tile(w.tiles[i]);
-    cc[i] = capacity(tp);
-    isGreen[i] = tp.category.isGreen ? 1 : 0;
+    isGreen[i] = p.tile(w.tiles[i]).category.isGreen ? 1 : 0;
   }
-
-  // Label connected green patches (8-neighbourhood) and count their size.
   final ds = DisjointSet(n);
   for (var i = 0; i < n; i++) {
     if (isGreen[i] == 0) continue;
@@ -71,22 +95,37 @@ void computeHeat(WorldState w, SimParams p, Fields f) {
   for (var i = 0; i < n; i++) {
     if (isGreen[i] == 1) patchSize[ds.find(i)]++;
   }
-
-  final offsets = Offsets.radius(hp.coolingDistanceTiles);
+  final cools = Uint8List(n);
   for (var i = 0; i < n; i++) {
-    final x = i % width;
-    final y = i ~/ width;
-    var hm = cc[i];
-    for (var k = 0; k < offsets.length; k++) {
-      final nx = x + offsets.dx[k];
-      final ny = y + offsets.dy[k];
-      if (!w.inBounds(nx, ny)) continue;
-      final j = ny * width + nx;
-      if (isGreen[j] == 0) continue;
-      if (patchSize[ds.find(j)] < hp.greenPatchMinHa) continue;
-      final weight = 1 - offsets.dist[k] / (hp.coolingDistanceTiles + 1);
-      hm = math.max(hm, cc[j] * weight);
+    if (isGreen[i] == 1 && patchSize[ds.find(i)] >= p.heat.greenPatchMinHa) {
+      cools[i] = 1;
     }
-    f.heatDeltaC[i] = uhiMax * clamp01((ccRef - hm) / span);
   }
+  return cools;
+}
+
+/// The cooling each green cell in reach offers [cell]: its cooling capacity
+/// times the distance weight, as [computeHeat] uses them, for the cells that
+/// beat [cell]'s own capacity. The cell's heat comes from the largest of these
+/// and its own, so a source weaker than the cell itself cools nothing (a
+/// detached house's garden often out-cools the meadow next to it), and the
+/// strongest is the one that sets it.
+Map<int, double> coolingSources(WorldState w, SimParams p, Fields f, int cell) {
+  final hp = p.heat;
+  final cools = _coolsNeighbours(w, p);
+  final offsets = Offsets.radius(hp.coolingDistanceTiles);
+  final x = cell % w.width;
+  final y = cell ~/ w.width;
+  final out = <int, double>{};
+  for (var k = 0; k < offsets.length; k++) {
+    final nx = x + offsets.dx[k];
+    final ny = y + offsets.dy[k];
+    if (!w.inBounds(nx, ny)) continue;
+    final j = ny * w.width + nx;
+    if (cools[j] == 0) continue;
+    final weight = 1 - offsets.dist[k] / (hp.coolingDistanceTiles + 1);
+    final offered = f.coolingCapacity[j] * weight;
+    if (offered > f.coolingCapacity[cell]) out[j] = offered;
+  }
+  return out;
 }
