@@ -90,6 +90,8 @@ const _pages = <PageSpec>[
   PageSpec('docs/relay-hosting.md', 'relay-hosting.html', _sectionProject),
   PageSpec('docs/privacy.md', 'privacy.html', _sectionProject),
   PageSpec('docs/accessibility.md', 'accessibility.html', _sectionProject),
+  PageSpec('docs/accessibility-playtest.md', 'accessibility-playtest.html',
+      _sectionProject),
 ];
 
 const _excludedDirs = <String>{'docs/release', 'docs/_site'};
