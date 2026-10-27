@@ -92,6 +92,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
         builder: (_) => CoopSetupScreen(
           gameController: widget.controller,
           onLocaleToggle: widget.onLocaleToggle,
+          store: widget.store,
         ),
       ),
     );

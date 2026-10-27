@@ -37,16 +37,21 @@ large-city figure for a game whose towns are small.
 
 `UHI_max` in that formula is not the parameter `heat.uhiMaxC`. It is that
 parameter times the month's heat factor (`docs/model/seasons.md`), which runs
-from 0.275 in January to 1.927 in July. A dense quarter (an 8 × 8 block of
-apartments) reaches about 2.4 K in July against a `uhiMaxC` of 2.0 and a
-July ceiling of 3.85 K, which is close to the hottest-day median of the DWD
-grids for towns of this size.
+from 0.48 in January to 1.52 in July. A dense quarter (an 8 × 8 block of
+apartments) reaches about 1.9 K in July against a `uhiMaxC` of 2.0 and a
+July ceiling of 3.0 K: between the summer median of the DWD grids for towns of
+this size (about 1.1 K over a square kilometre) and their hottest-day median
+(about 2.4 K), which is where a one-hectare hot spot belongs.
 
-**Open: the summer peak is too strong.** In the DWD grids the summer UHI is
-about 1.3–1.5 times the annual one (Geisenheim 1.44, Landshut 1.5, Berlin 1.3);
-the game's June–August factors average 1.85. Lowering them is a change to
-`seasons.heat`, which several missions are tuned against, so it is noted here
-rather than made in passing.
+**The seasonal factors are read off DWD's grids** (2026-10-27). For twelve
+towns of 6 000–23 000 residents, the seasonal UHI-MAP grids give a median
+season-to-annual ratio of 0.51 in winter, 0.98 in spring, 1.44 in summer and
+1.00 in autumn; an annual cosine peaking in July fits them to within 0.01. The
+factors used to run 0.275–1.927, a summer 1.85 times the annual mean and a
+winter barely there. The change moved no score, goal or star: every score
+divides by the ceiling in force, which carries the same factor, so it cancels
+(the learning audit's random-play counts and every worked plan are unchanged).
+What changed is what a player reads in °C.
 
 **`computeHeat` publishes the ceiling it used as `fields.uhiMaxNowC`, and
 everything that turns a ΔT into a 0–1 score divides by that** — the climate and

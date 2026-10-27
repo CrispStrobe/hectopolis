@@ -22,6 +22,7 @@ class SaveStore {
   static const _onboardingKey = 'stadtbau.onboarding.v1';
   static const _experienceKey = 'stadtbau.experience.v1';
   static const _medalsKey = 'stadtbau.medals.v1';
+  static const _relayKey = 'stadtbau.relay.v1';
 
   Future<void> save(String? levelId, Simulation sim) async {
     final prefs = await SharedPreferences.getInstance();
@@ -56,6 +57,24 @@ class SaveStore {
   Future<bool> onboardingSeen() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_onboardingKey) ?? false;
+  }
+
+  /// The relay address last hosted through (T-606), so a club that always
+  /// uses one does not retype it. Written only after hosting through it
+  /// succeeded; builds without relays never touch it.
+  Future<String?> relayAddress() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_relayKey);
+  }
+
+  Future<void> saveRelayAddress(String address) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_relayKey, address);
+  }
+
+  Future<void> forgetRelayAddress() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_relayKey);
   }
 
   Future<void> markOnboardingSeen() async {

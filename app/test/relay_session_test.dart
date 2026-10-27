@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stadtbau/game/game_controller.dart';
 import 'package:stadtbau/game/lan_session.dart';
+import 'package:stadtbau/game/save_store.dart';
 import 'package:stadtbau/l10n/generated/app_localizations.dart';
 import 'package:stadtbau/ui/coop_setup_screen.dart';
 import 'package:stadtbau_net/stadtbau_net.dart';
@@ -73,5 +74,105 @@ void main() {
     await tester.tap(button);
     await tester.pump();
     expect(find.text(l10n.coopRelayAddressInvalid), findsOneWidget);
+  });
+
+  Future<AppLocalizations> pumpSetup(
+    WidgetTester tester,
+    GameController game,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: CoopSetupScreen(
+          gameController: game,
+          onLocaleToggle: () {},
+          store: SaveStore(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return AppLocalizations.delegate.load(const Locale('en'));
+  }
+
+  testWidgets('a remembered relay address is filled in, and can be forgotten', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'stadtbau.relay.v1': 'relay.example.org',
+    });
+    final game = GameController(size: 8);
+    addTearDown(game.dispose);
+    final l10n = await pumpSetup(tester, game);
+    // The field's own text: the hint shows the same example host name.
+    String typed() => tester
+        .widget<TextField>(
+          find.widgetWithText(TextField, l10n.coopRelayAddress),
+        )
+        .controller!
+        .text;
+    expect(typed(), 'relay.example.org');
+
+    await tester.tap(find.byTooltip(l10n.coopRelayForget));
+    await tester.pumpAndSettle();
+    expect(typed(), isEmpty);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('stadtbau.relay.v1'), isNull);
+  });
+
+  testWidgets('only an address that worked is remembered', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final game = GameController(size: 8);
+    addTearDown(game.dispose);
+    final l10n = await pumpSetup(tester, game);
+    await tester.enterText(
+      find.widgetWithText(TextField, l10n.coopPlayerName),
+      'Ada',
+    );
+
+    // Refused before connecting: nothing stored.
+    await tester.enterText(
+      find.widgetWithText(TextField, l10n.coopRelayAddress),
+      'ws://relay.example.org',
+    );
+    await tester.pump();
+    await tester.tap(find.widgetWithText(OutlinedButton, l10n.coopHostRelay));
+    await tester.pump();
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('stadtbau.relay.v1'), isNull);
+
+    // A real relay: hosting through it works, and the address is kept.
+    final relay = (await tester.runAsync(() => RelayServer.start(port: 0)))!;
+    final address = 'ws://127.0.0.1:${relay.port}';
+    await tester.enterText(
+      find.widgetWithText(TextField, l10n.coopRelayAddress),
+      address,
+    );
+    await tester.pump();
+    // Real sockets: tap and wait outside the test's faked clock.
+    await tester.runAsync(() async {
+      await tester.tap(find.widgetWithText(OutlinedButton, l10n.coopHostRelay));
+      for (
+        var i = 0;
+        i < 200 && prefs.getString('stadtbau.relay.v1') == null;
+        i++
+      ) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+    });
+    expect(prefs.getString('stadtbau.relay.v1'), address);
+
+    // Leave the lobby, which closes the session, then stop the relay.
+    await tester.pump();
+    Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
+    await tester.pump();
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await relay.close();
+    });
   });
 }

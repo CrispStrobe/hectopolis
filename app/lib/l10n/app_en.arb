@@ -917,17 +917,27 @@
   "@a11yGoalRow": {
     "description": "One goal of the scenario as a screen reader says it, with whether it is met; the check icon shows that and nothing else does.",
     "placeholders": {
-      "goal": {"type": "String"},
-      "current": {"type": "String"},
-      "met": {"type": "String"}
+      "goal": {
+        "type": "String"
+      },
+      "current": {
+        "type": "String"
+      },
+      "met": {
+        "type": "String"
+      }
     }
   },
   "a11yGoalRowSimple": "{goal}: {met, select, true{met} other{not met yet}}",
   "@a11yGoalRowSimple": {
     "description": "The same in simple mode, which hides the numbers.",
     "placeholders": {
-      "goal": {"type": "String"},
-      "met": {"type": "String"}
+      "goal": {
+        "type": "String"
+      },
+      "met": {
+        "type": "String"
+      }
     }
   },
   "a11yTileSelected": "{name}, selected",
@@ -970,6 +980,10 @@
   "coopRelayAddressHint": "relay.example.org",
   "@coopRelayAddressHint": {
     "description": "Placeholder in the relay address field: an example host name (example.org is reserved for examples)."
+  },
+  "coopRelayForget": "Forget this relay address",
+  "@coopRelayForget": {
+    "description": "Tooltip of the button that clears the remembered relay address."
   },
   "coopHostRelay": "Host through a relay",
   "@coopHostRelay": {
