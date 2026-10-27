@@ -123,7 +123,9 @@ class _Transport extends StatelessWidget {
                 IconButton(
                   tooltip: l10n.actionSpeed(s),
                   isSelected: controller.speed == s,
-                  icon: Text('$s×'),
+                  // The tooltip already says "Speed 3×"; read out as well, the
+                  // label was "Speed 3× 3×".
+                  icon: ExcludeSemantics(child: Text('$s×')),
                   onPressed: () => controller.setSpeed(s),
                 ),
           ],

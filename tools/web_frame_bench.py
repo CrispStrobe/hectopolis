@@ -117,6 +117,11 @@ async def measure(chrome, url, seconds, shot, play=False):
     log = open(os.path.join(profile, "chrome.log"), "w+")
     proc = subprocess.Popen(
         [chrome, "--headless=new", "--no-sandbox", "--disable-dev-shm-usage",
+         # macOS: without this Chrome reads and writes its "Chrome Safe
+         # Storage" key in the default keychain, which on a developer Mac is
+         # the login keychain -- a prompt nobody may be able to answer. The
+         # mock keeps it in memory; Linux ignores the switch.
+         "--use-mock-keychain",
          "--use-gl=swiftshader", "--enable-unsafe-swiftshader", "--hide-scrollbars",
          # Port 0: Chrome picks a free one and prints it. Naming a port and
          # polling 127.0.0.1 for it is what a busy machine breaks -- if the

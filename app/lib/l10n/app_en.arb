@@ -913,6 +913,23 @@
       }
     }
   },
+  "a11yGoalRow": "{goal}: now {current}, {met, select, true{met} other{not met yet}}",
+  "@a11yGoalRow": {
+    "description": "One goal of the scenario as a screen reader says it, with whether it is met; the check icon shows that and nothing else does.",
+    "placeholders": {
+      "goal": {"type": "String"},
+      "current": {"type": "String"},
+      "met": {"type": "String"}
+    }
+  },
+  "a11yGoalRowSimple": "{goal}: {met, select, true{met} other{not met yet}}",
+  "@a11yGoalRowSimple": {
+    "description": "The same in simple mode, which hides the numbers.",
+    "placeholders": {
+      "goal": {"type": "String"},
+      "met": {"type": "String"}
+    }
+  },
   "a11yTileSelected": "{name}, selected",
   "@a11yTileSelected": {
     "placeholders": {

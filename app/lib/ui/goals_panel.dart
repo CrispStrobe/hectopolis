@@ -33,75 +33,90 @@ class GoalsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    return ListenableBuilder(
-      listenable: controller,
-      builder: (context, _) {
-        final level = controller.level;
-        final progress = controller.progress;
-        if (level == null || progress == null) return const SizedBox.shrink();
-        final ind = controller.sim.indicators;
-        final locale = Localizations.localeOf(context).toString();
-        final n0 = NumberFormat.decimalPatternDigits(
-          locale: locale,
-          decimalDigits: 0,
-        );
-        final rows = [
-          for (var i = 0; i < level.goals.length; i++)
-            _GoalRow(
-              text: controller.simpleMode
-                  ? simpleGoalText(l10n, level.goals[i])
-                  : goalText(l10n, level.goals[i], n0),
-              current: n0.format(level.goals[i].current(ind)),
-              met: progress.goalsMet[i],
-              compact: compact,
-              simpleMode: controller.simpleMode,
-            ),
-        ];
-        final left = progress.monthsLeft;
-        final header = Row(
-          children: [
-            Expanded(
-              child: Text(l10n.goalsTitle, style: theme.textTheme.titleMedium),
-            ),
-            if (left != null)
-              Text(l10n.monthsLeft(left), style: theme.textTheme.bodySmall),
-          ],
-        );
-        final guidance = controller.goalGuidance;
-        final guidanceCard = guidance == null
-            ? null
-            : _GuidanceCard(controller: controller, guidance: guidance);
-        // A staged teaching moment outranks the tactical hint: it is authored
-        // for this mission and this point in it, and it is dismissed once.
-        final beat = controller.activeBeat;
-        final beatCard = beat == null
-            ? null
-            : _BeatCard(controller: controller, beat: beat);
-        if (compact) {
+    // Its own node: otherwise these texts merge into the screen's, which
+    // a screen reader then reads as one long run starting with "Goals".
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      child: ListenableBuilder(
+        listenable: controller,
+        builder: (context, _) {
+          final level = controller.level;
+          final progress = controller.progress;
+          if (level == null || progress == null) return const SizedBox.shrink();
+          final ind = controller.sim.indicators;
+          final locale = Localizations.localeOf(context).toString();
+          final n0 = NumberFormat.decimalPatternDigits(
+            locale: locale,
+            decimalDigits: 0,
+          );
+          final rows = [
+            for (var i = 0; i < level.goals.length; i++)
+              _GoalRow(
+                text: controller.simpleMode
+                    ? simpleGoalText(l10n, level.goals[i])
+                    : goalText(l10n, level.goals[i], n0),
+                current: n0.format(level.goals[i].current(ind)),
+                met: progress.goalsMet[i],
+                compact: compact,
+                simpleMode: controller.simpleMode,
+              ),
+          ];
+          final left = progress.monthsLeft;
+          final header = Row(
+            children: [
+              Expanded(
+                // A container, or the heading flag merges up and makes the
+                // whole panel the heading.
+                child: Semantics(
+                  header: true,
+                  container: true,
+                  child: Text(
+                    l10n.goalsTitle,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
+              ),
+              if (left != null)
+                Text(l10n.monthsLeft(left), style: theme.textTheme.bodySmall),
+            ],
+          );
+          final guidance = controller.goalGuidance;
+          final guidanceCard = guidance == null
+              ? null
+              : _GuidanceCard(controller: controller, guidance: guidance);
+          // A staged teaching moment outranks the tactical hint: it is authored
+          // for this mission and this point in it, and it is dismissed once.
+          final beat = controller.activeBeat;
+          final beatCard = beat == null
+              ? null
+              : _BeatCard(controller: controller, beat: beat);
+          if (compact) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Column(
+                children: [
+                  Wrap(spacing: 8, runSpacing: 2, children: [header, ...rows]),
+                  ?beatCard,
+                  if (beatCard == null) ?guidanceCard,
+                ],
+              ),
+            );
+          }
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.all(8),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Wrap(spacing: 8, runSpacing: 2, children: [header, ...rows]),
+                header,
+                ...rows,
                 ?beatCard,
                 if (beatCard == null) ?guidanceCard,
               ],
             ),
           );
-        }
-        return Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              header,
-              ...rows,
-              ?beatCard,
-              if (beatCard == null) ?guidanceCard,
-            ],
-          ),
-        );
-      },
+        },
+      ),
     );
   }
 
@@ -135,32 +150,43 @@ class _GoalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final color = met
         ? goalMetColor(theme.brightness)
         : theme.colorScheme.onSurfaceVariant;
-    return Row(
-      mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
-      children: [
-        Icon(
-          met ? Icons.check_circle : Icons.radio_button_unchecked,
-          size: 16,
-          color: color,
-        ),
-        const SizedBox(width: 4),
-        if (compact)
-          Text(
-            simpleMode ? text : '$text ($current)',
-            style: theme.textTheme.bodySmall,
-          )
-        else ...[
-          Expanded(child: Text(text, style: theme.textTheme.bodySmall)),
-          if (!simpleMode)
+    // Met or not is the check icon, which says nothing aloud; one label
+    // carries the goal, the reading and the state.
+    final metKey = met ? 'true' : 'false';
+    return Semantics(
+      container: true,
+      excludeSemantics: true,
+      label: simpleMode
+          ? l10n.a11yGoalRowSimple(text, metKey)
+          : l10n.a11yGoalRow(text, current, metKey),
+      child: Row(
+        mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+        children: [
+          Icon(
+            met ? Icons.check_circle : Icons.radio_button_unchecked,
+            size: 16,
+            color: color,
+          ),
+          const SizedBox(width: 4),
+          if (compact)
             Text(
-              current,
-              style: theme.textTheme.bodySmall?.copyWith(color: color),
-            ),
+              simpleMode ? text : '$text ($current)',
+              style: theme.textTheme.bodySmall,
+            )
+          else ...[
+            Expanded(child: Text(text, style: theme.textTheme.bodySmall)),
+            if (!simpleMode)
+              Text(
+                current,
+                style: theme.textTheme.bodySmall?.copyWith(color: color),
+              ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

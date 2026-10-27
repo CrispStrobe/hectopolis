@@ -203,23 +203,17 @@ class Contribution {
   final double value;
 }
 
-/// Noise at [cell] broken down by source tile type (energetic sums), sorted
-/// by level, for the tile inspector. Uses the same formulas as [computeNoise].
-List<Contribution> explainNoise(WorldState w, SimParams p, Fields f, int cell) {
+/// The sound energy each source cell delivers at [cell] (10^(L/10), so the
+/// values add up energetically), including the cell itself. Uses the same
+/// formulas as [computeNoise]; contributions under its cutoff are left out
+/// as they are there.
+Map<int, double> noiseSources(WorldState w, SimParams p, Fields f, int cell) {
   final width = w.width;
   final np = p.noise;
   final offsets = Offsets.radius(np.radiusTiles);
   final rx = cell % width;
   final ry = cell ~/ width;
-  final energy = <TileType, double>{};
-  final count = <TileType, int>{};
-  final nearest = <TileType, double>{};
-
-  void add(TileType t, double level, double dist) {
-    energy[t] = (energy[t] ?? 0) + math.pow(10, level / 10).toDouble();
-    count[t] = (count[t] ?? 0) + 1;
-    nearest[t] = math.min(nearest[t] ?? double.infinity, dist);
-  }
+  final out = <int, double>{};
 
   double emissionOf(int i) {
     final t = w.tiles[i];
@@ -230,7 +224,7 @@ List<Contribution> explainNoise(WorldState w, SimParams p, Fields f, int cell) {
   }
 
   final own = emissionOf(cell);
-  if (own > 0) add(w.tiles[cell], own, 0);
+  if (own > 0) out[cell] = math.pow(10, own / 10).toDouble();
   for (var k = 0; k < offsets.length; k++) {
     // Source at the mirrored offset so that the path runs source → receiver.
     final sx = rx - offsets.dx[k];
@@ -255,13 +249,38 @@ List<Contribution> explainNoise(WorldState w, SimParams p, Fields f, int cell) {
     }
     level -= math.min(att, np.maxPathAttenuationDb);
     if (level <= np.backgroundDb - 15) continue;
-    add(w.tiles[s], level, offsets.dist[k]);
+    out[s] = math.pow(10, level / 10).toDouble();
   }
-  final rows = [
-    for (final t in energy.keys)
-      Contribution(type: t, count: count[t]!, nearestTiles: nearest[t]!, value: 10 * _log10(energy[t]!)),
-  ]..sort((a, b) => b.value.compareTo(a.value));
-  return rows;
+  return out;
+}
+
+/// Noise at [cell] broken down by source tile type (energetic sums), sorted
+/// by level, for the tile inspector.
+List<Contribution> explainNoise(WorldState w, SimParams p, Fields f, int cell) => [
+      for (final g in groupByType(w, cell, noiseSources(w, p, f, cell)))
+        Contribution(type: g.type, count: g.count, nearestTiles: g.nearestTiles, value: 10 * _log10(g.value)),
+    ]..sort((a, b) => b.value.compareTo(a.value));
+
+/// Per-source values summed by tile type, with how many sources of the type
+/// there are and how far the nearest is.
+List<Contribution> groupByType(WorldState w, int cell, Map<int, double> sources) {
+  final total = <TileType, double>{};
+  final count = <TileType, int>{};
+  final nearest = <TileType, double>{};
+  final rx = cell % w.width;
+  final ry = cell ~/ w.width;
+  for (final MapEntry(key: s, value: v) in sources.entries) {
+    final t = w.tiles[s];
+    final dx = s % w.width - rx;
+    final dy = s ~/ w.width - ry;
+    total[t] = (total[t] ?? 0) + v;
+    count[t] = (count[t] ?? 0) + 1;
+    nearest[t] = math.min(nearest[t] ?? double.infinity, math.sqrt(dx * dx + dy * dy));
+  }
+  return [
+    for (final t in total.keys)
+      Contribution(type: t, count: count[t]!, nearestTiles: nearest[t]!, value: total[t]!),
+  ];
 }
 
 double _log10(double v) => math.log(v) / math.ln10;

@@ -104,3 +104,39 @@ void computeHabitat(WorldState w, SimParams p, Fields f) {
   f.biodiversityIndex =
       total > 0 ? 100 * math.pow(total / n, hp.speciesAreaZ) * (0.5 + 0.5 * connectivity) : 0.0;
 }
+
+/// The degradation each threat within its reach adds to [cell], before the
+/// total is capped: w_r · (1 − d / d_max), as [computeHabitat] sums them.
+/// Empty when [cell] is not habitat, since threats only degrade habitat.
+Map<int, double> threatSources(WorldState w, SimParams p, int cell) {
+  final out = <int, double>{};
+  // The same base-quality test as computeHabitat: green, with a biotope value
+  // and some maturity.
+  final tp = p.tile(w.tiles[cell]);
+  if (!tp.isHabitat) return out;
+  final start = tp.biotopeStart.value;
+  final months = math.max(1.0, tp.recoveryMonths.value);
+  final maturity = start + (1 - start) * clamp01(w.tileAge[cell] / months);
+  if (tp.biotopeValue.value / 24.0 * maturity <= 0) return out;
+  final hp = p.habitat;
+  var maxRadius = 0;
+  for (final t in hp.threats.values) {
+    maxRadius = math.max(maxRadius, (t.maxDistanceM / p.cellSizeM).ceil());
+  }
+  final offsets = Offsets.radius(maxRadius);
+  final x = cell % w.width;
+  final y = cell ~/ w.width;
+  for (var k = 0; k < offsets.length; k++) {
+    final sx = x - offsets.dx[k];
+    final sy = y - offsets.dy[k];
+    if (!w.inBounds(sx, sy)) continue;
+    final s = sy * w.width + sx;
+    final threat = hp.threats[w.tiles[s]];
+    if (threat == null) continue;
+    final maxTiles = threat.maxDistanceM / p.cellSizeM;
+    final d = offsets.dist[k];
+    if (d > maxTiles) continue;
+    out[s] = threat.weight * (1 - d / maxTiles);
+  }
+  return out;
+}

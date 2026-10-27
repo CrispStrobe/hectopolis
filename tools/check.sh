@@ -29,7 +29,7 @@ STAGES=(params licenses fonts l10n analyze-sim analyze-net analyze-relay \
         test-norelay license privacy store-flags)
 # Not in STAGES: it needs `flutter build web` first and a Chrome, so it is run
 # by name (tools/check.sh origin) and in CI after the web build.
-EXTRA_STAGES=(origin test-web a11y)
+EXTRA_STAGES=(origin web-a11y test-web a11y)
 
 # Memory available to a new process: free RAM plus free swap, in MiB.
 headroom_mib() {
@@ -88,6 +88,9 @@ run_stage() {
     license)     tools/license_audit.sh ;;
     privacy)     tools/privacy_audit.sh ;;
     origin)      python3 tools/web_origin_check.py --build app/build/web ;;
+    # Plays the web build by keyboard with semantics on, as a screen-reader
+    # user would; see docs/accessibility.md.
+    web-a11y)    python3 tools/web_a11y_probe.py --build app/build/web ;;
     # Co-op code compiled to JavaScript in Chrome (dart_test.yaml passes
     # --use-mock-keychain): the hash and the sealed channel as a browser runs them.
     test-web)

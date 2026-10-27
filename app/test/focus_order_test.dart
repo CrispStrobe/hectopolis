@@ -18,6 +18,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stadtbau/game/game_controller.dart';
 import 'package:stadtbau/l10n/generated/app_localizations.dart';
 import 'package:stadtbau/ui/game_screen.dart';
+import 'package:stadtbau/ui/indicator_panel.dart';
+import 'package:stadtbau/ui/palette.dart';
 
 /// Tabs once and returns a label for whatever holds focus, so an order can be
 /// compared as text instead of as opaque node identities.
@@ -134,5 +136,47 @@ void main() {
     await tester.pump();
     expect(_focused(), second,
         reason: 'backwards traversal did not mirror forwards traversal');
+  });
+
+  testWidgets('each panel is tabbed through in one run', (tester) async {
+    await pumpGame(tester);
+    // Which panel holds focus, or null for anything else (the app bar, the
+    // map). Flutter's default order sorts by screen row across the window,
+    // so without a traversal group per panel Tab alternated between a
+    // palette card on the left and a gauge on the right.
+    String? panel() {
+      final context = FocusManager.instance.primaryFocus?.context;
+      if (context == null) return null;
+      if (context.findAncestorWidgetOfExactType<Palette>() != null) {
+        return 'palette';
+      }
+      if (context.findAncestorWidgetOfExactType<IndicatorPanel>() != null) {
+        return 'gauges';
+      }
+      return null;
+    }
+
+    // One full cycle: until the first stop comes round again.
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    final start = FocusManager.instance.primaryFocus;
+    final runs = <String?>[panel()];
+    for (var i = 0; i < 120; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      if (identical(FocusManager.instance.primaryFocus, start)) break;
+      final p = panel();
+      if (p != runs.last) runs.add(p);
+    }
+    // The cycle may start inside a panel and end in the same one.
+    if (runs.length > 1 && runs.first == runs.last) runs.removeLast();
+    for (final name in ['palette', 'gauges']) {
+      expect(
+        runs.where((r) => r == name),
+        hasLength(1),
+        reason: 'focus entered the $name ${runs.where((r) => r == name).length}'
+            ' times in one cycle: $runs',
+      );
+    }
   });
 }

@@ -102,6 +102,9 @@ Future<void> showMissionBriefing(
       builder: (context, setState) {
         final predictionId = learning.predictionId;
         return AlertDialog(
+          // Named only on iOS by default; elsewhere a screen reader met an
+          // unnamed dialog.
+          semanticLabel: l10n.missionBriefingTitle,
           icon: const Icon(Icons.explore_outlined),
           title: Text(l10n.missionBriefingTitle),
           content: ConstrainedBox(
@@ -122,22 +125,33 @@ Future<void> showMissionBriefing(
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 4),
-                    Text(l10n.missionPredictionPrompt(predictionId)),
+                    // Spoken as the radio group's name instead, which is
+                    // what a screen reader announces on entering the choices.
+                    ExcludeSemantics(
+                      child: Text(l10n.missionPredictionPrompt(predictionId)),
+                    ),
                     const SizedBox(height: 8),
                     RadioGroup<String>(
                       groupValue: prediction,
                       onChanged: (value) => setState(() => prediction = value),
-                      child: Column(
-                        children: [
-                          for (final choice in predictionChoicesFor(
-                            predictionId,
-                          ))
-                            RadioListTile<String>(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(l10n.missionPredictionChoice(choice)),
-                              value: choice,
-                            ),
-                        ],
+                      // Not a container: the label merges up into the node
+                      // RadioGroup creates, which has no label of its own.
+                      child: Semantics(
+                        label: l10n.missionPredictionPrompt(predictionId),
+                        child: Column(
+                          children: [
+                            for (final choice in predictionChoicesFor(
+                              predictionId,
+                            ))
+                              RadioListTile<String>(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(
+                                  l10n.missionPredictionChoice(choice),
+                                ),
+                                value: choice,
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

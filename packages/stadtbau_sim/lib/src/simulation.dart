@@ -12,6 +12,7 @@ import 'model/noise.dart' as noise_model;
 import 'model/stocks.dart';
 import 'model/water.dart';
 import 'params.dart';
+import 'sources.dart';
 import 'tile_type.dart';
 import 'world.dart';
 
@@ -141,6 +142,25 @@ class Simulation {
   /// Air pollution sources reaching (x, y), by tile type, largest first.
   List<noise_model.Contribution> explainAir(int x, int y) =>
       air_model.explainAir(state, params, fields, state.index(x, y));
+
+  /// What each source cell contributes to [field] at (x, y), in that
+  /// field's own terms before any cap: sound energy for noise, concentration
+  /// for air, the cooling or green weight on offer for heat and green, and
+  /// the weighted supply, jobs or threat for retail, jobs and habitat. The
+  /// larger the value, the more that cell sets the reading; the cell itself
+  /// is included when it is a source.
+  Map<int, double> sources(SourceField field, int x, int y) {
+    final cell = state.index(x, y);
+    return switch (field) {
+      SourceField.noise => noise_model.noiseSources(state, params, fields, cell),
+      SourceField.air => air_model.airSources(state, params, fields, cell),
+      SourceField.heat => coolingSources(state, params, fields, cell),
+      SourceField.green => greenSources(state, params, cell),
+      SourceField.retail => retailSources(state, params, cell),
+      SourceField.jobs => jobSources(state, params, cell),
+      SourceField.habitat => threatSources(state, params, cell),
+    };
+  }
 
   /// Cost in kEUR of placing [tile] at (x, y), or null if not placeable.
   double? placementCost(int x, int y, TileType tile) {

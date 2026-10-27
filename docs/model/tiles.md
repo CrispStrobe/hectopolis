@@ -16,17 +16,31 @@ scale (Anlage 2, column 3). The text is federal law and therefore public domain
 | meadow | 34.08a.01 Intensiv genutztes frisches Dauergrünland → 34.07a.02 Artenreiche frische (Mäh-)Weide | 8 → 18 | 18, starts at 0.45 (≈ 8), reaches 18 after 120 months |
 | cropland | 33.0x.03 Acker mit stark verarmter oder fehlender Segetalvegetation | 6 | 6 |
 | forest | 43.07.05M Buchen(misch)wald frischer, basenreicher Standorte (mittlere Ausprägung) 16; 43.07.02M Eichen-Hainbuchenwald (mittlere Ausprägung) 20 | 16–20 | 18, starts at 0.4 (≈ 7, below 42.03.02 Vorwald = 13), reaches 18 after 240 months |
-| water | 24.03b Sonstige natürliche mesotrophe Gewässer 19 | 19 | 16 for a constructed pond, starts at 0.5 |
-| park | 51.06a.03 Intensiv gepflegte Parkanlage mit altem Baumbestand (51.06a.02.01 extensiv gepflegt = 16) | 13 | 13, starts at 0.5, reaches 13 after 240 months |
+| water | 24.04c Naturnahe eutrophe Gewässer, inkl. sich selbst überlassene Abbaugewässer 15 (24.03b, natural waters only, = 19) | 15 | 15, starts at 0.67 (24.07.12c junges Abbaugewässer = 10) |
+| park | 51.06a.03 Intensiv gepflegte Parkanlage mit altem Baumbestand (51.06a.02.01 extensiv gepflegt = 16) | 13 | 13, starts at 0.77 (51.06a.04 ohne alten Baumbestand = 10), reaches 13 after 240 months (design: "alter Baumbestand" means trees over 80 years) |
 | housing_low | 53.01.03b Lockeres Einzelhausgebiet | 5 | 5 |
 | housing_high | 53.01.16a.02 Sonstige Blockbebauung | 4 | 4 |
 | commercial, industry | 53.01.14a Industrie- und Gewerbefläche inkl. typischen Freiräumen | 2 | 2 |
 | road | 52.01.01a Versiegelter Verkehrs- und Betriebsweg | 0 | 0 |
 
-Maturation: `value × (start + (1 − start) · min(1, age / recoveryMonths))`. The
-BKompV distinguishes junge/mittlere/alte Ausprägung of woods; the recovery
-times are estimates from compensation practice (BfN-Schriften 721) and should
-be refined (open in T-103).
+Maturation: `value × (start + (1 − start) · min(1, age / recoveryMonths))`.
+Start values are now read off the BKompV code of the young stage (2026-10-26):
+a new broadleaf planting is 43.09J (11 of 18), a park without old trees
+51.06a.04 (10 of 13), a young pond 24.07.12c (10 of 15). Recovery times follow
+BfN-Schriften 721's age classes (junge < 30, mittlere 30–80, alte > 80 years)
+and BKompV Anlage 5 B where they can; forest takes 360 months to reach its
+mittlere Ausprägung. Parks and schools would need trees over 80 years for
+"alter Baumbestand", so their 240 and 120 months are marked `design:` as
+game-time compressions.
+
+Corrected the same day: **wetland 22 → 16**. Röhrichte and Großseggenriede
+range 13–20 in Anlage 2, not among the highest values; a rewetted field becomes
+38.03 Rohrkolbenröhricht or 37.02 nährstoffreiches Großseggenried (16). Only
+intact fen (35.01a, 24) and fen meadows (23) rank higher. **cycle_path 12 → 7**
+(0.35 sealed + 0.65 Funktionsgrün 52.01.08n.03 at 11), **school 6 → 5**,
+**solar_field 8 → 10** (extensive grassland 34.08a.02 under 0.9 of the area).
+The meadow's 120 months had cited BfN-Schriften 721 for "10–15 years", which
+that text does not contain; it now cites Walker et al. 2004.
 
 ## Residents and jobs per hectare
 
@@ -231,7 +245,7 @@ CNOSSOS: a closed row of buildings gives 5–10 dB of insertion loss in practice
 and the lower end is taken because a game hectare does not guarantee a closed
 row. ISO 9613-2 caps single diffraction at 20 dB.
 
-## Costs and maintenance (partly verified in T-103)
+## Costs and maintenance (verified in T-103 and on 2026-10-26)
 
 Build costs are development costs borne by the municipality in the game
 (Erschließung, park construction, afforestation), in k€ per hectare.
@@ -251,22 +265,37 @@ Rewetting is not excavation, and the correction is a factor of twelve. It makes
 wetland much the cheapest way to buy biotope value — worth watching in level
 design, and the reason the change is called out here rather than buried.
 
-**What T-103 could not ground, and why.** The four Erschließung costs
-(housing_low 200, housing_high 400, commercial 300, industry 300, i.e. 20–40
-€/m²) stay estimates. **There is no open, citable dataset of German
-Erschließungskosten per square metre.** The established tools — the Difu
-FolgekostenSchätzer, LEANkom, was-kostet-mein-baugebiet.de, all out of the
-REFINA programme — carry their Kostenkennwerte internally and publish the
-method, not the numbers, and the cost manuals that do publish them (BKI) are
-proprietary and cannot be copied into an AGPL project. Building practice
-reports 15–40 €/m² of plot area for Erschließung, up to €100/m² including house
-connections; all four values sit inside that band, which is the most that can
-honestly be said. `forest`, `water`, `park` and `solar_field` build costs and
-`economy.demolitionCostKEur` are in the same position.
+**What T-103 could not ground, and what was found later.** T-103 concluded
+that no open, citable set of German Erschließung cost figures existed. That was
+wrong: the InfrastrukturFolgekostenSchätzer 6.1, which the Brandenburg ministry
+(MIL) publishes as a free workbook, carries its reference costs in readable
+sheets ("Referenzkosten TI und Grün"), with guides by Gutsche (2019). Only
+figures are cited from it, with the arithmetic in each `source`; no part of the
+workbook is copied.
 
-Settling these needs either a licensable Kennwert set or a municipality willing
-to publish a worked Baulandkalkulation. Until then they are the least grounded
-numbers in the table, and they are marked as such in `tiles.json`.
+What it settled (2026-10-26):
+
+- **Development costs are the municipality's net share**, because the model's
+  revenue is taxes only and leaves out the street contributions (BauGB § 129)
+  and fees that repay the rest. The tool's worked example comes to about
+  165 k€/ha for detached housing; gross works are 300–350 k€/ha. Network cost
+  per hectare barely depends on density (Gutsche; Koziol & Walther, REFINA III),
+  so **housing_high 400 → 200**, the same as housing_low. Schools and day care,
+  the real cost of density, are tiles of their own.
+- **park 400 → 600** (Allgemeine Grünfläche, 60 €/m²), **forest 20 → 12**
+  (Sachsenforst 2016, Tab. 4), **cropland 2 → 0.3** (LWK NRW machine rates),
+  **solar_field 700 → 800 and upkeep 8 → 15** (Fraunhofer ISE 2024),
+  maintenance of housing_low 2 → 3 and of commercial and industry 3 → 4, road
+  build 300 and upkeep 10 confirmed within the tool's collector-street range.
+- **demolition 50 → 250 k€** per built hectare: Saxony funds demolition up to
+  110 € per m² of living space, about 157 k€ for a hectare of detached houses and
+  517 k€ for one of apartment blocks. The floor areas per hectare are assumed.
+
+Two levels whose worked plans demolish a great deal had their budgets raised to
+keep their margin over the plan: `budget` 4 000 → 5 800 k€ (12 demolitions) and
+`tuebingen` 34 000 → 67 000 k€ (103 demolitions; the plan now costs 57 370 k€,
+was 29 090). Water's build and upkeep remain `design:` — nothing citable covers
+digging a pond.
 
 ## CO₂ per hectare — land cover (verified in T-103)
 

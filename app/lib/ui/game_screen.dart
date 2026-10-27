@@ -97,6 +97,9 @@ class _GameScreenState extends State<GameScreen> {
     final back = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        semanticLabel: progress.allMet
+            ? l10n.endTitleSuccess
+            : l10n.endTitleTimeUp,
         title: Text(
           progress.allMet ? l10n.endTitleSuccess : l10n.endTitleTimeUp,
         ),
@@ -138,6 +141,7 @@ class _GameScreenState extends State<GameScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
+          semanticLabel: l10n.newGameTitle,
           title: Text(l10n.newGameTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -382,6 +386,7 @@ class _GameScreenState extends State<GameScreen> {
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.keyboard),
+        semanticLabel: l10n.keyboardShortcutsTitle,
         title: Text(l10n.keyboardShortcutsTitle),
         content: Text(l10n.keyboardHint),
         actions: [
@@ -394,34 +399,44 @@ class _GameScreenState extends State<GameScreen> {
     ).then((_) => c.requestMapFocus());
   }
 
+  // Each panel is its own traversal group. Flutter's default order sorts by
+  // screen row across the whole window, so without them Tab alternated
+  // between a palette card on the left and a gauge on the right.
   Widget _wide() => Row(
     children: [
-      SizedBox(width: 260, child: Palette(controller: c)),
+      SizedBox(
+        width: 260,
+        child: FocusTraversalGroup(child: Palette(controller: c)),
+      ),
       const VerticalDivider(width: 1),
       Expanded(
-        child: Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: MapView(controller: c, mapController: _map),
+        child: FocusTraversalGroup(
+          child: Column(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: MapView(controller: c, mapController: _map),
+                ),
               ),
-            ),
-            _Legend(controller: c),
-          ],
+              _Legend(controller: c),
+            ],
+          ),
         ),
       ),
       const VerticalDivider(width: 1),
       SizedBox(
         width: 320,
-        child: Column(
-          children: [
-            GoalsPanel(controller: c),
-            if (c.level != null) const Divider(height: 1),
-            Expanded(flex: 3, child: IndicatorPanel(controller: c)),
-            const Divider(height: 1),
-            Expanded(flex: 2, child: TileInspector(controller: c)),
-          ],
+        child: FocusTraversalGroup(
+          child: Column(
+            children: [
+              GoalsPanel(controller: c),
+              if (c.level != null) const Divider(height: 1),
+              Expanded(flex: 3, child: IndicatorPanel(controller: c)),
+              const Divider(height: 1),
+              Expanded(flex: 2, child: TileInspector(controller: c)),
+            ],
+          ),
         ),
       ),
     ],
@@ -429,8 +444,8 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _narrow() => Column(
     children: [
-      GoalsPanel(controller: c, compact: true),
-      IndicatorPanel(controller: c, compact: true),
+      FocusTraversalGroup(child: GoalsPanel(controller: c, compact: true)),
+      FocusTraversalGroup(child: IndicatorPanel(controller: c, compact: true)),
       Expanded(
         child: Padding(
           padding: const EdgeInsets.all(4),
@@ -439,7 +454,7 @@ class _GameScreenState extends State<GameScreen> {
       ),
       _Legend(controller: c),
       SizedBox(height: 140, child: TileInspector(controller: c)),
-      Palette(controller: c, horizontal: true),
+      FocusTraversalGroup(child: Palette(controller: c, horizontal: true)),
     ],
   );
 }
