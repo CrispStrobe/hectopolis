@@ -99,6 +99,16 @@ jobs:
           python3 tools/web_origin_check.py --build app/build/web \
             --shot "${RUNNER_TEMP}/web-origin.png"
 
+      # With a screen reader on the web, the browser's focus is what gets
+      # read, and it only lands on semantics nodes flagged focusable. Widget
+      # tests cannot see that; this plays the build by keyboard and fails if
+      # the map cannot be reached, a move or a tile pick goes unannounced, or
+      # a focusable element has no name.
+      - name: Web screen-reader probe
+        run: |
+          python3 tools/web_a11y_probe.py --build app/build/web \
+            --shot "${RUNNER_TEMP}/web-a11y.png"
+
       - uses: actions/upload-artifact@v7
         with:
           name: web

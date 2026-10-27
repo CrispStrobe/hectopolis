@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart' hide Simulation;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -127,6 +129,80 @@ void main() {
     expect(
       find.bySemanticsLabel(l10n.a11yTileSelected(meadow)),
       findsOneWidget,
+    );
+    handle.dispose();
+  });
+
+  testWidgets('every merged control stays focusable for a screen reader', (
+    tester,
+  ) async {
+    // On the web a screen reader follows the browser's focus, which only
+    // lands on semantics nodes flagged focusable. The palette cards and the
+    // gauges merge their parts with excludeSemantics, which used to drop the
+    // flag along with the parts, and the map's region sat below the node its
+    // Focus flagged; so with a screen reader running, Tab moved Flutter's
+    // focus through them while the reader announced nothing, and the map was
+    // never a stop at all. Widget tests could not see it, since Flutter's
+    // own focus moved fine.
+    SharedPreferences.setMockInitialValues({});
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    final handle = tester.ensureSemantics();
+    final c = GameController(size: 12);
+    addTearDown(c.dispose);
+    await tester.pumpWidget(_app(c));
+    await tester.pump(const Duration(seconds: 1));
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+
+    void expectFocusable(Finder finder, String what) {
+      final data = tester.getSemantics(finder).getSemanticsData();
+      expect(
+        data.flagsCollection.isFocused != Tristate.none,
+        isTrue,
+        reason: '$what is not focusable in the semantics tree',
+      );
+    }
+
+    expectFocusable(find.bySemanticsLabel(l10n.a11yMapLabel), 'the map');
+    final cards = find.bySemanticsLabel(RegExp(r', costs '));
+    expect(cards, findsWidgets);
+    for (var i = 0; i < tester.widgetList(cards).length; i++) {
+      expectFocusable(cards.at(i), 'palette card $i');
+    }
+    final gauges = find.bySemanticsLabel(RegExp(r' of 100\.'));
+    expect(gauges, findsWidgets);
+    for (var i = 0; i < tester.widgetList(gauges).length; i++) {
+      expectFocusable(gauges.at(i), 'gauge $i');
+    }
+
+    handle.dispose();
+  });
+
+  testWidgets('picking a tile by its digit is announced', (tester) async {
+    // Focus stays on the map, so the palette card whose label now says
+    // "selected" is not the node a screen reader is on; without an
+    // announcement the choice is silent.
+    SharedPreferences.setMockInitialValues({});
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    final handle = tester.ensureSemantics();
+    final c = GameController(size: 12);
+    addTearDown(c.dispose);
+    await tester.pumpWidget(_app(c));
+    await tester.pump(const Duration(seconds: 1));
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+
+    await tester.tapAt(tester.getRect(find.byType(MapView)).center);
+    await tester.pump();
+    tester.takeAnnouncements();
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit1);
+    await tester.pump();
+    final first = c.allowedTypes.first;
+    expect(
+      tester.takeAnnouncements().map((a) => a.message),
+      contains(l10n.a11yTileSelected(l10n.tileName(first.id))),
     );
     handle.dispose();
   });

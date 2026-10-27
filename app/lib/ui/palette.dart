@@ -5,6 +5,7 @@ import 'package:stadtbau_sim/stadtbau_sim.dart';
 
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
+import 'focusable_label.dart';
 import 'tile_naming.dart';
 import 'tile_style.dart';
 
@@ -192,15 +193,12 @@ class _TileCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 3),
-      child: Semantics(
+      child: FocusableLabel(
         label: spoken,
         hint: tileDisplayDescription(l10n, controller.level, type),
-        button: true,
         selected: selected,
-        container: true,
-        excludeSemantics: true,
         onTap: () => controller.setBrush(type),
-        child: Tooltip(
+        builder: (context, focusNode) => Tooltip(
           message: tileDisplayDescription(l10n, controller.level, type),
           waitDuration: const Duration(milliseconds: 600),
           child: Draggable<TileType>(
@@ -226,6 +224,7 @@ class _TileCard extends StatelessWidget {
               ),
             ),
             child: InkWell(
+              focusNode: focusNode,
               onTap: () => controller.setBrush(type),
               borderRadius: BorderRadius.circular(8),
               // Selection is the coloured border; focus is this wash. They are

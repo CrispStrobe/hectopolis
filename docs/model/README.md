@@ -53,3 +53,35 @@ Each tick is one month.
    attractiveness (noise, air, green, retail, jobs, heat); municipal budget
    from Destatis per-resident and per-job tax averages minus maintenance;
    CO₂ from land use and car-km.
+
+## Tracing a reading to its sources
+
+`Simulation.sources(field, x, y)` takes one cell's reading apart into what
+each source cell contributes, in the field's own terms and **before** any
+cap. The map uses it to draw lines from the strongest sources to a selected
+cell. It adds no model: each function sits next to the loop that computes the
+field and repeats that loop for one receiving cell. `test/sources_test.dart`
+rebuilds every field from its sources on every cell of every shipped level, in
+January and in July.
+
+| Field | A source's value | The reading, rebuilt |
+|---|---|---|
+| noise | sound energy 10^(L/10) after divergence and screening | 10·log10(background + Σ) |
+| air | concentration before deposition | Σ, times the cell's deposition factor |
+| heat | cooling capacity × distance weight, green patches ≥ 2 ha, where it beats the cell's own capacity | ΔT from max(own CC, best source) |
+| green | green weight in reach | best + variety bonus, capped |
+| retail | Huff-weighted floor area | Σ / reference supply, capped |
+| jobs | jobs × exp(−d / 2 km) | Σ / reference jobs, capped |
+| habitat | w_r · (1 − d / d_max) for each threat | Σ / 4, capped |
+
+Before the cap is the point. Job access in a town is often at 1.0, and there
+removing any single workplace changes nothing, because the others still fill
+the reading. Comparing the field with and without each tile therefore cannot
+tell an industrial estate from the houses next door; the uncapped
+contributions can.
+
+Traffic and attractiveness are not traceable this way. Traffic is routed
+through the road network, and attractiveness is a weighted mix of the other
+readings. For those two, the app removes each of the nearest sources in turn
+and recomputes. That is a fair test only because neither field is capped in
+practice.

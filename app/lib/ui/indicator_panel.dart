@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'doc_links.dart';
+import 'focusable_label.dart';
 
 /// The fill of an indicator's bar at [value] (0-100): warm when a reading is
 /// poor, cool when it is good.
@@ -263,15 +264,13 @@ class _Gauge extends StatelessWidget {
     );
 
     if (compact) {
-      return Semantics(
+      return FocusableLabel(
         label: spoken,
-        button: true,
-        container: true,
-        excludeSemantics: true,
         onTap: onTap,
-        child: Tooltip(
+        builder: (context, focusNode) => Tooltip(
           message: simpleMode ? hint : '$hint\n$detail',
           child: InkWell(
+            focusNode: focusNode,
             onTap: () {
               onTap();
               if (!simpleMode) _open(context);
@@ -311,16 +310,14 @@ class _Gauge extends StatelessWidget {
       );
     }
 
-    return Semantics(
+    return FocusableLabel(
       label: spoken,
-      button: true,
-      container: true,
-      excludeSemantics: true,
       onTap: onTap,
-      child: Tooltip(
+      builder: (context, focusNode) => Tooltip(
         message: hint,
         waitDuration: const Duration(milliseconds: 600),
         child: InkWell(
+          focusNode: focusNode,
           onTap: () {
             onTap();
             if (!simpleMode) _open(context);
