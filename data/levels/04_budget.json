@@ -22,7 +22,7 @@
       {
         "id": "budget_reserve",
         "minMetrics": {
-          "budgetKEur": 2000
+          "budgetKEur": 1500
         }
       },
       {
@@ -39,7 +39,7 @@
       },
       {
         "id": "budget_delay",
-        "afterMonths": 30
+        "afterMonths": 18
       }
     ]
   },

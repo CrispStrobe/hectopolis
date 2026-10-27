@@ -73,6 +73,15 @@ cars   ·= max(minCarShareFactor, 1 − transit − cycle)
 Everything downstream — traffic on the road network, noise, air, CO₂ — follows
 from the reduced car count without any further change.
 
+The reductions are read off MiD (2026-10-27): between the metropolis and the
+rural village, car trips fall from 70 % to 38 % while public transport rises
+from 5 % to 20 % (MiD 2017; 2023 alike), so a stop at both ends takes about
+0.20 of the car trips (`transitCarReduction`, it was 0.25), and cycling's 15 %
+against 7 % gives 0.15 (`cycleCarReduction`). Both contrasts also hold
+density and car ownership, so they are ceilings. `minCarShareFactor` (0.5,
+the metropolis-to-village car ratio) never binds with these values: the two
+reductions together reach 0.35 at most.
+
 `transitAccess` and `cycleAccess` are 1 on the tile and fall linearly to 0 at
 their radius, so a stop helps its neighbourhood rather than only its own cell.
 A trip needs the infrastructure **at both ends**, which is why the two ends are

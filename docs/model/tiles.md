@@ -36,8 +36,10 @@ game-time compressions.
 Corrected the same day: **wetland 22 → 16**. Röhrichte and Großseggenriede
 range 13–20 in Anlage 2, not among the highest values; a rewetted field becomes
 38.03 Rohrkolbenröhricht or 37.02 nährstoffreiches Großseggenried (16). Only
-intact fen (35.01a, 24) and fen meadows (23) rank higher. **cycle_path 12 → 7**
-(0.35 sealed + 0.65 Funktionsgrün 52.01.08n.03 at 11), **school 6 → 5**,
+intact fen (35.01a, 24) and fen meadows (23) rank higher. **cycle_path 12 → 10**
+(0.05 sealed + 0.95 Funktionsgrün 52.01.08n.03 at 11; first corrected to 7 on
+a sealing of 0.35, itself a slip: a 3 m path along 100 m seals 3 % of a
+hectare, not a third), **school 6 → 5**,
 **solar_field 8 → 10** (extensive grassland 34.08a.02 under 0.9 of the area).
 The meadow's 120 months had cited BfN-Schriften 721 for "10–15 years", which
 that text does not contain; it now cites Walker et al. 2004.

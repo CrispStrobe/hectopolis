@@ -52,10 +52,15 @@ so the expensive half of the work is shared:
 Roads drop 6.5 dB. That is derived, not assumed: German urban roads carry about
 10% of their daily traffic in the 8 night hours against 90% in the 16 day
 hours, so the hourly rate at night is 0.22 of the day rate and
-`10·log10(0.22) ≈ −6.5 dB`. The other reductions are design values, labelled as
-such in the parameter file: shops 8 dB (closed, no deliveries), homes 5 dB,
-industry 5 dB (a compliant plant throttles at night rather than stopping,
-because TA Lärm regulates night separately).
+`10·log10(0.22) ≈ −6.5 dB`. Commercial land drops **15 dB** and industry
+**none**, from the VBUI's default area sound powers (2006, Tab. 1): commercial
+60 dB(A)/m² by day and 45 at night, heavy industry 65 and light industry 60
+around the clock. TA Lärm agrees, giving an industrial area one limit, day and
+night. (Until 2026-10-27 they were design values of 8 and 5.) Mixed use drops
+11 dB, derived from half a commercial and half a residential hectare; homes
+(5), the school (12) and the tram stop (9) remain design values, the tram's
+anchored on Berlin's 24-hour MetroTram, which drops only 3 dB, as a lower
+bound for a town whose trams stop at night.
 
 ### What counts as too loud
 

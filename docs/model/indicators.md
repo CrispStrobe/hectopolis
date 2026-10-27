@@ -32,8 +32,9 @@ discriminating exactly when heat matters. The whole argument is in `heat.md`;
 
 ## Why stormwater is measured against the design storm
 
-The obvious reference for a flood score is `water.floodRiskMm`, the 10 mm
-threshold above which a cell counts as flood-prone, and the obvious score is
+The obvious reference for a flood score is `water.floodRiskMm`, the 12.5 mm
+threshold (the runoff a sealed surface sends into a residential sewer at its
+two-year design storm, DWA-M 119 with KOSTRA-DWD-2020; it was 10 mm) above which a cell counts as flood-prone, and the obvious score is
 the share of cells under it. Measured on uniform 16×16 maps, exactly one tile
 type crosses that threshold:
 
