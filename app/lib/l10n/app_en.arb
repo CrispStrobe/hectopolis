@@ -1077,5 +1077,33 @@
   "lobbyRejectName": "that name is taken",
   "lobbyRejectSeat": "that seat is gone",
   "lobbyRejectProtocol": "the two versions do not match — one side needs updating",
-  "lobbyDistrictsExplain": "Everyone builds in their own columns, but noise, air, heat and traffic cross the borders. That is the point."
+  "lobbyDistrictsExplain": "Everyone builds in their own columns, but noise, air, heat and traffic cross the borders. That is the point.",
+  "aboutOurApps": "Our apps",
+  "aboutOurAppsIntro": "More apps by the same developer. Apps in TestFlight are free betas: the link installs Apple's TestFlight first.",
+  "aboutAppStore": "App Store",
+  "aboutMacAppStore": "Mac App Store",
+  "aboutTestFlight": "TestFlight",
+  "aboutComingSoon": "Coming soon",
+  "aboutThisApp": "this app",
+  "aboutAppLink": "{app}: {store}",
+  "@aboutAppLink": {
+    "description": "Screen-reader name of a store link in Our apps, e.g. 'CometBeat: App Store'.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutAppDescription": "{slug, select, brickwright{Code, circuits & machines} cometbeat{Learn music theory by playing} crispaudio{SFX, voice FX & audio editor} crispbingo{Bingo & Tombola for groups} crispchess{Chess through human eyes} crispcloud{Multi-cloud file manager} crispdeck{Mastodon · Bluesky · Threads} crispmath{CAS calculator & graphing} crispmesh{3D models from turntable photos} crisperplayer{Your audiobooks, your place} crisperweaver{Offline transcription & speech} crispsorter{Organise & search documents with local AI} crispsudoku{Classic, Killer, Thermo & more} crisptuner{Chromatic tuner & temperaments} hectopolis{Build, observe, understand} kerotakis{Chemistry that computes} naga{27 original twists on Snake} numbernebula{Cosmic math games for kids} word_universe{German & English word games} other{}}",
+  "@aboutAppDescription": {
+    "description": "One-line description of one of our other apps in Our apps.",
+    "placeholders": {
+      "slug": {
+        "type": "String"
+      }
+    }
+  }
 }

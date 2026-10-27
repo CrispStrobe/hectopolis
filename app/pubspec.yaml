@@ -39,6 +39,8 @@ flutter:
   generate: true
   assets:
     - assets/licenses/
+    # Icons of our other apps for "Our apps" in About (128 px, our own artwork).
+    - assets/app_showcase/
   # Bundled so that no text needs Flutter's font fallback, which downloads
   # Roboto from https://fonts.gstatic.com/s/ on every first load. Apache-2.0,
   # taken from the Flutter SDK's material_fonts artifact; the licence text

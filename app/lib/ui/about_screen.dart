@@ -6,12 +6,13 @@ import 'package:url_launcher/url_launcher.dart';
 import '../game/build_features.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../services/custom_licenses.dart';
+import 'app_showcase.dart';
 import 'doc_links.dart';
 
 /// About / legal screen, laid out like our sibling apps: app header with
 /// version, provider (Impressum), contact, privacy, disclaimer, license
-/// (AGPL plus the app-store exception), data sources, and the aggregated
-/// open-source license list Flutter collects via `LicenseRegistry`.
+/// (AGPL plus the app-store exception), data sources, our other apps, and the
+/// aggregated open-source license list Flutter collects via `LicenseRegistry`.
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
@@ -107,6 +108,11 @@ class AboutScreen extends StatelessWidget {
                     const _LinkText(text: sourcesDocUrl, uri: sourcesDocUrl),
                   ],
                 ),
+              ),
+              _SectionCard(
+                icon: Icons.apps,
+                label: l10n.aboutOurApps,
+                child: const AppShowcase(),
               ),
               const SizedBox(height: 4),
               OutlinedButton.icon(

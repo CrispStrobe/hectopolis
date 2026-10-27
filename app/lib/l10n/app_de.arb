@@ -447,5 +447,14 @@
   "lobbyRejectName": "der Name ist belegt",
   "lobbyRejectSeat": "dieser Platz ist weg",
   "lobbyRejectProtocol": "die Versionen passen nicht – eine Seite muss aktualisiert werden",
-  "lobbyDistrictsExplain": "Alle bauen in eigenen Spalten, doch Lärm, Luft, Hitze und Verkehr machen an den Grenzen nicht halt. Genau darum geht es."
+  "lobbyDistrictsExplain": "Alle bauen in eigenen Spalten, doch Lärm, Luft, Hitze und Verkehr machen an den Grenzen nicht halt. Genau darum geht es.",
+  "aboutOurApps": "Unsere Apps",
+  "aboutOurAppsIntro": "Weitere Apps desselben Entwicklers. Apps in TestFlight sind kostenlose Betas: Der Link installiert zuerst Apples TestFlight.",
+  "aboutAppStore": "App Store",
+  "aboutMacAppStore": "Mac App Store",
+  "aboutTestFlight": "TestFlight",
+  "aboutComingSoon": "Bald verfügbar",
+  "aboutThisApp": "diese App",
+  "aboutAppLink": "{app}: {store}",
+  "aboutAppDescription": "{slug, select, brickwright{Code, Schaltungen, Maschinen} cometbeat{Musik lernen mit Spielen} crispaudio{Effekte, Stimm-FX & Audio-Editor} crispbingo{Bingo & Tombola für Gruppen} crispchess{Schach mit menschlichem Blick} crispcloud{Dateimanager für viele Clouds} crispdeck{Mastodon · Bluesky · Threads} crispmath{CAS-Rechner & Funktionsgraphen} crispmesh{3D-Modelle aus Drehteller-Fotos} crisperplayer{Deine Hörbücher, dein Ort} crisperweaver{Offline-Transkription & Sprachausgabe} crispsorter{Dokumente mit lokaler KI ordnen & durchsuchen} crispsudoku{Klassisch, Killer, Thermo} crisptuner{Stimmgerät mit Temperaturen} hectopolis{Bauen, beobachten, verstehen} kerotakis{Chemie, die wirklich rechnet} naga{27 neue Wendungen für Snake} numbernebula{Kosmische Mathe-Spiele} word_universe{Wortschatz spielerisch üben} other{}}"
 }
