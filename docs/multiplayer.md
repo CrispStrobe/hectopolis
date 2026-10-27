@@ -288,9 +288,9 @@ the lobby shows.
 
 ## What is not here yet
 
-The relay address is typed each time; the app does not remember it, so that
-remembering it is a decision with its own storage key and privacy note, not a
-side effect. Automatic mDNS discovery is deliberately deferred. Native hosts instead show
+The app remembers the relay address a host last used successfully
+(`stadtbau.relay.v1`, `docs/privacy.md`); the clear button in the field forgets
+it. Automatic mDNS discovery is deliberately deferred. Native hosts instead show
 one room code per usable IPv4 address as text and a QR code, and guests can
 paste or type that code. There is no camera scanner yet. A web build served
 over HTTPS generally cannot open the host's plain `ws://` LAN connection due

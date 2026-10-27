@@ -7,6 +7,7 @@ import 'package:stadtbau_net/stadtbau_net.dart';
 import '../game/build_features.dart';
 import '../game/game_controller.dart';
 import '../game/lan_session.dart';
+import '../game/save_store.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'game_screen.dart';
 import 'lobby_screen.dart';
@@ -18,10 +19,14 @@ class CoopSetupScreen extends StatefulWidget {
     super.key,
     required this.gameController,
     required this.onLocaleToggle,
+    this.store,
   });
 
   final GameController gameController;
   final VoidCallback onLocaleToggle;
+
+  /// Remembers the relay address between games; null keeps nothing.
+  final SaveStore? store;
 
   @override
   State<CoopSetupScreen> createState() => _CoopSetupScreenState();
@@ -35,6 +40,25 @@ class _CoopSetupScreenState extends State<CoopSetupScreen> {
   bool _failed = false;
   bool _relayInvalid = false;
   bool _gameOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (relayEnabled) unawaited(_recallRelay());
+  }
+
+  Future<void> _recallRelay() async {
+    final address = await widget.store?.relayAddress();
+    if (address != null && mounted && _relay.text.isEmpty) {
+      setState(() => _relay.text = address);
+    }
+  }
+
+  Future<void> _forgetRelay() async {
+    _relay.clear();
+    setState(() => _relayInvalid = false);
+    await widget.store?.forgetRelayAddress();
+  }
 
   @override
   void dispose() {
@@ -61,10 +85,16 @@ class _CoopSetupScreenState extends State<CoopSetupScreen> {
       return;
     }
     setState(() => _relayInvalid = false);
-    await _start(
-      () =>
-          LanSession.hostViaRelay(playerName: _name.text.trim(), relay: relay),
-    );
+    final typed = _relay.text.trim();
+    await _start(() async {
+      final session = await LanSession.hostViaRelay(
+        playerName: _name.text.trim(),
+        relay: relay,
+      );
+      // Only an address that worked is worth remembering.
+      await widget.store?.saveRelayAddress(typed);
+      return session;
+    });
   }
 
   Future<void> _join() async {
@@ -213,6 +243,13 @@ class _CoopSetupScreenState extends State<CoopSetupScreen> {
                     errorText: _relayInvalid
                         ? l10n.coopRelayAddressInvalid
                         : null,
+                    suffixIcon: _relay.text.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: l10n.coopRelayForget,
+                            icon: const Icon(Icons.clear),
+                            onPressed: _busy ? null : _forgetRelay,
+                          ),
                     border: const OutlineInputBorder(),
                   ),
                   autocorrect: false,

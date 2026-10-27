@@ -354,16 +354,26 @@
   "a11yGoalRow": "{goal}: aktuell {current}, {met, select, true{erreicht} other{noch nicht erreicht}}",
   "@a11yGoalRow": {
     "placeholders": {
-      "goal": {"type": "String"},
-      "current": {"type": "String"},
-      "met": {"type": "String"}
+      "goal": {
+        "type": "String"
+      },
+      "current": {
+        "type": "String"
+      },
+      "met": {
+        "type": "String"
+      }
     }
   },
   "a11yGoalRowSimple": "{goal}: {met, select, true{erreicht} other{noch nicht erreicht}}",
   "@a11yGoalRowSimple": {
     "placeholders": {
-      "goal": {"type": "String"},
-      "met": {"type": "String"}
+      "goal": {
+        "type": "String"
+      },
+      "met": {
+        "type": "String"
+      }
     }
   },
   "a11yTileSelected": "{name}, ausgewählt",
@@ -395,6 +405,7 @@
   "coopRoomCode": "Raumcode oder Adresse",
   "coopRelayAddress": "Relay-Adresse",
   "coopRelayAddressHint": "relay.example.org",
+  "coopRelayForget": "Diese Relay-Adresse vergessen",
   "coopHostRelay": "Über ein Relay hosten",
   "coopRelayExplainer": "Für Mitspielende, die nicht im selben WLAN sind. Ein Relay, das du oder jemand deines Vertrauens betreibt, leitet das Spiel weiter; es ist mit dem Raumcode Ende-zu-Ende verschlüsselt, sodass das Relay es nicht lesen kann. Lass die Adresse leer, um im lokalen WLAN zu spielen.",
   "coopRelayAddressInvalid": "Gib die Adresse des Relays ein, zum Beispiel relay.example.org. Es muss über wss:// erreichbar sein.",
