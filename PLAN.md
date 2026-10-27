@@ -1072,6 +1072,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   NVDA or VoiceOver on the web build, VoiceOver on iOS and TalkBack on Android, and fix what does
   not make sense aloud. The probes prove the game is reachable and announced; they cannot say
   whether it is pleasant, or whether a native live region double-announces. Needs a person.
+  *Note 2026-10-27:* `docs/accessibility-playtest.md` is the session script: setups (NVDA and VoiceOver on the web build first, then VoiceOver and TalkBack on the apps), twelve tasks in the order a new player meets them, what to note per task with a severity scale, consent and recruiting. Open until two setups have been played and their severity-1 findings fixed.
 ## 8. Source register (keep current)
 
 | Topic | Source | License / status | Used for |

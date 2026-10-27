@@ -137,6 +137,7 @@ can be played. What the probes say aloud was also read through end to end and
 fixed where it did not make sense (goal states, a doubled "Speed 3× 3×", an
 unnamed choice of predictions). Nobody has yet sat with Orca, VoiceOver, NVDA
 or TalkBack and tried to play, which is the judgement a machine cannot make.
+`docs/accessibility-playtest.md` is the script for doing that (T-705).
 
 ## Three things worth remembering
 
