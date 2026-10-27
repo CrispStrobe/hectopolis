@@ -93,6 +93,7 @@ site data.
 | `stadtbau.medals.v1` | which optional challenge medals you have earned |
 | `stadtbau.experience.v1` | your presentation and difficulty settings |
 | `stadtbau.onboarding.v1` | whether the first-launch tutorial has been shown |
+| `stadtbau.relay.v1` | the relay address you last hosted a co-op game through, if you have; written only after hosting through it worked, removed by the clear button in that field. Never in the App Store builds, which have no relays |
 
 No identifier is generated, stored or derived. There is no device id, no
 install id and no session id, because nothing is ever sent that would need one.
