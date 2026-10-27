@@ -278,7 +278,7 @@ const List<String> defaultLevelsJson = [
 {
   "id": "budget",
   "order": 4,
-  "budgetKEur": 4000,
+  "budgetKEur": 5800,
   "turnLimitMonths": 72,
   "learning": {
     "tier": "guided",
@@ -488,7 +488,7 @@ const List<String> defaultLevelsJson = [
 {
   "id": "tuebingen",
   "order": 6,
-  "budgetKEur": 34000,
+  "budgetKEur": 67000,
   "turnLimitMonths": 120,
   "attribution": "© BKG (2026) CC BY 4.0 — Landbedeckungsmodell LBM-DE2021, sampled onto a 1 ha grid and reduced to 16 tile types by Hectopolis. Datenquellen: https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_lbm-de2021.pdf",
   "learning": {

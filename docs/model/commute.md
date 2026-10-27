@@ -6,10 +6,17 @@ Code: `packages/stadtbau_sim/lib/src/model/commute.dart`. Parameters: `commute.*
 
 1. **Workers.** `W_i = P_i · 0.52` (Destatis: employed persons ÷ population).
 2. **Local share.** `f_local = min(1, J_total / W_total)`; the rest commute out
-   (15 km, MiD 2017 mean for out-commuters, initial estimate). Unfilled jobs
+   (20 km: the MiD 2017 mean work trip is 16 km, 18–19 km in small-town and
+   village areas, and those means include trips that never leave the
+   municipality; BBSR 2023 gives 17.2 km as a lower bound). Unfilled jobs
    are taken by in-commuters (`J_total − W_total`).
 3. **Distribution.** Local workers of cell `i` go to job cell `j` in proportion
-   to `jobs_j · exp(−d_ij / 2 km)` (gravity kernel, shared with job access).
+   to `jobs_j · exp(−d_ij / 10 km)`, `commute.commuteDecayM`: the half-life
+   method (Östh, Lyhagen & Reggiani 2016, Eq. 17) on the German median commute
+   of 10.5 km by road, about 7.4 km straight-line (Dauth & Haller,
+   IAB-Kurzbericht 10/2018), gives 10.6 km. Until 2026-10-26 this kernel was
+   the 2 km of job access, which sent workers to the nearest job far more
+   strongly than real commutes do.
 4. **Mode share by distance** (MiD 2017 Ergebnisbericht and MiD 2017 Analysen
    zum Rad- und Fußverkehr, rounded):
 

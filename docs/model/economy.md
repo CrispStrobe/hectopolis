@@ -32,7 +32,9 @@ Revenue = residents × (550 + 180) / 12 + filled jobs × 2 100 / 12, in €:
 
 Costs = Σ maintenance per tile / 12 (road 10 k€/ha/a: 1.5–3 €/m² Fahrbahn plus
 Beleuchtung, Reinigung, Winterdienst; park 20; others 0–4) plus
-one-off build and demolition costs at placement. Starting budget 25 M€.
+one-off build and demolition costs at placement (demolition 250 k€ per built
+hectare, from the funding cap of Saxony's FRL Städtebauliche Erneuerung,
+110 €/m² of living space; see `tiles.json`). Starting budget 25 M€.
 
 ## CO₂ balance (t/a)
 

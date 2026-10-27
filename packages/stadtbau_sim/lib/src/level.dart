@@ -250,10 +250,13 @@ bool hasPredictionChoices(String predictionId) =>
 /// with a hint that names nothing.
 List<TileType> guidanceCandidatesFor(LevelGoal goal) =>
     switch (goal.indicator) {
+      // By biotope value: forest and meadow (18) above wetland (16, a
+      // rewetted reed stand). Forest first, because a meadow brush does
+      // nothing on the meadow most of a map already is.
       Indicator.biodiversity => const [
-        TileType.wetland,
         TileType.forest,
         TileType.meadow,
+        TileType.wetland,
       ],
       Indicator.air => const [
         TileType.forest,

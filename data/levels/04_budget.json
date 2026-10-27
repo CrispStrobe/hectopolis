@@ -1,7 +1,7 @@
 {
   "id": "budget",
   "order": 4,
-  "budgetKEur": 4000,
+  "budgetKEur": 5800,
   "turnLimitMonths": 72,
   "learning": {
     "tier": "guided",

@@ -124,7 +124,7 @@ const String defaultParamsJson = r'''
         "value": 1.5
       },
       "buildCostKEur": {
-        "value": 2
+        "value": 0.3
       },
       "maintenanceKEurYear": {
         "value": 0
@@ -151,10 +151,10 @@ const String defaultParamsJson = r'''
         "value": 18
       },
       "biotopeStart": {
-        "value": 0.4
+        "value": 0.6
       },
       "recoveryMonths": {
-        "value": 240
+        "value": 360
       },
       "noiseEmissionDb": {
         "value": 0
@@ -181,10 +181,10 @@ const String defaultParamsJson = r'''
         "value": -10.0
       },
       "buildCostKEur": {
-        "value": 20
+        "value": 12
       },
       "maintenanceKEurYear": {
-        "value": 1
+        "value": 0.5
       },
       "noiseNightReductionDb": {
         "value": 0
@@ -205,10 +205,10 @@ const String defaultParamsJson = r'''
         "value": 0.0
       },
       "biotopeValue": {
-        "value": 16
+        "value": 15
       },
       "biotopeStart": {
-        "value": 0.5
+        "value": 0.67
       },
       "recoveryMonths": {
         "value": 120
@@ -256,7 +256,7 @@ const String defaultParamsJson = r'''
         "value": 0
       },
       "jobsPerHa": {
-        "value": 2
+        "value": 0.3
       },
       "sealing": {
         "value": 0.1
@@ -265,7 +265,7 @@ const String defaultParamsJson = r'''
         "value": 13
       },
       "biotopeStart": {
-        "value": 0.5
+        "value": 0.77
       },
       "recoveryMonths": {
         "value": 240
@@ -295,7 +295,7 @@ const String defaultParamsJson = r'''
         "value": -3.0
       },
       "buildCostKEur": {
-        "value": 400
+        "value": 600
       },
       "maintenanceKEurYear": {
         "value": 20
@@ -343,7 +343,7 @@ const String defaultParamsJson = r'''
         "value": 0.2
       },
       "eti": {
-        "value": 0.3
+        "value": 0.45
       },
       "greenWeight": {
         "value": 0.0
@@ -355,7 +355,7 @@ const String defaultParamsJson = r'''
         "value": 200
       },
       "maintenanceKEurYear": {
-        "value": 2
+        "value": 3
       },
       "noiseNightReductionDb": {
         "value": 5
@@ -400,7 +400,7 @@ const String defaultParamsJson = r'''
         "value": 0.15
       },
       "eti": {
-        "value": 0.15
+        "value": 0.23
       },
       "greenWeight": {
         "value": 0.0
@@ -409,7 +409,7 @@ const String defaultParamsJson = r'''
         "value": 166
       },
       "buildCostKEur": {
-        "value": 400
+        "value": 200
       },
       "maintenanceKEurYear": {
         "value": 4
@@ -472,7 +472,7 @@ const String defaultParamsJson = r'''
         "value": 300
       },
       "maintenanceKEurYear": {
-        "value": 3
+        "value": 4
       },
       "noiseNightReductionDb": {
         "value": 8
@@ -529,7 +529,7 @@ const String defaultParamsJson = r'''
         "value": 300
       },
       "maintenanceKEurYear": {
-        "value": 3
+        "value": 4
       },
       "noiseNightReductionDb": {
         "value": 5
@@ -607,10 +607,10 @@ const String defaultParamsJson = r'''
         "value": 0.0
       },
       "biotopeValue": {
-        "value": 22
+        "value": 16
       },
       "biotopeStart": {
-        "value": 0.35
+        "value": 0.375
       },
       "recoveryMonths": {
         "value": 180
@@ -661,13 +661,13 @@ const String defaultParamsJson = r'''
         "value": 0
       },
       "jobsPerHa": {
-        "value": 0.5
+        "value": 0.3
       },
       "sealing": {
         "value": 0.1
       },
       "biotopeValue": {
-        "value": 8
+        "value": 10
       },
       "biotopeStart": {
         "value": 0.7
@@ -700,10 +700,10 @@ const String defaultParamsJson = r'''
         "value": -266.0
       },
       "buildCostKEur": {
-        "value": 700
+        "value": 800
       },
       "maintenanceKEurYear": {
-        "value": 8
+        "value": 15
       },
       "retailFloorM2": {
         "value": 0
@@ -787,7 +787,7 @@ const String defaultParamsJson = r'''
         "value": 0.5
       },
       "biotopeValue": {
-        "value": 6
+        "value": 5
       },
       "biotopeStart": {
         "value": 0.8
@@ -907,10 +907,10 @@ const String defaultParamsJson = r'''
         "value": 0.35
       },
       "biotopeValue": {
-        "value": 12
+        "value": 7
       },
       "biotopeStart": {
-        "value": 0.6
+        "value": 0.64
       },
       "recoveryMonths": {
         "value": 120
@@ -1091,7 +1091,7 @@ const String defaultParamsJson = r'''
       "value": 0.2
     },
     "uhiMaxC": {
-      "value": 3.0
+      "value": 2.0
     },
     "greenPatchMinHa": {
       "value": 2
@@ -1211,8 +1211,11 @@ const String defaultParamsJson = r'''
     "roadSearchRadiusTiles": {
       "value": 3
     },
+    "commuteDecayM": {
+      "value": 10000
+    },
     "externalCommuteKm": {
-      "value": 15
+      "value": 20
     },
     "externalCarShare": {
       "value": 0.8
@@ -1259,7 +1262,7 @@ const String defaultParamsJson = r'''
       "value": 25000
     },
     "demolitionCostKEur": {
-      "value": 50
+      "value": 250
     },
     "immigrationRate": {
       "value": 0.08

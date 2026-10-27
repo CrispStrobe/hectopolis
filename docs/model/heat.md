@@ -26,15 +26,27 @@ base terrain (meadow) has ΔT = 0 and the least cooling land cover (road) has
 
 `ΔT_i = UHI_max · clamp((CC_meadow − HM_i) / (CC_meadow − CC_min), 0, 1)`
 
-with `UHI_max = 3 °C` (user input in InVEST; DWD reports 2–4 K for German
-mid-size cities).
+with `UHI_max = 2 °C` (a user input in InVEST). The value is read off DWD's
+UHI-MAP v7.0 grids (2024, CC BY 4.0): for twelve towns of 6 000–23 000
+residents, the maximum within 2 km of the centre has an annual median of about
+0.8 K and a hottest-day median of about 2.4 K, while cities of 75 000–770 000
+reach 2.3–3.4 K as an annual mean. Until 2026-10-26 the value was 3 °C, a
+large-city figure for a game whose towns are small.
 
 ## The ceiling moves with the month, and so must anything that divides by it
 
 `UHI_max` in that formula is not the parameter `heat.uhiMaxC`. It is that
 parameter times the month's heat factor (`docs/model/seasons.md`), which runs
-from 0.275 in January to 1.927 in July. A dense quarter therefore reaches
-about 4.1 K in July against a `uhiMaxC` of 3.0.
+from 0.275 in January to 1.927 in July. A dense quarter (an 8 × 8 block of
+apartments) reaches about 2.4 K in July against a `uhiMaxC` of 2.0 and a
+July ceiling of 3.85 K, which is close to the hottest-day median of the DWD
+grids for towns of this size.
+
+**Open: the summer peak is too strong.** In the DWD grids the summer UHI is
+about 1.3–1.5 times the annual one (Geisenheim 1.44, Landshut 1.5, Berlin 1.3);
+the game's June–August factors average 1.85. Lowering them is a change to
+`seasons.heat`, which several missions are tuned against, so it is noted here
+rather than made in passing.
 
 **`computeHeat` publishes the ceiling it used as `fields.uhiMaxNowC`, and
 everything that turns a ΔT into a 0–1 score divides by that** — the climate and
@@ -75,5 +87,13 @@ reproduces them.
 
 - InVEST User Guide, Urban Cooling Model:
   https://storage.googleapis.com/releases.naturalcapitalproject.org/invest-userguide/latest/en/urban_cooling_model.html
-- Zawadzka et al. (2021): A spatially explicit approach to simulate urban heat
-  mitigation with InVEST (v3.8.0). Geosci. Model Dev. 14, 3521–3537.
+- Bosch, M., Locatelli, M., Hamel, P., Remme, R. P., Chenal, J., Joost, S.
+  (2021): A spatially explicit approach to simulate urban heat mitigation with
+  InVEST (v3.8.0). Geosci. Model Dev. 14, 3521–3537,
+  doi:10.5194/gmd-14-3521-2021. (Cited here until 2026-10-26 as "Zawadzka et
+  al.", which is a different paper.)
+- DWD (2024): UHI-MAP – Urban Heat Island Rasterdatensatz für Deutschland,
+  Version 7.0, opendata.dwd.de/climate_environment/CDC/grids_germany/.
+- Dienst, M., Lindén, J., Esper, J. (2018): Determination of the urban heat
+  island intensity in villages and its spatial distribution using a simple
+  numerical model. Clim. Res. 76, 1–15, doi:10.3354/cr01522.

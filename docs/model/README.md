@@ -44,7 +44,8 @@ Each tick is one month.
    0.2·ETI; green patches ≥ 2 ha cool within 300 m; ΔT rescaled so that
    meadow is the rural reference (0 °C) and road reaches UHI_max.
 5. **Access**: green within 300 m (WHO), retail via Huff (λ = 2, 700 m),
-   jobs via exp(−d/2 km).
+   jobs via exp(−d/2 km) (local access; commuters choose jobs over
+   exp(−d/10 km)).
 6. **Habitat**: BKompV biotope value × maturity, InVEST Habitat Quality
    threat degradation, effective mesh size (Jaeger 2000) for connectivity,
    species-area exponent 0.3.
