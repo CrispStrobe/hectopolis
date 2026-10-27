@@ -299,7 +299,7 @@ const List<String> defaultLevelsJson = [
       {
         "id": "budget_reserve",
         "minMetrics": {
-          "budgetKEur": 2000
+          "budgetKEur": 1500
         }
       },
       {
@@ -316,7 +316,7 @@ const List<String> defaultLevelsJson = [
       },
       {
         "id": "budget_delay",
-        "afterMonths": 30
+        "afterMonths": 18
       }
     ]
   },
@@ -540,7 +540,7 @@ const List<String> defaultLevelsJson = [
     },
     {
       "indicator": "climate",
-      "min": 84
+      "min": 83
     },
     {
       "indicator": "housing",

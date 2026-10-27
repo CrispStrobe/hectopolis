@@ -122,8 +122,8 @@
         "source": "UBA-Emissionsdaten 2024: NOx 810 kt, davon 36 % Verkehr und rund 42 % Energiewirtschaft und Industrie zusammen; PM2,5 74 kt, knapp 60 % aus Verbrennung mit den größten Anteilen bei Haushalten/Kleinverbrauchern und beim Straßenverkehr einschließlich Abrieb. Landwirtschaft trägt 12,1 % der NOx-Emissionen und relevante NH3-Mengen bei, aber verteilt über 11,66 Mio. ha Ackerland — je Hektar wenig. 0,05 ist die kleinste Stufe über null. calibration T-114: der Acker-Archetyp erreicht einen Luftindex von 96, im Zielband über 90"
       },
       "airSink": {
-        "value": 0.02,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Offener Acker, überwiegend ohne Bestand außerhalb der Vegetationszeit."
+        "value": 0.035,
+        "source": "Jones et al. 2017 (CEH for ONS, Developing Estimates for the Valuation of Air Pollution Removal in Ecosystem Accounts), Table S5: PM2.5 deposition velocity per ground area, woodland ≈4.8, grassland 0.91, crops 0.66, water 0.58 mm/s; scaled to forest = 0.20: crops 0.66 → 0.028 for PM2.5, about grassland for PM10 and NO2"
       },
       "shade": {
         "value": 0.02,
@@ -347,8 +347,8 @@
         "source": "no source"
       },
       "airSink": {
-        "value": 0.1,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Halber Waldwert, weil eine Parkhektare nur etwa die halbe Kronenfläche hat (shade 0,5 gegen 0,9)."
+        "value": 0.12,
+        "source": "Jones et al. 2017 (CEH for ONS, Developing Estimates for the Valuation of Air Pollution Removal in Ecosystem Accounts), Table S5: PM2.5 deposition velocity per ground area, woodland ≈4.8, grassland 0.91, crops 0.66, water 0.58 mm/s; scaled to forest = 0.20: half canopy (0.20) and half lawn (0.04)"
       },
       "shade": {
         "value": 0.5,
@@ -549,7 +549,7 @@
       },
       "retailFloorM2": {
         "value": 2000,
-        "source": "design: 20 % of 1 ha plot as retail floor; HDE 1.4 m²/EW"
+        "source": "HDE Zahlenspiegel 2025, pp. 22, 24: 124.8 M m² sales floor, 3.125 M retail staff, so 40 m² per retail job; 50 of the tile's 100 jobs in retail × 40 m² = 2 000. Per resident 124.8 M m² ÷ 83.6 M ≈ 1.49 m²"
       },
       "sealing": {
         "value": 0.85,
@@ -608,8 +608,8 @@
         "source": "Koziol & Walther, Abschätzung der Infrastrukturfolgekosten, in Preuß & Floeting (Hrsg.), Folgekosten der Siedlungsentwicklung, REFINA Band III, Difu 2009 p. 82: commercial areas run about one third above residential annual costs; 3 × 1.33 ≈ 4"
       },
       "noiseNightReductionDb": {
-        "value": 8,
-        "source": "design: shops and deliveries stop overnight, leaving only plant and car-park movements"
+        "value": 15,
+        "source": "VBUI (Vorläufige Berechnungsmethode für den Umgebungslärm durch Industrie und Gewerbe, BAnz. Nr. 154a, 2006), Tab. 1: 'Gebiete mit gewerblicher Nutzung' 60 dB(A)/m² by day and in the evening, 45 at night"
       },
       "perviousCurveNumber": {
         "value": 61,
@@ -683,8 +683,8 @@
         "source": "Koziol & Walther, Abschätzung der Infrastrukturfolgekosten, in Preuß & Floeting (Hrsg.), Folgekosten der Siedlungsentwicklung, REFINA Band III, Difu 2009 p. 82, as for commercial land"
       },
       "noiseNightReductionDb": {
-        "value": 5,
-        "source": "design: partial night shift; TA Larm regulates night separately, so a compliant plant throttles rather than stops"
+        "value": 0,
+        "source": "VBUI (Vorläufige Berechnungsmethode für den Umgebungslärm durch Industrie und Gewerbe, BAnz. Nr. 154a, 2006), Tab. 1: heavy industry 65/65/65 and light industry 60/60/60 dB(A)/m², no drop at night; TA Lärm 6.1 gives an Industriegebiet one limit, 70, day and night"
       },
       "perviousCurveNumber": {
         "value": 61,
@@ -802,8 +802,8 @@
         "source": "no source"
       },
       "airSink": {
-        "value": 0.08,
-        "source": "design, anchored on Nowak et al. 2006 (i-Tree): Stadtbäume nehmen lokal einige Prozent des PM und NO2 auf. Das Spiel setzt den Effekt bewusst höher an, damit er auf einem 100-m-Raster sichtbar wird (docs/model/air.md). Bewachsene Fläche zwischen Wiese (0,05) und Park (0,10)."
+        "value": 0.05,
+        "source": "Jones et al. 2017 (CEH for ONS, Developing Estimates for the Valuation of Air Pollution Removal in Ecosystem Accounts), Table S5: PM2.5 deposition velocity per ground area, woodland ≈4.8, grassland 0.91, crops 0.66, water 0.58 mm/s; scaled to forest = 0.20: no wetland class; reed and fen sit closest to grassland (0.04)"
       },
       "shade": {
         "value": 0.1,
@@ -932,7 +932,7 @@
       "category": "residential",
       "residentsPerHa": {
         "value": 120,
-        "source": "design: between apartment blocks (180) and detached housing (45); the ground floor is given to shops and workshops instead of flats"
+        "source": "SenStadt Berlin, Umweltatlas 06.06 Einwohnerdichte 2024, Tab. 1: 'Mischgebiet ohne Wohngebietscharakter, dichte Bebauung' 138 residents per ha of block, × 0.884 for streets = 122"
       },
       "jobsPerHa": {
         "value": 45,
@@ -940,7 +940,7 @@
       },
       "sealing": {
         "value": 0.7,
-        "source": "design: dense but with courtyards, just below apartment blocks (0.75)"
+        "source": "SenStadt Berlin, Umweltatlas 01.02 Versiegelung 2021, Tab. 4/5 (dl-de/zero-2.0): 'Mischgebiet' 64.5 % (66.9 % with streets), type 8 heterogeneous inner-city mixed 66.4 % (68.6 %)"
       },
       "biotopeValue": {
         "value": 4,
@@ -959,8 +959,8 @@
         "source": "design: quieter than pure commercial (58) because the upper floors are homes, louder than apartment blocks (50) because of deliveries and custom"
       },
       "airEmission": {
-        "value": 0.35,
-        "source": "design: between apartment blocks (0.3) and commercial (0.6)"
+        "value": 0.45,
+        "source": "design, weighted by the tile's own mix: 120/180 of apartment blocks (0.3) + 45/100 of commercial (0.6) = 0.47"
       },
       "airSink": {
         "value": 0.02,
@@ -987,20 +987,20 @@
         "source": "derived: Wohnanteil 120 EW/ha × 49,2 m² × 18,8 kg = 111 t plus 45 Arbeitsplätze × 0,66 t = 30 t, zusammen rund 140 t/ha/a — dieselben Grundlagen wie housing_high und commercial"
       },
       "buildCostKEur": {
-        "value": 450,
-        "source": "design: above apartment blocks (400) for the commercial ground floor"
+        "value": 250,
+        "source": "design: between apartment blocks (200) and commercial (300), on the same net-network-cost basis (InfrastrukturFolgekostenSchätzer; REFINA III), since network cost barely depends on the use"
       },
       "maintenanceKEurYear": {
-        "value": 10,
-        "source": "design: between apartment blocks and commercial"
+        "value": 4,
+        "source": "design: apartment blocks and commercial both run at 4 (InfrastrukturFolgekostenSchätzer; REFINA III p. 82)"
       },
       "retailFloorM2": {
-        "value": 3000,
-        "source": "design: a ground floor of shops at about a third of the commercial figure"
+        "value": 1200,
+        "source": "HDE Zahlenspiegel 2025, pp. 22, 24: 124.8 M m² sales floor, 3.125 M retail staff, so 40 m² per retail job; about 30 of the tile's 45 jobs in retail × 40 m² = 1 200. (It was 3 000, more than commercial's 2 000, which its own note called a third of commercial.)"
       },
       "noiseNightReductionDb": {
-        "value": 6,
-        "source": "design: between homes (5) and shops (8); the flats stay occupied but the shops close"
+        "value": 11,
+        "source": "derived: half a commercial hectare (55 by day, −15 at night, VBUI (Vorläufige Berechnungsmethode für den Umgebungslärm durch Industrie und Gewerbe, BAnz. Nr. 154a, 2006), Tab. 1) and half an apartment block (−5) give 55.6 by day and 44.1 at night, an 11.5 dB drop; TA Lärm's urbane Gebiete (63 / 45) agree"
       },
       "perviousCurveNumber": {
         "value": 61,
@@ -1014,12 +1014,12 @@
         "source": "n/a: pupils are counted at home, not at school"
       },
       "jobsPerHa": {
-        "value": 25,
-        "source": "design: teaching and support staff for a school serving a few thousand residents, a quarter of commercial (100)"
+        "value": 30,
+        "source": "SenBJF Berlin, Blickpunkt Schule 2023/24, pp. 45, 58: 35 459 teachers + 7 134 other staff at public schools, ×1.117 for private schools ≈ 47 600, over 1 289 ha of school blocks (Umweltatlas) ≈ 37 per ha, an upper bound"
       },
       "sealing": {
         "value": 0.5,
-        "source": "design: buildings and a hard yard, with a sports field and planting; above detached housing (0.45) and well below commercial (0.85)"
+        "source": "SenStadt Berlin, Umweltatlas 01.02 Versiegelung 2021, Tab. 4/5 (dl-de/zero-2.0): 'Neubau-Schule' 51.3 %, 'Altbau-Schule' 54.9 %"
       },
       "biotopeValue": {
         "value": 5,
@@ -1062,8 +1062,8 @@
         "source": "design: grounds are open out of hours in many places but are not a park"
       },
       "co2PerHaYear": {
-        "value": 33,
-        "source": "design: ein Schulgebäude heizt je Beschäftigtem deutlich mehr Fläche als ein Büro. Angesetzt ist das Doppelte der gewerblichen Kennzahl (0,66 t je Arbeitsplatz) bei 25 Arbeitsplätzen/ha = 33 t/ha/a"
+        "value": 100,
+        "source": "BMWi/BMI, Energieverbrauchswerte und Vergleichswerte Nichtwohngebäude (BAnz AT 03.05.2021 B1), Anlage 1 Tab. 1 row 21 'Schulen': heat 49.3 + hot water 22.4 kWh/m²·a, × about 6 000 m² NGF per ha (assumed) × 0.240 t/MWh for gas (GEG Anlage 9) ≈ 103 t; heat only, as for the other building tiles"
       },
       "buildCostKEur": {
         "value": 900,
@@ -1098,7 +1098,7 @@
       },
       "sealing": {
         "value": 0.85,
-        "source": "design: track bed, platform and pavement, just below main road (0.95); grassed track is possible but not assumed"
+        "source": "SenStadt Berlin, Umweltatlas 01.02 Versiegelung 2021, Tab. 4/5 (dl-de/zero-2.0): streets 85.2 %; track on its own grassed bed would be 43.1 %"
       },
       "biotopeValue": {
         "value": 1,
@@ -1146,11 +1146,11 @@
       },
       "buildCostKEur": {
         "value": 800,
-        "source": "design: a stop plus its share of track is expensive per hectare, near a school"
+        "source": "TTK for BMVI, Machbarkeitsstudien zum Einsatz alternativer Verkehrssysteme (2021), Tab. 18-19, pp. 137-138: 100 m of double track 1.0-1.5 M€ + a stop 0.8-1.4 M€; the municipality's share after the GVFG grant (§ 4: up to 75 %) is about 450-725 k€ plus ineligible costs"
       },
       "maintenanceKEurYear": {
-        "value": 25,
-        "source": "design: track and vehicle upkeep"
+        "value": 15,
+        "source": "TTK for BMVI 2021, p. 152 (criterion B4): track upkeep 100-150 k€ per route-km and year, 10-15 k€ per 100 m; vehicles are the operator's cost"
       },
       "retailFloorM2": {
         "value": 0,
@@ -1158,7 +1158,7 @@
       },
       "noiseNightReductionDb": {
         "value": 9,
-        "source": "design: night service is thinner than the day timetable, a larger drop than a road (6.5)"
+        "source": "design: night service is thinner than the day timetable. Berlin's MetroTram on Turmstraße runs 48 night and 192 day trips (I.B.U. noise report 2019), only −3 dB, but that is a 24-hour line; a small town's tram that stops at night drops far more"
       },
       "perviousCurveNumber": {
         "value": 61,
@@ -1176,16 +1176,16 @@
         "source": "n/a"
       },
       "sealing": {
-        "value": 0.35,
-        "source": "design: a 3 m asphalt path in a green corridor seals a third of the hectare, far less than a main road (0.95)"
+        "value": 0.05,
+        "source": "arithmetic: a 3 m asphalt path along 100 m is 300 m², 3 % of the hectare; 0.05 with its edges. (It was 0.35, a third of the hectare, which would be a 35 m wide path.)"
       },
       "biotopeValue": {
-        "value": 7,
-        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): 0.35 sealed path (52.02.01a = 0) + 0.65 × 52.01.08n.03 Funktionsgrün mit artenreicher Krautschicht oder mit Gehölzbestand mittlerer bis alter Ausprägung (11) = 7.2"
+        "value": 10,
+        "source": "BKompV Anlage 2: 0.05 sealed path (52.02.01a = 0) + 0.95 × 52.01.08n.03 Funktionsgrün mit artenreicher Krautschicht oder mit Gehölzbestand mittlerer bis alter Ausprägung (11) = 10.5"
       },
       "biotopeStart": {
-        "value": 0.64,
-        "source": "BKompV Anlage 2 (Biotopwertliste, BGBl. I 2020, 1100–1122): young verge 52.01.08a.02 = 7; 0.65 × 7 / 7.2"
+        "value": 0.66,
+        "source": "BKompV Anlage 2: young verge 52.01.08a.02 = 7; 0.95 × 7 / 10.5"
       },
       "recoveryMonths": {
         "value": 120,
@@ -1224,12 +1224,12 @@
         "source": "design: the traffic a route replaces is now modelled in commute.cycleCarReduction; what remains is the small sink of the verge itself, near meadow (-1)"
       },
       "buildCostKEur": {
-        "value": 120,
-        "source": "design: asphalt path plus verge, well below a main road (300)"
+        "value": 70,
+        "source": "Gemeinde Zeuthen, Kooperationsvereinbarung Radweg (2022), Anlage 3: about 200 €/m² for a 3 m path on public land, 600-750 €/m incl. compensation, so 60-75 k€ per 100 m; Niedersachsen (LT-Drs. 17/1850, 2014) 80-120 €/m²"
       },
       "maintenanceKEurYear": {
-        "value": 3,
-        "source": "design: sweeping, surface and hedge cutting"
+        "value": 2,
+        "source": "Niedersächsischer Landtag Drs. 17/1850 (2014): operation 0.45-0.60 €/m²·a and renewal 35-45 €/m² over 25 years on 300 m² of path (0.2 + 0.5 k€), plus the verge at the meadow's GALK rate (0.65 k€); 2 with hedges"
       },
       "retailFloorM2": {
         "value": 0,
@@ -1594,9 +1594,8 @@
       "source": "planning practice: the walking catchment of a tram or light-rail stop is usually taken as 400-600 m; 4 tiles is 400 m at this cell size"
     },
     "transitCarReduction": {
-      "value": 0.25,
-      "source": "design, anchored on MiD 2017 (BMVI/infas) Ergebnisbericht: national modal split of 22% on foot, 11% bicycle, 43% car driver, 14% car passenger and 10% public transport. That 10% mixes served and unserved places, so a stop within walking distance shifting up to a quarter of a cell's car trips onto public transport puts a fully served map above the national average without reaching the share of a large city",
-      "note": "design value: the model has no public-transport mode of its own, so this is a substitution away from car rather than a measured elasticity"
+      "value": 0.2,
+      "source": "MiD 2017 Ergebnisbericht Abb. 18 / MiD 2023 Tab. 8: car 38 % vs 70 % and public transport 20 % vs 5 % between metropolis and rural village, so 15 pp ÷ 70 ≈ 0.21 of car trips (0.22 in 2023), a ceiling since the contrast also holds density and car ownership"
     },
     "cyclePathRadiusTiles": {
       "value": 2,
@@ -1604,7 +1603,7 @@
     },
     "cycleCarReduction": {
       "value": 0.15,
-      "source": "design, anchored on MiD 2017 (BMVI/infas) Ergebnisbericht: national modal split of 22% on foot, 11% bicycle, 43% car driver, 14% car passenger and 10% public transport: the bicycle share is 11% nationally and this model's own distance bins already peak cycling at 21% between 1 and 1.5 km, so a route in reach shifting up to 0.15 of car trips is of that order",
+      "source": "MiD 2017 / MiD 2023: bike share 15 % vs 7 % (2023: 15 vs 6) between metropolis and rural village, 0.11-0.14 of car trips; RS1 feasibility study (RVR 2015): a cycle highway lifts cycling's share of non-walking trips from 10 % to 14-20 %",
       "note": "design value, not a measured elasticity"
     },
     "cycleCompetitiveKm": {
@@ -1613,7 +1612,7 @@
     },
     "minCarShareFactor": {
       "value": 0.5,
-      "source": "design: even with a stop and a route in reach, at most half of a cell's car trips shift; the rest are trips public transport and cycling do not serve"
+      "source": "MiD 2017 / 2023: car trips in the metropolis are 0.54 / 0.51 of those in a rural village; with access capped at 1 the transit and cycle reductions (0.2 + 0.15) never reach this floor, which only binds under scenario overrides"
     }
   },
   "economy": {
@@ -1639,15 +1638,15 @@
     },
     "immigrationRate": {
       "value": 0.08,
-      "source": "design: new housing fills within ~2 years at high attractiveness"
+      "source": "design, checked against German vacancy: with emigrationRate 0.008 the archetypes settle at 1.6-4.7 % vacant (Zensus 2022: 4.3 % nationally, 1.9-3.5 % in the largest cities, Stadt Köln KSN 13/2025), and fully attractive housing is 90 % full in 28 months: the pace of a new district, not of re-letting"
     },
     "emigrationRate": {
-      "value": 0.03,
-      "source": "design"
+      "value": 0.008,
+      "source": "Techem, Umzugsquote 2014 (about 2 M flats; Wohnungswirtschaft heute 81, 2015, p. 25): 9.4 % of tenants move per year, 1−(1−0.094)^(1/12) = 0.0082 a month; Destatis Wanderungen 2025: 5.9 %/a leave their municipality, a lower bound. With immigrationRate 0.08 the archetypes settle at 1.6-4.7 % vacancy, against 4.3 % in Zensus 2022"
     },
     "unconnectedAttractivenessFactor": {
       "value": 0.7,
-      "source": "design: no main road within 300 m"
+      "source": "design, bracketed: no German study prices 'no main road within 300 m'; land whose access is not secured trades at 35-95 % of building land (Gutachterausschuss Northeim 2022, p. 3), and the Berlin areas that lost most rail access fell about 22 % (Ahlfeldt 2008, p. 22)"
     },
     "attractivenessWeights": {
       "source": "design; relative importance from Wohnzufriedenheit surveys (BBSR) (initial estimate)",
@@ -1723,12 +1722,12 @@
       "source": "design: open water and wetland take runoff from their immediate surroundings; 200 m at this cell size"
     },
     "retentionMmPerCell": {
-      "value": 30,
-      "source": "design: a water cell absorbs up to 30 mm of depth from its neighbourhood, above the 22.1 mm design storm so one pond can hold one ordinary shower from about its own area"
+      "value": 100,
+      "source": "HCU Hamburg et al., BlueGreenStreets Toolbox Teil B (2022), pp. 72-73: retention in open space with a storage depth of 50-200 mm; the geometric mean, 100 mm, is 1 000 m³ per water hectare"
     },
     "floodRiskMm": {
-      "value": 10,
-      "source": "design: the threshold above which a cell's runoff from the design storm is reported as at risk; roughly half the design storm leaving as surface flow"
+      "value": 12.5,
+      "source": "DWA-M 119 Tab. 1 (as reproduced in MULNV NRW, Arbeitshilfe Starkregenrisikomanagement 2018, Tab. 1): residential sewers overflow at most once in 2 years; KOSTRA-DWD-2020, cell 081118, 60 min, 2-year: 17.5 mm, through the model's runoff at CN 98: 12.5 mm"
     }
   }
 }

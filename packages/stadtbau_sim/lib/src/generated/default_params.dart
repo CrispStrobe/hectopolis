@@ -106,7 +106,7 @@ const String defaultParamsJson = r'''
         "value": 0.05
       },
       "airSink": {
-        "value": 0.02
+        "value": 0.035
       },
       "shade": {
         "value": 0.02
@@ -277,7 +277,7 @@ const String defaultParamsJson = r'''
         "value": 0.0
       },
       "airSink": {
-        "value": 0.1
+        "value": 0.12
       },
       "shade": {
         "value": 0.5
@@ -475,7 +475,7 @@ const String defaultParamsJson = r'''
         "value": 4
       },
       "noiseNightReductionDb": {
-        "value": 8
+        "value": 15
       },
       "perviousCurveNumber": {
         "value": 61
@@ -532,7 +532,7 @@ const String defaultParamsJson = r'''
         "value": 4
       },
       "noiseNightReductionDb": {
-        "value": 5
+        "value": 0
       },
       "perviousCurveNumber": {
         "value": 61
@@ -622,7 +622,7 @@ const String defaultParamsJson = r'''
         "value": 0.0
       },
       "airSink": {
-        "value": 0.08
+        "value": 0.05
       },
       "shade": {
         "value": 0.1
@@ -739,7 +739,7 @@ const String defaultParamsJson = r'''
         "value": 55
       },
       "airEmission": {
-        "value": 0.35
+        "value": 0.45
       },
       "airSink": {
         "value": 0.02
@@ -760,16 +760,16 @@ const String defaultParamsJson = r'''
         "value": 140
       },
       "buildCostKEur": {
-        "value": 450
+        "value": 250
       },
       "maintenanceKEurYear": {
-        "value": 10
+        "value": 4
       },
       "retailFloorM2": {
-        "value": 3000
+        "value": 1200
       },
       "noiseNightReductionDb": {
-        "value": 6
+        "value": 11
       },
       "perviousCurveNumber": {
         "value": 61
@@ -781,7 +781,7 @@ const String defaultParamsJson = r'''
         "value": 0
       },
       "jobsPerHa": {
-        "value": 25
+        "value": 30
       },
       "sealing": {
         "value": 0.5
@@ -817,7 +817,7 @@ const String defaultParamsJson = r'''
         "value": 0.3
       },
       "co2PerHaYear": {
-        "value": 33
+        "value": 100
       },
       "buildCostKEur": {
         "value": 900
@@ -883,7 +883,7 @@ const String defaultParamsJson = r'''
         "value": 800
       },
       "maintenanceKEurYear": {
-        "value": 25
+        "value": 15
       },
       "retailFloorM2": {
         "value": 0
@@ -904,13 +904,13 @@ const String defaultParamsJson = r'''
         "value": 0
       },
       "sealing": {
-        "value": 0.35
+        "value": 0.05
       },
       "biotopeValue": {
-        "value": 7
+        "value": 10
       },
       "biotopeStart": {
-        "value": 0.64
+        "value": 0.66
       },
       "recoveryMonths": {
         "value": 120
@@ -940,10 +940,10 @@ const String defaultParamsJson = r'''
         "value": -1.0
       },
       "buildCostKEur": {
-        "value": 120
+        "value": 70
       },
       "maintenanceKEurYear": {
-        "value": 3
+        "value": 2
       },
       "retailFloorM2": {
         "value": 0
@@ -1233,7 +1233,7 @@ const String defaultParamsJson = r'''
       "value": 4
     },
     "transitCarReduction": {
-      "value": 0.25
+      "value": 0.2
     },
     "cyclePathRadiusTiles": {
       "value": 2
@@ -1268,7 +1268,7 @@ const String defaultParamsJson = r'''
       "value": 0.08
     },
     "emigrationRate": {
-      "value": 0.03
+      "value": 0.008
     },
     "unconnectedAttractivenessFactor": {
       "value": 0.7
@@ -1338,10 +1338,10 @@ const String defaultParamsJson = r'''
       "value": 2
     },
     "retentionMmPerCell": {
-      "value": 30
+      "value": 100
     },
     "floodRiskMm": {
-      "value": 10
+      "value": 12.5
     }
   }
 }''';
