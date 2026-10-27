@@ -105,7 +105,7 @@ demanding.
 **`tuebingen` needed a different lever**, because nothing in it matures:
 biodiversity moves 38.6 → 39.8 over 120 months, climate and recreation are
 flat. The two things that do move are population and the budget — and the
-worked plan spends 29 090 of the level's 34 000 k€, leaving the town on 4 910
+worked plan spent 29 090 of the level's 34 000 k€ (before the 2026-10-26 cost review; now 57 370 of 67 000, the same margin), leaving the town on 4 910
 and recovering about 2 000 k€ a month.
 
 So the level gained a fifth goal, `budgetKEur ≥ 50 000`, which the worked plan
@@ -178,7 +178,7 @@ so the hint could not suggest them for any goal. It now can:
 
 | Goal | Added |
 |---|---|
-| biodiversity | `wetland` — biotope value 22, the highest in the game |
+| biodiversity | `wetland` — after forest and meadow since 2026-10-26, when its biotope value was corrected from 22 to 16 (a rewetted reed stand, BKompV 38.03 / 37.02) |
 | climate | `solar_field` — −266 t CO₂/ha/yr |
 | housing, population | `mixed_use` — 120 residents/ha |
 | economy, budget, jobs | `mixed_use`, `school` |

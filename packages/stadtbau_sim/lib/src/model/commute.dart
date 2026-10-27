@@ -12,7 +12,7 @@ import '../world.dart';
 /// Commuting model (docs/model/commute.md).
 ///
 /// Workers of every residential cell are distributed to job cells with a
-/// gravity kernel exp(-d / jobDecayM). Jobs that residents cannot fill are
+/// gravity kernel exp(-d / commuteDecayM). Jobs that residents cannot fill are
 /// taken by in-commuters from outside the map; workers without local jobs
 /// commute out. Car trips enter the road network at the nearest main road of
 /// origin and destination and are routed along the shortest road path
@@ -252,7 +252,7 @@ class _CommuteTables {
       decay = DecayTable(
         maxDist2: w.width * w.width + w.height * w.height,
         cellSizeM: p.cellSizeM,
-        decayM: p.access.jobDecayM,
+        decayM: p.commute.commuteDecayM,
       ),
       km = Float64List(w.width * w.width + w.height * w.height + 1),
       carShare = Float64List(w.width * w.width + w.height * w.height + 1) {

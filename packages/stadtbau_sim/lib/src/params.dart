@@ -358,6 +358,7 @@ class CommuteParams {
   CommuteParams(Map<String, dynamic> m)
       : labourParticipation = _p(m, 'labourParticipation', 'commute').value,
         roadSearchRadiusTiles = _p(m, 'roadSearchRadiusTiles', 'commute').value.round(),
+        commuteDecayM = _p(m, 'commuteDecayM', 'commute', 10000).value,
         externalCommuteKm = _p(m, 'externalCommuteKm', 'commute').value,
         externalCarShare = _p(m, 'externalCarShare', 'commute').value,
         carKgCo2PerKm = _p(m, 'carKgCo2PerKm', 'commute').value,
@@ -390,6 +391,11 @@ class CommuteParams {
 
   final double labourParticipation;
   final int roadSearchRadiusTiles;
+
+  /// Decay length of the gravity kernel that sends workers to jobs. Longer
+  /// than `access.jobDecayM`, which drives the local job-access indicator:
+  /// commutes reach far beyond what a map shows as "nearby" (tiles.json).
+  final double commuteDecayM;
   final double externalCommuteKm;
   final double externalCarShare;
   final double carKgCo2PerKm;

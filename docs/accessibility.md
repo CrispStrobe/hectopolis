@@ -20,6 +20,8 @@ already broken something, or turned one up on first run.
 | 4.1.2 Name, role, value | test, asserts the semantics tree | `app/test/semantics_test.dart` |
 | 2.3.3 Animation from interactions | code honours `disableAnimations` | `map_view.dart`, `game_screen.dart` |
 | 1.1.1 Non-text content | test, read back over AT-SPI by a real client | `tools/a11y_probe.py` |
+| 2.1.1 Keyboard, with a screen reader on the web | probe plays the web build by keyboard with semantics on | `tools/web_a11y_probe.py` |
+| 1.3.1 Info and relationships (goal met / not met) | test, each goal row speaks its state | `app/test/semantics_test.dart` |
 | 1.4.10 Reflow | partly: the 200 % sweep covers a 420 px viewport | `text_scaling_test.dart` |
 
 ## The AT-SPI probe
@@ -77,6 +79,49 @@ gauge announces its value usefully, or that the map is navigable by someone who
 cannot see it. And it is the Linux build; iOS VoiceOver and Android TalkBack
 remain unexercised.
 
+## The web screen-reader probe
+
+`tools/web_a11y_probe.py` drives the web build the way a screen-reader user
+would: it switches Flutter's web semantics on, opens a scenario, and plays it
+with Tab, the arrow keys, a digit and Enter, reading what the browser's
+accessibility tree and Flutter's `aria-live` hosts are handed. CI runs it after
+the web build.
+
+It exists because the web is different in a way no widget test sees. A screen
+reader on the web follows the **browser's** focus, and the browser can only
+focus semantics nodes flagged focusable. Until 2026-10-26 three things were
+not:
+
+- the palette cards and the gauges, because `excludeSemantics` — used to merge
+  an icon, a name and a number into one sentence — also drops the focus flags
+  of the `InkWell` inside (now `FocusableLabel`);
+- the map, because its `Focus` sat above the labelled region, so the flags
+  went to some ancestor;
+- and the map's taps, left in the semantics tree, merged into the screen's node
+  and turned it into one full-window button that also swallowed every loose
+  text, so the first thing read was "Goals 96 months left Housing ≥ 70 0 …".
+
+So with a screen reader running, Tab moved Flutter's focus through the cards
+while the reader sat on the last control it could focus and said nothing, and
+the map was never a stop at all: **the game could not be played**. Every
+widget test passed, because Flutter's own focus moved fine, and the keyboard
+check by hand passed, because it was done without a screen reader.
+
+Two more web specifics the probe holds:
+
+- The map is a live region, but the web engine announces a live region only
+  when its *label* changes, and the cursor reading is its *value*. On the web
+  the map therefore announces cursor moves itself (`SemanticsService`); the
+  native platforms are left to the live region, so they do not hear it twice.
+- Picking a tile with a digit changes a palette card's label, but focus is on
+  the map, so no platform read it. That is announced on every platform.
+
+**Known gap: dialogs are unnamed on the web.** The `alertdialog` element is the
+dialog route's own node, and the web engine names it only if that node names
+itself; `AlertDialog.semanticLabel` lands on a child, which Chrome ignores.
+The title is still the first thing read inside the dialog. Fixing the name
+needs an engine change, not an app one.
+
 ## What a test can and cannot settle
 
 A widget test walks the widget tree, so it can answer structural questions
@@ -86,9 +131,12 @@ order *makes sense to a person*, whether a label *reads* well aloud, or whether
 a colour pair is comfortable rather than merely above 4.5:1.
 
 The open item has moved, but not all the way. An assistive-technology *client*
-now reads the app in CI over AT-SPI, so the tree demonstrably reaches the bus.
-Nobody has yet sat with Orca, VoiceOver or TalkBack and tried to play, which is
-the judgement a machine cannot make.
+now reads the app in CI over AT-SPI, so the tree demonstrably reaches the bus,
+and the web build is played by keyboard with semantics on, so it demonstrably
+can be played. What the probes say aloud was also read through end to end and
+fixed where it did not make sense (goal states, a doubled "Speed 3× 3×", an
+unnamed choice of predictions). Nobody has yet sat with Orca, VoiceOver, NVDA
+or TalkBack and tried to play, which is the judgement a machine cannot make.
 
 ## Three things worth remembering
 
@@ -118,6 +166,10 @@ height from the content and keep the old literal as a floor.
 ```bash
 tools/check.sh test-app          # every in-process test above
 cd app && flutter test test/text_scaling_test.dart
+
+# The web probe needs a web build and a Chrome:
+cd app && flutter build web --release --no-web-resources-cdn && cd ..
+tools/check.sh web-a11y
 
 # The AT-SPI probe needs a Linux build and at-spi2-core, so it is opt-in
 # locally and runs in CI on every push:

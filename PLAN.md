@@ -264,6 +264,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   *Note 2026-09-18 (7):* Air emissions verified as *ratios* (the scale is relative, road = 1.0, and calibrated by T-114). UBA 2024 data sets the ordering and the table matches it. industry 3.0 is deliberately below the inventory ratio (~10×) and now says why: the model has no stack height or plume rise, so a ground-level source at inventory strength would be wrong. Sinks and decay length re-labelled `design, anchored on …` — air.md already said the sink effect is amplified on purpose, so "initial estimate" was the wrong label. Calibration harness re-run: industrial-park noise 63 % → 43 % above 55 dB(A) from the industry noise correction (expectation updated); **dense-quarter ΔT is 0.18 against a recorded 1.6, and that drift predates this work** — flagged in calibration.md, not fixed here.
   *Note 2026-09-18 (8):* Habitat threats verified. Two source strings were wrong about what they cited: the InVEST example table lists roads at 0.1/0.4 and agriculture at 1.0, and has no "urban" row. What the guide does say is that weights are normalised, so only their ratios mean anything — the ordering is the whole content, and it is now labelled `design`. The distances could not come from InVEST either (its example is 2–8 km, landscape scale). `road.maxDistanceM = 300` is now grounded in the road-effect-zone literature (Forman & Deblinger 2000; Reijnen & Foppen); the four settlement distances stay design.
   **Status after this session: of 380 parameters, 205 cite a source (was 182), 198 of those are settled (was 149), and 7 cited parameters are still marked as initial estimates (was 33).**
+  *Note 2026-10-26:* The 50 parameters still marked "initial estimate" were checked against sources, every key claim re-read in the source text before use. 28 values changed and every one now cites its arithmetic; the rest are re-sourced or honestly relabelled `design:`. Biotope: the codes in `tiles.json` were right, but wetland 22 is above any reed or sedge type (→ 16), cycle path 12 above any verge (→ 7), and the meadow's "10–15 years" is not in BfN-Schriften 721; start values now come from each tile's young-stage code. Costs: T-103's "no open dataset" was wrong — Brandenburg's InfrastrukturFolgekostenSchätzer publishes its reference costs — so development costs are the municipality's net share (housing_high 400 → 200, density barely changes network cost), park 600, demolition 50 → 250. Heat: `uhiMaxC` 3 → 2 °C from DWD UHI-MAP grids for towns of this size; the cited heat paper was misattributed (Bosch et al. 2021, not Zawadzka). Commuting: `access.jobDecayM` split, as `access.md` had said it should be if the two roles came apart — commuters now choose jobs over 10 km (`commute.commuteDecayM`, IAB/MiD half-life), job access stays a 2 km design value. Two level budgets rose to keep their margin over the worked plan (budget 5 800, tuebingen 67 000, whose plan demolishes 103 tiles). Random wins in the learning audit: village 41 → 32, quarter 39 → 51, budget 0 → 4; every plan still wins in the same month. Open: the summer heat factors exaggerate (game 1.85× the annual UHI, DWD 1.3–1.5×), noted in `heat.md`.
 - [x] **T-104 Kernel engine.** Generic `FieldSolver` that takes emitters (tile → strength)
   and a kernel (function of Chebyshev or Euclidean distance in tiles) and fills a
   `Float32List` field. Support energetic (dB) summation and linear summation. Precompute
@@ -356,6 +357,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   retail access, habitat quality. Colour-blind-safe palettes; legend with units.
   *Note 2026-09-05:* Nine overlays with colour-blind-safe ramps and legend.
   *Note 2026-09-07:* Overlay UX now identifies helpful versus harmful directions, uses simple-mode wording, preserves more of the base map, marks causal source cells optionally, closes directly from the legend, and corrects the air-quality layer's formerly inverted palette semantics.
+  *Note 2026-10-26:* Causal markers now follow the model. The rings and the source lines had separate hand-written lists that disagreed (habitat marked the habitat instead of its threats); one rule, read off the parameters, drives both (`overlay_math.isCausalSource`, tested against the fields). The lines are ranked by contribution through `Simulation.sources`, which takes a reading apart before its cap (docs/model/README.md), so a saturated job access still points at the estate rather than the house next door.
   *Note 2026-09-08:* Starter overlays use three readable bands; applicable fields draw
   reference-threshold contours. Selecting a cell traces its nearest plausible sources, and
   what-if experiments switch the heatmap to a before/after improvement delta.
@@ -883,7 +885,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 
 ### Phase 7 — Quality and community
 
-- [ ] **T-701 Accessibility pass.** Screen-reader labels for tiles and gauges, contrast,
+- [x] **T-701 Accessibility pass.** Screen-reader labels for tiles and gauges, contrast,
   reduced motion, font scaling.
   *Note 2026-09-16:* First slice done — keyboard navigation, not screen readers. Every shortcut used to live on the map's focus node, so tabbing to a palette card or an app-bar button silently killed the digits, undo and Escape with nothing on screen to say why. Digits, undo/redo, Escape and a `?`/F1 help dialog are now global to the game screen (the app has no text input anywhere, so bare digits are unambiguous); cursor keys stay with the map, since making them global would fight focus traversal. Selecting a brush hands the keyboard back to the map, so a mouse pick or a Tab-and-Enter on a card no longer leaves the arrows dead. The cursor is drawn at full strength only while the map holds focus, and palette cards show a focus wash distinct from the selection border. The binding list — which already existed in DE and EN as a screen-reader label only — is now reachable from the overflow menu. Verified keyboard-only in a browser: digit picks a tile, arrows move, Enter places, Tab moves focus away and a digit still works and pulls focus back. Screen readers were deferred at that point to a later slice.
   *Note 2026-09-17:* Screen-reader support added, which was the bulk of this task. **Design
@@ -986,6 +988,22 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   **Open:** the probe proves the labels reach the bus, not that they are *good* — nobody has sat
   with Orca, VoiceOver or TalkBack and tried to play, which is the judgement a machine cannot
   make. iOS and Android remain unexercised.
+  *Note 2026-10-26:* **With a screen reader on the web, the game could not be played.** A
+  screen reader on the web follows the browser's focus, which lands only on semantics nodes
+  flagged focusable. The palette cards and gauges merged their parts with `excludeSemantics`,
+  which dropped the `InkWell`'s focus flags (now `FocusableLabel`); the map's `Focus` sat above
+  its labelled region; and the map's taps, left in the tree, made the screen's node one
+  full-window button that swallowed every loose text. So Tab moved Flutter's focus while the
+  reader announced nothing, and the map was never a stop. Every widget test passed and so did
+  the keyboard check by hand, done without a screen reader. Fixed, plus what reading the session
+  aloud turned up: goal rows say met or not (the check icon said it to nobody), Tab finishes a
+  panel before the next (it alternated palette card / gauge by screen row), the web announces
+  cursor moves (its engine announces a live region on label changes only, and the cursor
+  reading is the value), a tile picked by digit is announced on every platform, "Speed 3× 3×",
+  and the prediction question names its radio group. `tools/web_a11y_probe.py` plays the web
+  build by keyboard with semantics on, in CI; on the old build it fails six of seven checks.
+  Known gap: web dialogs are unnamed, an engine limitation (docs/accessibility.md). The task's
+  headline items are done; the judgement a machine cannot make is T-705.
 - [x] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
   *Note 2026-09-17:* The guarantee already held — there is no networking API anywhere in
   first-party code, and the dependency list is seven packages none of which reports anything.
@@ -1001,6 +1019,15 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   default. Local statistics are the stars and medals already kept for the player; nothing is
   aggregated, and no identifier of any kind is generated, because nothing is sent that would need
   one.
+  *Note 2026-10-26:* **The web build fetched fonts from Google on every Mac, iPhone and Windows
+  machine.** Material picks its typography by the platform the *browser* runs on, and only
+  Linux and Android get Roboto; Apple platforms ask for the system font and Windows for Segoe UI,
+  which a web build does not have, so CanvasKit fetched Noto fallbacks from fonts.gstatic.com for
+  every character from U+00A0 up. The origin check ran in Chrome on Linux and could not see it.
+  The web theme now names the bundled Roboto (native builds keep their system fonts), and the
+  origin check loads the app as Linux, macOS and Windows; on the old build it reports the fetches
+  for all three emulated platforms. Both repo tools that start Chrome now pass
+  `--use-mock-keychain`, so a local run on a Mac touches no keychain.
 - [x] **T-703 Model documentation site.** `docs/model` rendered as a static site with
   formulas; "Quellen" page listing every dataset and law used.
   *Note 2026-09-17:* `tools/build_docs_site.dart` renders `docs/` into `docs/_site/` and
@@ -1038,6 +1065,10 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 
 ---
 
+- [ ] **T-705 Screen-reader playtest with a person.** Play a scenario start to finish with
+  NVDA or VoiceOver on the web build, VoiceOver on iOS and TalkBack on Android, and fix what does
+  not make sense aloud. The probes prove the game is reachable and announced; they cannot say
+  whether it is pleasant, or whether a native live region double-announces. Needs a person.
 ## 8. Source register (keep current)
 
 | Topic | Source | License / status | Used for |
@@ -1053,6 +1084,12 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 | Population grid | Zensus 2022 100 m grid | dl-de/by-2.0 | Calibration, level generator |
 | Mobility | Mobilität in Deutschland 2017 (aggregated results) | Public report | Mode share by distance |
 | Municipal finance | Destatis kommunale Finanzen | Public | Tax and cost coefficients |
+| Infrastructure follow-up costs | InfrastrukturFolgekostenSchätzer 6.1 (Gertz Gutsche Rümenapp / MIL Brandenburg, guides 2019); Koziol & Walther in REFINA Band III (Difu 2009) | Free workbook and report (values only cited) | Development, park and road costs; maintenance |
+| Urban heat island | DWD UHI-MAP v7.0 (2024) | CC BY 4.0 | `heat.uhiMaxC` |
+| Commute distance decay | Östh, Lyhagen & Reggiani 2016 (EJTIR 16(2)); IAB-Kurzbericht 10/2018; BBSR Pendeln 2023 | Scientific paper; public reports | `commute.commuteDecayM`, `externalCommuteKm` |
+| Development times | BKompV Anlage 5 B; BfN-Schriften 721 (Kartieranleitung, 2025) | Federal law; public report | Biotope start values and recovery months |
+| PV costs and land | Fraunhofer ISE Stromgestehungskosten 2024; C.A.R.M.E.N. 2025; ZSW Flächeninanspruchnahme 2025 | Public reports (values only) | Solar field build, upkeep, jobs |
+| Vegetation share by block type | Umweltatlas Berlin 05.09 Vegetationshöhen 2020, 05.07 Stadtstruktur 2020 | dl-de/zero-2.0 | Housing ETI |
 | Green-space upkeep | GALK-Kennzahlen zur Unterhaltung von Grünanlagen (2012, in Stadt+Grün) | Public professional benchmarks (values only) | Park and meadow maintenance |
 | Compensation and wetland creation | Difu, Folgekosten der Siedlungsentwicklung (REFINA Band III, 2009), after TMLNU 2003 | Public research report (values only) | Wetland and meadow creation cost |
 | Employment density | GIFPRO / Vallee et al. 2012 Flächenkennziffern, as applied in municipal Gewerbeflächenkonzepte (Difu methodology) | Public reports (values only) | Jobs per hectare |

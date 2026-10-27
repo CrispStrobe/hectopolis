@@ -202,7 +202,9 @@ void main() {
       expect(ind.score(Indicator.shopping), greaterThan(50));
       expect(ind.score(Indicator.recreation), greaterThan(30));
       expect(sim.state.budgetKEur, greaterThan(budgetAfterBuild));
-      expect(ind.meanCommuteKm, lessThan(10));
+      // Below the German mean work trip (16 km, MiD 2017), since part of the
+      // quarter works on the map; out-commuters travel commute.externalCommuteKm.
+      expect(ind.meanCommuteKm, lessThan(16));
     });
   });
 
@@ -228,7 +230,8 @@ void main() {
 
     test('budget and tile limits are enforced', () {
       final sim = Simulation(
-        state: WorldState.empty(width: 8, height: 8, budgetKEur: 350),
+        // Enough for a road and for removing it again, not for a park.
+        state: WorldState.empty(width: 8, height: 8, budgetKEur: 590),
         tileBudget: TileBudget({TileType.road: 1, TileType.park: null}),
       );
       expect(

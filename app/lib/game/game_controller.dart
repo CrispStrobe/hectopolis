@@ -11,6 +11,7 @@ import 'game_types.dart';
 import 'overlay_math.dart' as overlays;
 import 'save_store.dart';
 import 'session_controller.dart';
+import 'source_ranking.dart';
 
 export 'game_types.dart';
 
@@ -891,29 +892,86 @@ class GameController extends ChangeNotifier {
     return overlays.normalOverlayValue(overlay, sim, cell) >= threshold;
   }
 
-  /// Nearby cells that plausibly contribute to the selected overlay value.
-  /// Exact aggregated values remain available in the inspector.
+  SourceRanking? _sourceRanking;
+  ({MapOverlay overlay, int cell, int revision, List<int> cells})?
+  _tracedSources;
+
+  /// The marked cells that move the selected cell's overlay value most,
+  /// strongest first. Exact aggregated values remain available in the
+  /// inspector.
+  ///
+  /// Seven overlays are traced through [Simulation.sources], which takes the
+  /// field apart before its cap, so a saturated reading still names what
+  /// saturates it. Traffic and attractiveness do not split that way and are
+  /// weighed by recomputing without each nearby source ([SourceRanking]),
+  /// showing the nearest until that is done.
   List<int> get selectedCausalSourceCells {
     final selected = selectedCell;
-    if (selected == null || overlay == MapOverlay.none) return const [];
+    if (selected == null || overlay == MapOverlay.none) {
+      _sourceRanking?.cancel();
+      _sourceRanking = null;
+      return const [];
+    }
+    final traced = _tracedSources;
+    if (traced != null &&
+        traced.overlay == overlay &&
+        traced.cell == selected &&
+        traced.revision == visualRevision) {
+      return traced.cells;
+    }
+    final ranking = _sourceRanking;
+    if (ranking != null && ranking.matches(overlay, selected, visualRevision)) {
+      return ranking.shown;
+    }
+    ranking?.cancel();
+    _sourceRanking = null;
+
     final sx = selected % width;
     final sy = selected ~/ width;
-    final cells = <int>[
-      for (var i = 0; i < sim.state.cellCount; i++)
-        if (i != selected &&
-            overlays.isCausalSource(overlay, sim.state.tiles[i], sim))
-          i,
-    ];
-    cells.sort((a, b) {
-      int distance(int i) {
-        final dx = i % width - sx;
-        final dy = i ~/ width - sy;
-        return dx * dx + dy * dy;
-      }
+    int distance(int i) {
+      final dx = i % width - sx;
+      final dy = i ~/ width - sy;
+      return dx * dx + dy * dy;
+    }
 
-      return distance(a).compareTo(distance(b));
+    bool marked(int i) =>
+        i != selected &&
+        overlays.isCausalSource(overlay, sim.state.tiles[i], sim);
+
+    final field = overlays.sourceFieldFor(overlay);
+    if (field != null) {
+      final contribution = sim.sources(field, sx, sy);
+      final cells = contribution.keys.where(marked).toList()
+        ..sort((a, b) {
+          final byEffect = contribution[b]!.compareTo(contribution[a]!);
+          return byEffect != 0 ? byEffect : distance(a).compareTo(distance(b));
+        });
+      final shown = cells.take(shownSourceCount).toList(growable: false);
+      _tracedSources = (
+        overlay: overlay,
+        cell: selected,
+        revision: visualRevision,
+        cells: shown,
+      );
+      return shown;
+    }
+
+    final nearest = [
+      for (var i = 0; i < sim.state.cellCount; i++)
+        if (marked(i)) i,
+    ]..sort((a, b) => distance(a).compareTo(distance(b)));
+    final weighing = SourceRanking(
+      sim: sim,
+      overlay: overlay,
+      receiver: selected,
+      candidates: nearest.take(sourceCandidateCount).toList(growable: false),
+      revision: visualRevision,
+    );
+    _sourceRanking = weighing;
+    weighing.start(() {
+      if (identical(_sourceRanking, weighing)) notifyListeners();
     });
-    return cells.take(6).toList(growable: false);
+    return weighing.shown;
   }
 
   /// Whether high overlay values are "bad" (drawn warm) or "good" (drawn cool).
@@ -927,6 +985,7 @@ class GameController extends ChangeNotifier {
   void dispose() {
     _detachSession();
     _stopTimer();
+    _sourceRanking?.cancel();
     _saveTimer?.cancel();
     mapFocusRequests.dispose();
     super.dispose();

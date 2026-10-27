@@ -350,6 +350,21 @@
       }
     }
   },
+  "a11yGoalRow": "{goal}: aktuell {current}, {met, select, true{erreicht} other{noch nicht erreicht}}",
+  "@a11yGoalRow": {
+    "placeholders": {
+      "goal": {"type": "String"},
+      "current": {"type": "String"},
+      "met": {"type": "String"}
+    }
+  },
+  "a11yGoalRowSimple": "{goal}: {met, select, true{erreicht} other{noch nicht erreicht}}",
+  "@a11yGoalRowSimple": {
+    "placeholders": {
+      "goal": {"type": "String"},
+      "met": {"type": "String"}
+    }
+  },
   "a11yTileSelected": "{name}, ausgewählt",
   "@a11yTileSelected": {
     "placeholders": {
