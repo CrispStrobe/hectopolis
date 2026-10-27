@@ -29,16 +29,48 @@ jobs:
       - name: Localizations
         run: cd app && flutter gen-l10n
 
+      # The relay resolves on its own, outside the workspace, so it builds with
+      # the Dart SDK alone (packages/stadtbau_relay/pubspec.yaml).
+      - name: Relay dependencies
+        run: cd packages/stadtbau_relay && dart pub get
+
       - name: Analyze
         run: |
           (cd packages/stadtbau_sim && dart analyze --fatal-infos)
+          (cd packages/stadtbau_net && dart analyze --fatal-infos)
+          (cd packages/stadtbau_relay && dart analyze --fatal-infos)
           (cd app && flutter analyze --fatal-infos)
+
+      # Relay play is left out of the App Store builds for now; both of their
+      # build commands must pass the switch that does it.
+      - name: App Store builds leave relays out
+        run: tools/check.sh store-flags
 
       - name: Test simulation
         run: cd packages/stadtbau_sim && dart test
 
+      # The co-op protocol and its end-to-end encryption, including a real
+      # session through a real relay over local sockets (T-606).
+      - name: Test co-op protocol and relay
+        run: |
+          (cd packages/stadtbau_net && dart test)
+          (cd packages/stadtbau_relay && dart test)
+
+      # The same code compiled to JavaScript, as the web build runs it: the
+      # world hash must agree with a native peer's, and the sealed channel must
+      # work without 64-bit integers. Neither shows up in the VM.
+      - name: Test co-op code in a browser
+        run: |
+          (cd packages/stadtbau_sim && dart test -p chrome test/hash_test.dart)
+          (cd packages/stadtbau_net && dart test -p chrome test/secure_channel_test.dart test/protocol_test.dart)
+
       - name: Test app
         run: cd app && flutter test
+
+      # The same app built without relay play, as the App Store builds are
+      # (app/lib/game/build_features.dart): no relay option, relay codes refused.
+      - name: Test app without relays
+        run: cd app && flutter test --dart-define=HECTOPOLIS_RELAY=false test/relay_switch_test.dart
 
       # The bundled Roboto is subset to the characters the app can display; a
       # glyph it lacks becomes a request to Google, not a blank on screen.
@@ -114,3 +146,24 @@ jobs:
           name: web
           path: app/build/web
           retention-days: 14
+
+  # The self-hostable relay (T-606) as people will run it: the image builds
+  # from its Dockerfile with nothing but the Dart SDK, starts, and answers.
+  relay-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the relay image
+        run: docker build -t hectopolis-relay packages/stadtbau_relay
+
+      - name: The image starts and answers
+        run: |
+          docker run -d --name relay -p 8080:8080 hectopolis-relay
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/healthz; then exit 0; fi
+            sleep 1
+          done
+          docker logs relay
+          exit 1

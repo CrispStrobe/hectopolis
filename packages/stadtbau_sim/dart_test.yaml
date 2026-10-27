@@ -1,0 +1,9 @@
+# Browser runs (`dart test -p chrome`) compile the tests to JavaScript, which
+# is how the web build runs the protocol: a VM-only pass would not notice an
+# API dart2js cannot do. On macOS, Chrome otherwise keeps its "Safe Storage"
+# key in the default keychain; the mock keeps it in memory.
+override_platforms:
+  chrome:
+    settings:
+      headless: true
+      arguments: --use-mock-keychain

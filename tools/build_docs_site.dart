@@ -87,6 +87,7 @@ const _pages = <PageSpec>[
   PageSpec('docs/missions.md', 'missions.html', _sectionProject),
   PageSpec('docs/web-payload.md', 'web-payload.html', _sectionProject),
   PageSpec('docs/multiplayer.md', 'multiplayer.html', _sectionProject),
+  PageSpec('docs/relay-hosting.md', 'relay-hosting.html', _sectionProject),
   PageSpec('docs/privacy.md', 'privacy.html', _sectionProject),
   PageSpec('docs/accessibility.md', 'accessibility.html', _sectionProject),
 ];

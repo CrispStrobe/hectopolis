@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
+import '../game/build_features.dart';
 import '../game/game_controller.dart';
 import '../game/save_store.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -152,7 +153,11 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                 child: ListTile(
                   leading: const Icon(Icons.groups),
                   title: Text(l10n.coopMenuTitle),
-                  subtitle: Text(l10n.coopMenuSubtitle),
+                  subtitle: Text(
+                    relayEnabled
+                        ? l10n.coopMenuSubtitleRelay
+                        : l10n.coopMenuSubtitle,
+                  ),
                   onTap: _coop,
                 ),
               ),

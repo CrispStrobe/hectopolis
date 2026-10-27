@@ -30,6 +30,9 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   msix: ^3.18.0
+  # A real relay, so relay_session_test can play through one (T-606).
+  stadtbau_relay:
+    path: ../packages/stadtbau_relay
 
 flutter:
   uses-material-design: true

@@ -35,7 +35,10 @@ net='dart:io|package:http|package:dio|HttpClient|HttpRequest|WebSocket|RawSocket
 hits=$(for f in $sources; do
          sed 's|//.*||' "$f" | grep -nE "$net" | sed "s|^|$f:|" || true
        done)
-allowed_network_files='packages/stadtbau_net/lib/src/lan_server_io.dart|packages/stadtbau_net/lib/src/websocket_transport.dart|app/lib/game/lan_session.dart'
+# The relay server (T-606) is reviewed too. It is not part of the app: it is
+# the self-hostable server a player's relay runs, and it never reads a game,
+# which is sealed end to end (packages/stadtbau_net/lib/src/secure_channel.dart).
+allowed_network_files='packages/stadtbau_net/lib/src/lan_server_io.dart|packages/stadtbau_net/lib/src/websocket_transport.dart|app/lib/game/lan_session.dart|packages/stadtbau_relay/lib/src/relay_server.dart'
 unexpected=$(echo "$hits" | grep -vE "^($allowed_network_files):" || true)
 if [ -n "$unexpected" ]; then
   echo "$unexpected" | sed 's/^/  /'

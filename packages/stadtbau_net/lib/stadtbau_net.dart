@@ -10,5 +10,7 @@ export 'src/client.dart';
 export 'src/host.dart';
 export 'src/lan_server.dart';
 export 'src/protocol.dart';
+export 'src/relay_link.dart';
+export 'src/secure_channel.dart';
 export 'src/transport.dart';
 export 'src/websocket_transport.dart';
