@@ -7,11 +7,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stadtbau/l10n/generated/app_localizations.dart';
 import 'package:stadtbau/ui/app_showcase.dart';
 
-Widget _app(Locale locale) => MaterialApp(
+Widget _app(Locale locale, {bool includeBetaOnly = true}) => MaterialApp(
   locale: locale,
   localizationsDelegates: AppLocalizations.localizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
-  home: const Scaffold(body: SingleChildScrollView(child: AppShowcase())),
+  home: Scaffold(
+    body: SingleChildScrollView(
+      child: AppShowcase(includeBetaOnly: includeBetaOnly),
+    ),
+  ),
 );
 
 void main() {
@@ -51,7 +55,8 @@ void main() {
   );
 
   test('live apps come first, then betas, and this app last', () {
-    final order = showcaseOrder();
+    final order = showcaseOrder(includeBetaOnly: true);
+    expect(order, hasLength(showcaseApps.length));
     expect(order.last.slug, 'hectopolis');
     final live = order.takeWhile((a) => a.store != null).length;
     expect(order.skip(live).where((a) => a.store != null && !a.self), isEmpty);
@@ -98,6 +103,33 @@ void main() {
       semantics.dispose();
     });
   }
+
+  test('by default only apps that are live in a store are listed', () {
+    final live = showcaseApps.where((a) => a.store != null).toList();
+    expect(
+      showcaseOrder().map((a) => a.slug),
+      unorderedEquals(live.map((a) => a.slug)),
+    );
+    expect(showcaseOrder().last.slug, 'hectopolis');
+  });
+
+  testWidgets('the default gallery leaves TestFlight-only apps out', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(900, 2400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_app(const Locale('en'), includeBetaOnly: false));
+    await tester.pumpAndSettle();
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    for (final app in showcaseApps) {
+      expect(
+        find.byKey(ValueKey('showcase-${app.slug}')),
+        app.store != null ? findsOneWidget : findsNothing,
+        reason: app.slug,
+      );
+    }
+    expect(find.text(l10n.aboutComingSoon), findsNothing);
+  });
 
   testWidgets('a phone-width About keeps one app per row without overflow', (
     tester,

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../game/build_features.dart';
 import '../l10n/generated/app_localizations.dart';
 
 /// One of our apps in "Our apps", the gallery in About.
@@ -100,10 +101,14 @@ const showcaseApps = [
   ),
 ];
 
-/// Live apps first, then betas, each alphabetically; this app last.
-List<ShowcaseApp> showcaseOrder() {
+/// Live apps first, then betas, each alphabetically; this app last. Apps
+/// that are not in a store are left out unless [includeBetaOnly].
+List<ShowcaseApp> showcaseOrder({bool includeBetaOnly = showcaseBetaOnlyApps}) {
   int rank(ShowcaseApp app) => app.self ? 2 : (app.store != null ? 0 : 1);
-  return [...showcaseApps]..sort((a, b) {
+  return [
+    for (final app in showcaseApps)
+      if (includeBetaOnly || app.store != null) app,
+  ]..sort((a, b) {
     final byRank = rank(a).compareTo(rank(b));
     return byRank != 0
         ? byRank
@@ -113,7 +118,11 @@ List<ShowcaseApp> showcaseOrder() {
 
 /// The gallery: a card per app with its icon, a line about it and its links.
 class AppShowcase extends StatelessWidget {
-  const AppShowcase({super.key});
+  const AppShowcase({super.key, this.includeBetaOnly = showcaseBetaOnlyApps});
+
+  /// Also list apps that are only in TestFlight or not out yet
+  /// (`HECTOPOLIS_SHOWCASE_BETAS`).
+  final bool includeBetaOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +145,9 @@ class AppShowcase extends StatelessWidget {
               spacing: gap,
               runSpacing: gap,
               children: [
-                for (final app in showcaseOrder())
+                for (final app in showcaseOrder(
+                  includeBetaOnly: includeBetaOnly,
+                ))
                   SizedBox(
                     width: width,
                     child: _AppTile(app: app),

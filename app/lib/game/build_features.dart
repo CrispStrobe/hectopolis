@@ -16,3 +16,9 @@ const relayEnabled = bool.fromEnvironment(
   'HECTOPOLIS_RELAY',
   defaultValue: true,
 );
+
+/// Whether About's "Our apps" also lists apps that are only in TestFlight or
+/// not out yet. Off for now: the gallery shows apps that are live in a store.
+///
+///     flutter build web --dart-define=HECTOPOLIS_SHOWCASE_BETAS=true
+const showcaseBetaOnlyApps = bool.fromEnvironment('HECTOPOLIS_SHOWCASE_BETAS');
