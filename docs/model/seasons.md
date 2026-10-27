@@ -83,6 +83,9 @@ with its own source, not here.
 
 - DWD (Deutscher Wetterdienst): vegetation period in Germany, roughly April to
   October, and monthly climate normals
-- DWD Klimareport and the urban heat island literature: UHI intensity peaks in
-  summer and is weak in winter
+- DWD, UHI-MAP Version 7.0 (2024, CC BY 4.0): seasonal and annual
+  `uhi_daymax_mean` grids, 2022–24, for twelve towns of 6 000–23 000
+  residents. Median season-to-annual ratio: winter 0.51, spring 0.98, summer
+  1.44, autumn 1.00; the twelve `heat` factors are an annual cosine fitted to
+  those (peak July, amplitude 0.52). See `heat.md`.
 - InVEST Urban Cooling model (see `heat.md`) for the ETI term this scales
