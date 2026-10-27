@@ -15,10 +15,14 @@ main road within 300 m: × 0.7.
 
 ## Population (per month)
 
-`P_i ← P_i + (cap_i − P_i) · a_i · 0.08 − P_i · (1 − a_i) · 0.03`
+`P_i ← P_i + (cap_i − P_i) · a_i · 0.08 − P_i · (1 − a_i) · 0.008`
 
 New housing fills within about two years at high attractiveness; unattractive
-housing empties slowly.
+housing empties at the rate tenants move out. That rate is 0.008 a month since
+2026-10-27: Techem's 9.4 % of tenants moving per year (it was 0.03, four times
+faster than people actually move). With it the archetypes settle at
+1.6–4.7 % vacancy, against Zensus 2022's 4.3 %; at 0.03 they sat at 6–16 %,
+the level of Germany's emptiest districts.
 
 ## Municipal budget (per month, k€)
 

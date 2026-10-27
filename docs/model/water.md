@@ -52,7 +52,11 @@ there to teach.
 
 Open water takes runoff rather than shedding it. Each water cell distributes
 `retentionMmPerCell` among the runoff-producing cells within
-`retentionRadiusTiles`, in equal shares.
+`retentionRadiusTiles`, in equal shares. That is 100 mm, 1 000 m³ per water
+hectare: the middle of the 50–200 mm storage depth the BlueGreenStreets
+toolbox (HCU Hamburg 2022) gives for retention in open space, which serves up
+to twelve times its own area, the twelve cells a radius of 2 reaches (it was
+30 mm, below the shallowest case).
 
 This is **storage, not routing**. Nothing here knows which way the ground
 slopes, so water does not flow downhill, does not accumulate along a path, and
@@ -69,9 +73,9 @@ flood = 100 · clamp(1 − meanRunoffMm / water.designStormMm)
 ```
 
 100 means the ground took the whole design storm; 0 means all 22.1 mm of it
-left as surface runoff. The reference is the design storm rather than the 10 mm
+left as surface runoff. The reference is the design storm rather than the 12.5 mm
 `floodRiskMm` threshold, and `indicators.md` records the measurement behind
-that choice — only `road` exceeds 10 mm on a uniform map, so a threshold count
+that choice — only `road` (13.3 mm) exceeds it on a uniform map, so a threshold count
 would score the player on road-drawing rather than on absorption.
 
 This was held back when the model landed, because an extra indicator changes

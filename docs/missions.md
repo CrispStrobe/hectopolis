@@ -243,3 +243,22 @@ to require beats of every mission now requires concepts instead, and says why.
 - `packages/stadtbau_sim/tool/level_plans.dart` — the worked plans
 - `app/lib/ui/learning_center.dart`, `app/lib/ui/goals_panel.dart` — where the
   copy is drawn
+
+## Retuned after the design-value review (2026-10-27)
+
+Sourcing the design values changed two levels' arithmetic, and each was retuned
+to keep its intent rather than its old number:
+
+- **`budget`.** Unattractive homes now empty at the rate tenants actually move
+  (0.008 a month, not 0.03), so the town keeps its tax base and the worked plan
+  wins in 29 months instead of 41. The beat "Effects arrive late" was set for
+  month 30 and no longer fired before a good player finished; it now comes at
+  month 18, while what was built earlier is still arriving in the budget. The
+  medal "Finish with a strong reserve" asked for 2 000 k€, which the shorter
+  plan no longer leaves (1 645 k€ at month 29); it asks for 1 500 k€, so the
+  worked solution earns it again, as it did before.
+- **`tuebingen`.** The climate goal was 84 against a plan that settled at 84.2,
+  a margin of 0.2 and exactly the brittleness this page warns about; the
+  school's heating CO₂ (now sourced, three times the old value) and a tram stop
+  that shifts slightly fewer car trips took the plan to 83.9. The goal is 83.
+
