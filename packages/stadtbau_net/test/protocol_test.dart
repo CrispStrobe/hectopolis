@@ -81,7 +81,7 @@ void main() {
     });
 
     test('unknown types and missing envelopes are format errors', () {
-      expect(() => NetMessage.decode('{"v":1,"type":"nonsense"}'),
+      expect(() => NetMessage.decode('{"v":$protocolVersion,"type":"nonsense"}'),
           throwsFormatException);
       expect(() => NetMessage.decode('{"type":"hello","name":"x"}'),
           throwsFormatException);

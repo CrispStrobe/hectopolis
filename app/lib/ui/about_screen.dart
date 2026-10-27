@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../game/build_features.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../services/custom_licenses.dart';
 import 'doc_links.dart';
@@ -59,7 +60,11 @@ class AboutScreen extends StatelessWidget {
               _SectionCard(
                 icon: Icons.privacy_tip_outlined,
                 label: l10n.aboutPrivacy,
-                child: Text(l10n.aboutPrivacyText),
+                child: Text(
+                  relayEnabled
+                      ? l10n.aboutPrivacyTextRelay
+                      : l10n.aboutPrivacyText,
+                ),
               ),
               _SectionCard(
                 icon: Icons.gavel,

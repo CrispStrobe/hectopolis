@@ -24,11 +24,12 @@ fi
 
 JOBS="${CHECK_JOBS:-2}"
 
-STAGES=(params licenses fonts l10n analyze-sim analyze-net analyze-app \
-        test-sim test-net test-app i18n learning docs license privacy)
+STAGES=(params licenses fonts l10n analyze-sim analyze-net analyze-relay \
+        analyze-app test-sim test-net test-relay test-app i18n learning docs \
+        test-norelay license privacy store-flags)
 # Not in STAGES: it needs `flutter build web` first and a Chrome, so it is run
 # by name (tools/check.sh origin) and in CI after the web build.
-EXTRA_STAGES=(origin web-a11y a11y)
+EXTRA_STAGES=(origin web-a11y test-web a11y)
 
 # Memory available to a new process: free RAM plus free swap, in MiB.
 headroom_mib() {
@@ -66,10 +67,16 @@ run_stage() {
     l10n)        (cd app && flutter gen-l10n) ;;
     analyze-sim) (cd packages/stadtbau_sim && dart analyze --fatal-infos) ;;
     analyze-net) (cd packages/stadtbau_net && dart analyze --fatal-infos) ;;
+    # The relay resolves outside the workspace (Dart SDK only), so it gets
+    # its own pub get.
+    analyze-relay) (cd packages/stadtbau_relay && dart pub get >/dev/null && dart analyze --fatal-infos) ;;
     analyze-app) (cd app && flutter analyze --fatal-infos) ;;
     test-sim)    (cd packages/stadtbau_sim && dart test -j "$JOBS") ;;
     test-net)    (cd packages/stadtbau_net && dart test -j "$JOBS") ;;
+    test-relay)  (cd packages/stadtbau_relay && dart test -j "$JOBS") ;;
     test-app)    (cd app && flutter test --concurrency "$JOBS") ;;
+    # The App Store builds' configuration: relays compiled out.
+    test-norelay) (cd app && flutter test --dart-define=HECTOPOLIS_RELAY=false test/relay_switch_test.dart) ;;
     i18n)        dart run tools/i18n_lint.dart ;;
     # The i18n lint checks that both ARB files carry the same keys. It cannot
     # see inside an ICU `select`, where a missing branch renders the generic
@@ -84,6 +91,20 @@ run_stage() {
     # Plays the web build by keyboard with semantics on, as a screen-reader
     # user would; see docs/accessibility.md.
     web-a11y)    python3 tools/web_a11y_probe.py --build app/build/web ;;
+    # Co-op code compiled to JavaScript in Chrome (dart_test.yaml passes
+    # --use-mock-keychain): the hash and the sealed channel as a browser runs them.
+    test-web)
+      (cd packages/stadtbau_sim && dart test -p chrome test/hash_test.dart)
+      (cd packages/stadtbau_net && dart test -p chrome test/secure_channel_test.dart test/protocol_test.dart) ;;
+    # The App Store builds leave relay play out for now. Every command that
+    # builds one has to pass the switch, or the store gets a relay build.
+    store-flags)
+      bad=$(grep -hnE 'flutter build (ios|macos)' tools/ios/build-ios-appstore.sh .github/workflows/macos-appstore.yml \
+              | grep -vE '^[0-9]+:[[:space:]]*#' | grep -v -- '--dart-define=HECTOPOLIS_RELAY=false' || true)
+      if [ -n "$bad" ]; then
+        echo "App Store build without --dart-define=HECTOPOLIS_RELAY=false:"; echo "$bad"; exit 1
+      fi
+      echo "store-flags: both App Store builds leave relays out" ;;
     # Needs a Linux build (flutter build linux --debug) and at-spi2-core.
     # Reads the app the way a screen reader does; see docs/accessibility.md.
     a11y)        python3 tools/a11y_probe.py \

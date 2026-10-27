@@ -57,12 +57,25 @@ list_packages() {
   python3 - "$PUB_CACHE" "$FLUTTER_ROOT" <<'PYEOF'
 import re, sys, os
 pub_cache, flutter_root = sys.argv[1], sys.argv[2]
-text = open('pubspec.lock').read()
+# The workspace, plus the relay, which resolves on its own so it can build
+# with the Dart SDK alone (packages/stadtbau_relay/pubspec.yaml) and ships in
+# its own image. A package in both is listed once, at the workspace version.
+seen = set()
+lock_text = []
+for lock in ['pubspec.lock', 'packages/stadtbau_relay/pubspec.lock']:
+    if os.path.exists(lock):
+        lock_text.append(open(lock).read())
+text = '\n'.join(lock_text)
 # Anchor at the start of a package line instead of consuming the preceding
 # newline. Consuming it makes adjacent matches overlap and silently skips
 # every second package in the lockfile.
 for name, body in re.findall(
         r'^  ([A-Za-z0-9_]+):\n((?:    .*\n)+)', text, re.MULTILINE):
+    src = re.search(r'source: (\S+)', body)
+    ver = re.search(r'version: "([^"]+)"', body)
+    if (name, ver.group(1) if ver else '?') in seen:
+        continue
+    seen.add((name, ver.group(1) if ver else '?'))
     src = re.search(r'source: (\S+)', body)
     ver = re.search(r'version: "([^"]+)"', body)
     src = src.group(1) if src else '?'

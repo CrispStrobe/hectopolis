@@ -174,13 +174,65 @@ class WorldState {
 
   /// Small deterministic hash of the state (FNV-1a over the JSON text) for
   /// replay verification and multiplayer sync checks.
+  /// A 32-bit FNV-1a hash of the state, equal on every platform.
+  ///
+  /// Co-op compares it between a host and its guests, which may be a native
+  /// app and a browser. It used to hash `toJson().toString()` with a plain
+  /// multiply, and both halves differed on the web: a double such as 1500.0
+  /// prints as "1500.0" in the VM and "1500" in JavaScript, and the multiply
+  /// passes 2^53, where JavaScript numbers stop being exact. A browser and an
+  /// app therefore never agreed on a snapshot. Numbers are now written in a
+  /// form both platforms produce digit for digit, and the multiply is done in
+  /// 16-bit halves so no intermediate leaves the exact range.
   int hash() {
-    final text = toJson().toString();
+    final text = StringBuffer();
+    _canonical(toJson(), text);
     var h = 0x811C9DC5;
-    for (var i = 0; i < text.length; i++) {
-      h ^= text.codeUnitAt(i);
-      h = (h * 0x01000193) & 0xFFFFFFFF;
+    final s = text.toString();
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.codeUnitAt(i);
+      // h * 0x01000193 mod 2^32, with 0x01000193 = 0x0100 * 2^16 + 0x0193.
+      final lo = h & 0xFFFF;
+      final hi = h >> 16;
+      h = (lo * 0x0193 + ((hi * 0x0193 + lo * 0x0100) & 0xFFFF) * 0x10000) %
+          0x100000000;
     }
     return h;
+  }
+
+  static void _canonical(Object? value, StringBuffer out) {
+    switch (value) {
+      case final Map<String, Object?> map:
+        out.write('{');
+        for (final MapEntry(:key, value: v) in map.entries) {
+          out
+            ..write(key)
+            ..write(':');
+          _canonical(v, out);
+          out.write(',');
+        }
+        out.write('}');
+      case final Iterable<Object?> list:
+        out.write('[');
+        for (final v in list) {
+          _canonical(v, out);
+          out.write(',');
+        }
+        out.write(']');
+      case final num n:
+        out.write(_number(n));
+      default:
+        out.write(value);
+    }
+  }
+
+  /// A number as both the VM and JavaScript write it: integral values without
+  /// a fraction, everything else in exponential form with 17 significant
+  /// digits, which is exact for a double and rounded the same way on both.
+  static String _number(num n) {
+    if (n.isFinite && n == n.truncateToDouble() && n.abs() < 9007199254740992) {
+      return n.toInt().toString();
+    }
+    return n.toDouble().toStringAsExponential(16);
   }
 }

@@ -33,11 +33,28 @@ devices on a local network do not share a trusted TLS certificate. The random
 path controls admission but does not prevent someone who can inspect traffic
 on that wifi from reading it. Use co-op on a network you trust.
 
+### Co-op through a relay is encrypted end to end
+
+A player who wants to play with people elsewhere can host through a **relay**:
+a server that they, their school or club, or someone they trust runs
+(`docs/relay-hosting.md`). There is no relay run by us, and none is set by
+default: nothing goes to a relay unless a player types one's address. The iOS
+and macOS App Store builds cannot use a relay at all for now; the option is
+compiled out of them (`docs/relay-hosting.md`).
+
+Through a relay, the same messages travel, but sealed with keys derived from
+the room secret in the room code, which the relay never receives
+(`docs/multiplayer.md`). Whoever runs the relay can see that a room exists, how
+many guests it has, when messages pass and how large they are, and the IP
+addresses connecting; they cannot read a player name, a move or the world, or
+alter them unnoticed. The relay stores nothing and logs only aggregate counts.
+
 The app dependency list is short enough to read: `flutter`,
 `flutter_localizations`, `intl`, `package_info_plus`, `shared_preferences`,
 `url_launcher`, and the game's own packages. None of them reports anything.
 The network package uses the Dart team's `shelf` and `web_socket_channel` only
-for an explicitly chosen LAN session. The audit also checks the **lock file** against a list of known
+for an explicitly chosen co-op session, and `cryptography` (Apache-2.0) to seal
+one that goes through a relay. The audit also checks the **lock file** against a list of known
 analytics and crash-reporting packages, so a transitive dependency cannot bring
 one in unnoticed.
 

@@ -1,0 +1,7 @@
+# Caddy terminates TLS (it fetches and renews the certificate itself) and
+# forwards WebSocket connections to the relay. Replace the host name.
+relay.example.org {
+	reverse_proxy 127.0.0.1:8080
+	# Caddy logs requests only when told to; leave it off, or keep the
+	# addresses out of it. The relay itself logs aggregate counts only.
+}

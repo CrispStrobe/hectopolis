@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:stadtbau_sim/stadtbau_sim.dart';
 
+import '../game/build_features.dart';
 import '../game/experience_settings.dart';
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
