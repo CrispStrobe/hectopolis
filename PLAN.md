@@ -884,7 +884,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 
 ### Phase 7 — Quality and community
 
-- [ ] **T-701 Accessibility pass.** Screen-reader labels for tiles and gauges, contrast,
+- [x] **T-701 Accessibility pass.** Screen-reader labels for tiles and gauges, contrast,
   reduced motion, font scaling.
   *Note 2026-09-16:* First slice done — keyboard navigation, not screen readers. Every shortcut used to live on the map's focus node, so tabbing to a palette card or an app-bar button silently killed the digits, undo and Escape with nothing on screen to say why. Digits, undo/redo, Escape and a `?`/F1 help dialog are now global to the game screen (the app has no text input anywhere, so bare digits are unambiguous); cursor keys stay with the map, since making them global would fight focus traversal. Selecting a brush hands the keyboard back to the map, so a mouse pick or a Tab-and-Enter on a card no longer leaves the arrows dead. The cursor is drawn at full strength only while the map holds focus, and palette cards show a focus wash distinct from the selection border. The binding list — which already existed in DE and EN as a screen-reader label only — is now reachable from the overflow menu. Verified keyboard-only in a browser: digit picks a tile, arrows move, Enter places, Tab moves focus away and a digit still works and pulls focus back. Screen readers were deferred at that point to a later slice.
   *Note 2026-09-17:* Screen-reader support added, which was the bulk of this task. **Design
@@ -987,6 +987,22 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   **Open:** the probe proves the labels reach the bus, not that they are *good* — nobody has sat
   with Orca, VoiceOver or TalkBack and tried to play, which is the judgement a machine cannot
   make. iOS and Android remain unexercised.
+  *Note 2026-10-26:* **With a screen reader on the web, the game could not be played.** A
+  screen reader on the web follows the browser's focus, which lands only on semantics nodes
+  flagged focusable. The palette cards and gauges merged their parts with `excludeSemantics`,
+  which dropped the `InkWell`'s focus flags (now `FocusableLabel`); the map's `Focus` sat above
+  its labelled region; and the map's taps, left in the tree, made the screen's node one
+  full-window button that swallowed every loose text. So Tab moved Flutter's focus while the
+  reader announced nothing, and the map was never a stop. Every widget test passed and so did
+  the keyboard check by hand, done without a screen reader. Fixed, plus what reading the session
+  aloud turned up: goal rows say met or not (the check icon said it to nobody), Tab finishes a
+  panel before the next (it alternated palette card / gauge by screen row), the web announces
+  cursor moves (its engine announces a live region on label changes only, and the cursor
+  reading is the value), a tile picked by digit is announced on every platform, "Speed 3× 3×",
+  and the prediction question names its radio group. `tools/web_a11y_probe.py` plays the web
+  build by keyboard with semantics on, in CI; on the old build it fails six of seven checks.
+  Known gap: web dialogs are unnamed, an engine limitation (docs/accessibility.md). The task's
+  headline items are done; the judgement a machine cannot make is T-705.
 - [x] **T-702 Telemetry-free analytics.** None by default; optional local statistics only.
   *Note 2026-09-17:* The guarantee already held — there is no networking API anywhere in
   first-party code, and the dependency list is seven packages none of which reports anything.
@@ -1002,6 +1018,15 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   default. Local statistics are the stars and medals already kept for the player; nothing is
   aggregated, and no identifier of any kind is generated, because nothing is sent that would need
   one.
+  *Note 2026-10-26:* **The web build fetched fonts from Google on every Mac, iPhone and Windows
+  machine.** Material picks its typography by the platform the *browser* runs on, and only
+  Linux and Android get Roboto; Apple platforms ask for the system font and Windows for Segoe UI,
+  which a web build does not have, so CanvasKit fetched Noto fallbacks from fonts.gstatic.com for
+  every character from U+00A0 up. The origin check ran in Chrome on Linux and could not see it.
+  The web theme now names the bundled Roboto (native builds keep their system fonts), and the
+  origin check loads the app as Linux, macOS and Windows; on the old build it reports the fetches
+  for all three emulated platforms. Both repo tools that start Chrome now pass
+  `--use-mock-keychain`, so a local run on a Mac touches no keychain.
 - [x] **T-703 Model documentation site.** `docs/model` rendered as a static site with
   formulas; "Quellen" page listing every dataset and law used.
   *Note 2026-09-17:* `tools/build_docs_site.dart` renders `docs/` into `docs/_site/` and
@@ -1039,6 +1064,10 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 
 ---
 
+- [ ] **T-705 Screen-reader playtest with a person.** Play a scenario start to finish with
+  NVDA or VoiceOver on the web build, VoiceOver on iOS and TalkBack on Android, and fix what does
+  not make sense aloud. The probes prove the game is reachable and announced; they cannot say
+  whether it is pleasant, or whether a native live region double-announces. Needs a person.
 ## 8. Source register (keep current)
 
 | Topic | Source | License / status | Used for |

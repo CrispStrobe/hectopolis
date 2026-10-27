@@ -28,7 +28,7 @@ STAGES=(params licenses fonts l10n analyze-sim analyze-net analyze-app \
         test-sim test-net test-app i18n learning docs license privacy)
 # Not in STAGES: it needs `flutter build web` first and a Chrome, so it is run
 # by name (tools/check.sh origin) and in CI after the web build.
-EXTRA_STAGES=(origin a11y)
+EXTRA_STAGES=(origin web-a11y a11y)
 
 # Memory available to a new process: free RAM plus free swap, in MiB.
 headroom_mib() {
@@ -81,6 +81,9 @@ run_stage() {
     license)     tools/license_audit.sh ;;
     privacy)     tools/privacy_audit.sh ;;
     origin)      python3 tools/web_origin_check.py --build app/build/web ;;
+    # Plays the web build by keyboard with semantics on, as a screen-reader
+    # user would; see docs/accessibility.md.
+    web-a11y)    python3 tools/web_a11y_probe.py --build app/build/web ;;
     # Needs a Linux build (flutter build linux --debug) and at-spi2-core.
     # Reads the app the way a screen reader does; see docs/accessibility.md.
     a11y)        python3 tools/a11y_probe.py \

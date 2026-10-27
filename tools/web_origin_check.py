@@ -25,6 +25,7 @@ one of the usual locations).
 import argparse
 import asyncio
 import base64
+import contextlib
 import functools
 import glob
 import http.server
@@ -65,6 +66,27 @@ SANDBOX_ROW = (700, 152)
 # which were already bundled, and the two text glyphs became plain ASCII, so
 # there is nothing left to tolerate.
 KNOWN_HOSTS: set[str] = set()
+
+
+# The browser platforms the app is loaded as. Material picks its typography by
+# the platform the *browser* runs on, and only Linux and Android get the
+# bundled Roboto; a Mac, an iPhone or Windows asks for a system font a web
+# build does not have, and CanvasKit then fetched a fallback for every
+# non-ASCII character from Google. CI's Chrome runs on Linux, so checking only
+# the real platform could never see that. Every platform is emulated, Linux
+# too, so the result does not depend on the machine running the check.
+# (name, user agent, navigator.platform)
+PLATFORMS = [
+    ("linux",
+     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+     "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36", "Linux x86_64"),
+    ("macos",
+     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+     "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36", "MacIntel"),
+    ("windows",
+     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+     "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36", "Win32"),
+]
 
 
 def find_chrome(explicit):
@@ -135,17 +157,26 @@ class CDP:
             await self.drain(0.05)
 
 
-async def run(chrome, url, shot):
-    profile = tempfile.mkdtemp(prefix="origin-check-")
+@contextlib.asynccontextmanager
+async def open_page(chrome, extra_args=()):
+    """Starts headless Chrome and yields a CDP session on its first tab.
+
+    Shared with tools/web_a11y_probe.py.
+    """
+    profile = tempfile.mkdtemp(prefix="web-check-")
     # Keep Chrome's stderr: when it refuses to start, its own message is the
     # only thing that says why, and discarding it turns every failure into the
     # same unhelpful "could not attach".
     log = open(os.path.join(profile, "chrome.log"), "w+")
     proc = subprocess.Popen(
         [chrome, "--headless=new", "--no-sandbox", "--disable-dev-shm-usage",
+         # macOS: without this Chrome reads and writes its "Chrome Safe
+         # Storage" key in the default keychain, which on a developer Mac is
+         # the login keychain -- a prompt nobody may be able to answer. The
+         # mock keeps it in memory; Linux ignores the switch.
+         "--use-mock-keychain",
          "--use-gl=swiftshader", "--enable-unsafe-swiftshader", "--hide-scrollbars",
-         # A third-party fetch must fail rather than quietly succeed.
-         '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1',
+         *extra_args,
          # Port 0: Chrome picks a free one and prints it. Naming a port and
          # polling 127.0.0.1 for it is what a busy machine breaks — if the
          # IPv4 port is taken Chrome silently binds [::1] instead, and the
@@ -191,36 +222,7 @@ async def run(chrome, url, shot):
                 "could not attach to Chrome\n  " + "\n  ".join(tail))
 
         async with websockets.connect(ws_url, max_size=None) as c_ws:
-            c = CDP(c_ws)
-            await c.send("Page.enable")
-            await c.send("Runtime.enable")
-            await c.send("Network.enable")
-            await c.send("Page.addScriptToEvaluateOnNewDocument",
-                         source="localStorage.setItem("
-                                "'flutter.stadtbau.onboarding.v1','true');")
-            await c.send("Page.navigate", url=url)
-            for _ in range(150):
-                if await c.eval(
-                        "!!document.querySelector('flutter-view, flt-glass-pane')"):
-                    break
-                await c.drain(0.2)
-            await c.drain(4)
-
-            # Into the sandbox, where the indicator panel renders "t CO2/year"
-            # and the tile palette renders every tile description.
-            await c.click(*SANDBOX_ROW)
-            await c.drain(4)
-            # Build something, so impact feedback and the causal arrows render.
-            for cx, cy in [(3, 3), (4, 3), (5, 3), (3, 4)]:
-                await c.click(GRID_LEFT + CELL * (cx + 0.5),
-                              GRID_TOP + CELL * (cy + 0.5))
-                await c.drain(0.3)
-            await c.drain(4)
-
-            png = await c.send("Page.captureScreenshot")
-            with open(shot, "wb") as f:
-                f.write(base64.b64decode(png["data"]))
-            return c.events
+            yield CDP(c_ws)
     finally:
         # A loaded machine can take longer than a polite SIGTERM allows, and a
         # teardown that raises would hide whatever went wrong above it.
@@ -237,6 +239,45 @@ async def run(chrome, url, shot):
         shutil.rmtree(profile, ignore_errors=True)
 
 
+async def run(chrome, url, shot, user_agent=None, platform=None):
+    # A third-party fetch must fail rather than quietly succeed.
+    async with open_page(
+        chrome, ['--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1'],
+    ) as c:
+        await c.send("Page.enable")
+        await c.send("Runtime.enable")
+        await c.send("Network.enable")
+        if user_agent:
+            await c.send("Emulation.setUserAgentOverride",
+                         userAgent=user_agent, platform=platform)
+        await c.send("Page.addScriptToEvaluateOnNewDocument",
+                     source="localStorage.setItem("
+                            "'flutter.stadtbau.onboarding.v1','true');")
+        await c.send("Page.navigate", url=url)
+        for _ in range(150):
+            if await c.eval(
+                    "!!document.querySelector('flutter-view, flt-glass-pane')"):
+                break
+            await c.drain(0.2)
+        await c.drain(4)
+
+        # Into the sandbox, where the indicator panel renders "t CO2/year"
+        # and the tile palette renders every tile description.
+        await c.click(*SANDBOX_ROW)
+        await c.drain(4)
+        # Build something, so impact feedback and the causal arrows render.
+        for cx, cy in [(3, 3), (4, 3), (5, 3), (3, 4)]:
+            await c.click(GRID_LEFT + CELL * (cx + 0.5),
+                          GRID_TOP + CELL * (cy + 0.5))
+            await c.drain(0.3)
+        await c.drain(4)
+
+        png = await c.send("Page.captureScreenshot")
+        with open(shot, "wb") as f:
+            f.write(base64.b64decode(png["data"]))
+        return c.events
+
+
 def main():
     p = argparse.ArgumentParser(
         description=__doc__,
@@ -251,9 +292,16 @@ def main():
         sys.exit(f"{args.build} has no index.html; run flutter build web first")
     chrome = find_chrome(args.chrome)
     httpd = serve(args.build, args.port)
+    events, shots = [], []
     try:
-        events = asyncio.run(run(
-            chrome, f"http://127.0.0.1:{args.port}/", args.shot))
+        for name, user_agent, platform in PLATFORMS:
+            root, ext = os.path.splitext(args.shot)
+            shot = args.shot if name == "linux" else f"{root}-{name}{ext}"
+            shots.append(shot)
+            for e in asyncio.run(run(chrome, f"http://127.0.0.1:{args.port}/",
+                                     shot, user_agent, platform)):
+                e["platform"] = name
+                events.append(e)
     finally:
         httpd.shutdown()
 
@@ -268,12 +316,13 @@ def main():
             if host.startswith("127.0.0.1"):
                 ours.add(url)
             else:
-                foreign.setdefault(host, set()).add(url)
+                foreign.setdefault(host, set()).add(f"[{e['platform']}] {url}")
         elif method == "Network.loadingFailed":
             failed.append(params.get("errorText", "?"))
 
-    print(f"screenshot: {args.shot}")
-    print(f"{len(ours)} request(s) served by us")
+    print(f"screenshots: {', '.join(shots)}")
+    print(f"{len(ours)} request(s) served by us, as "
+          f"{', '.join(n for n, _, _ in PLATFORMS)}")
     known = {h: u for h, u in foreign.items() if h in KNOWN_HOSTS}
     new = {h: u for h, u in foreign.items() if h not in KNOWN_HOSTS}
     for host, urls in sorted(known.items()):

@@ -53,6 +53,7 @@ class _OnboardingDialogState extends State<OnboardingDialog> {
     final theme = Theme.of(context);
     final step = _steps[_index];
     return AlertDialog(
+      semanticLabel: l10n.onboardingTitle,
       title: Text(l10n.onboardingTitle),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 460),

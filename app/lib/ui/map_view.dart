@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart' show SemanticsService;
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 import 'package:stadtbau_sim/stadtbau_sim.dart';
@@ -263,6 +264,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
   ];
 
   void _onControllerChanged() {
+    _announceChanges();
     final revisionChanged = c.visualRevision != _lastVisualRevision;
     final overlayChanged = c.overlay != _lastOverlay;
     final animationChanged =
@@ -315,6 +317,44 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     }
     _lastVisualRevision = c.visualRevision;
     _lastOverlay = c.overlay;
+  }
+
+  String? _lastSpoken;
+  TileType? _lastBrush;
+
+  /// Speaks what a keyboard action changed, where nothing else would.
+  ///
+  /// The brush: a digit key changes the palette card's label, but focus is on
+  /// the map, so no platform reads it. The cursor: the map is a live region,
+  /// but the web engine announces a live region only when its *label*
+  /// changes, and the cursor reading is the value, so on the web an arrow key
+  /// moved a cursor nobody heard. The native platforms are left to the live
+  /// region, so they do not hear it twice.
+  void _announceChanges() {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final view = View.of(context);
+    final direction = Directionality.of(context);
+    final brush = c.brush;
+    if (brush != _lastBrush) {
+      _lastBrush = brush;
+      if (brush != null) {
+        unawaited(
+          SemanticsService.sendAnnouncement(
+            view,
+            l10n.a11yTileSelected(tileDisplayName(l10n, c.level, brush)),
+            direction,
+          ),
+        );
+      }
+    }
+    if (kIsWeb && _focus.hasFocus) {
+      final spoken = _cursorDescription(l10n);
+      if (spoken != _lastSpoken) {
+        _lastSpoken = spoken;
+        unawaited(SemanticsService.sendAnnouncement(view, spoken, direction));
+      }
+    }
   }
 
   /// What the cursor is standing on, for a screen reader.
@@ -518,6 +558,9 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
             child: Focus(
               focusNode: _focus,
               autofocus: _autofocus,
+              // The region below carries the focus flags, so that the map's
+              // focus lands on the node a screen reader is reading.
+              includeSemantics: false,
               onKeyEvent: (node, event) => _onKey(event, size),
               child: DragTarget<TileType>(
                 onMove: (details) =>
@@ -547,6 +590,12 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                             panEnabled: c.brush == null,
                             child: GestureDetector(
                               behavior: HitTestBehavior.opaque,
+                              // A screen reader acts on the map through its
+                              // focusable region below. Left in, these taps
+                              // merged into the screen's node, which became
+                              // one full-window button that also swallowed
+                              // every loose text on the screen.
+                              excludeFromSemantics: true,
                               // Inside the InteractiveViewer, so localPosition is
                               // already in map coordinates at any zoom level.
                               onTapUp: (d) {
@@ -628,6 +677,12 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                                 value: _cursorDescription(l10n),
                                 hint: l10n.keyboardHint,
                                 liveRegion: true,
+                                // Without these the region was never a Tab
+                                // stop for a screen reader on the web, so
+                                // the arrow keys had nothing to act on.
+                                focusable: true,
+                                focused: _focus.hasFocus,
+                                onFocus: _focus.requestFocus,
                                 child: Stack(
                                   children: [
                                     RepaintBoundary(
