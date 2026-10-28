@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' hide Simulation;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -57,6 +58,43 @@ void main() {
     expect(MapPaintCounters.still, 0);
   });
 
+  testWidgets(
+    'hovering repaints only the moving layer, building the still one',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({'stadtbau.onboarding.v1': true});
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(const HectopolisApp());
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.grid_on));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      // A pointer sweeping across the map changes the hover cell, and so
+      // notifies the controller, on every move. Only the moving layer, which
+      // draws the hover outline, may follow it (48 ms a frame in Chrome on an
+      // M1 while the still layer did too).
+      final map = tester.getRect(find.byType(MapView));
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: map.topLeft + const Offset(5, 5));
+      MapPaintCounters.reset();
+      for (var i = 0; i < 12; i++) {
+        await mouse.moveTo(map.topLeft + Offset(20.0 + i * 35, 20.0 + i * 30));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(MapPaintCounters.moving, greaterThan(0));
+      expect(MapPaintCounters.still, 0);
+
+      // A change to the world does repaint it.
+      final game = tester.widget<MapView>(find.byType(MapView)).controller;
+      expect(game.place(1, 1, TileType.park), isTrue);
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(MapPaintCounters.still, greaterThan(0));
+    },
+  );
+
   testWidgets('a level shows its goals', (tester) async {
     // Skip the first-launch onboarding overlay (T-208).
     SharedPreferences.setMockInitialValues({'stadtbau.onboarding.v1': true});
@@ -90,7 +128,11 @@ void main() {
     var cell = 0;
     void buildTo(int target) {
       for (; placed < target && cell < level.map.length; cell++) {
-        if (c.place(cell % level.width, cell ~/ level.width, TileType.housingLow)) {
+        if (c.place(
+          cell % level.width,
+          cell ~/ level.width,
+          TileType.housingLow,
+        )) {
           placed++;
         }
       }
@@ -338,7 +380,11 @@ void main() {
     );
 
     // Bulldoze homes until housing is the goal furthest from its target.
-    for (var i = 0; i < level.map.length && c.goalGuidance?.indicator != Indicator.housing; i++) {
+    for (
+      var i = 0;
+      i < level.map.length && c.goalGuidance?.indicator != Indicator.housing;
+      i++
+    ) {
       if (level.map[i] == TileType.housingLow ||
           level.map[i] == TileType.housingHigh) {
         c.place(i % level.width, i ~/ level.width, TileType.meadow);

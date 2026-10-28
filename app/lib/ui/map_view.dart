@@ -391,6 +391,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
     animateEffects: !_platformReduceMotion && c.experience.effectAnimations,
     cleanVisuals: c.experience.cleanVisuals,
     keyboardFocused: _focus.hasFocus,
+    stillRevision: _stillRevision.value,
   );
 
   /// Hand finished buildings back to the still layer once their construction
@@ -704,6 +705,7 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                                     ListenableBuilder(
                                       listenable: Listenable.merge([
                                         c,
+                                        c.hoverChanges,
                                         m.transformation,
                                         _motion,
                                         _overlayTransition,
@@ -722,16 +724,24 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                             ),
                           ),
                         ),
-                        if (c.placementPreview case final preview?)
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: _PlacementPreviewCard(
-                              preview: preview,
-                              simpleMode: c.simpleMode,
-                              level: c.level,
-                            ),
+                        // Follows the pointer through its own notifier, so
+                        // hovering rebuilds this card and not the screen.
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: ListenableBuilder(
+                            listenable: c.hoverChanges,
+                            builder: (context, _) =>
+                                switch (c.placementPreview) {
+                                  final preview? => _PlacementPreviewCard(
+                                    preview: preview,
+                                    simpleMode: c.simpleMode,
+                                    level: c.level,
+                                  ),
+                                  null => const SizedBox.shrink(),
+                                },
                           ),
+                        ),
                         if (c.brush case final brush?)
                           Positioned(
                             left: 8,
