@@ -8,7 +8,7 @@ import '../game/build_features.dart';
 import '../game/experience_settings.dart';
 import '../game/game_controller.dart';
 import '../l10n/generated/app_localizations.dart';
-import 'about_screen.dart';
+import 'about_screen.dart' deferred as about;
 import 'causal_view.dart';
 import 'goals_panel.dart';
 import 'indicator_panel.dart';
@@ -198,10 +198,12 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  void _about() {
-    Navigator.of(
+  Future<void> _about() async {
+    await about.loadLibrary();
+    if (!mounted) return;
+    await Navigator.of(
       context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const AboutScreen()));
+    ).push(MaterialPageRoute<void>(builder: (_) => about.AboutScreen()));
   }
 
   void _settings() {
