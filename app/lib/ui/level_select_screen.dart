@@ -6,8 +6,10 @@ import '../game/build_features.dart';
 import '../game/game_controller.dart';
 import '../game/save_store.dart';
 import '../l10n/generated/app_localizations.dart';
-import 'about_screen.dart';
-import 'coop_setup_screen.dart';
+// Loaded when first opened: on the web each is its own file, so the first
+// load carries neither the legal page nor the co-op networking.
+import 'about_screen.dart' deferred as about;
+import 'coop_setup_screen.dart' deferred as coop;
 import 'game_screen.dart';
 import 'onboarding.dart';
 
@@ -87,9 +89,11 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   }
 
   Future<void> _coop() async {
+    await coop.loadLibrary();
+    if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => CoopSetupScreen(
+        builder: (_) => coop.CoopSetupScreen(
           gameController: widget.controller,
           onLocaleToggle: widget.onLocaleToggle,
           store: widget.store,
@@ -120,9 +124,13 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
           IconButton(
             tooltip: l10n.actionAbout,
             icon: const Icon(Icons.info_outline),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const AboutScreen()),
-            ),
+            onPressed: () async {
+              await about.loadLibrary();
+              if (!context.mounted) return;
+              await Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => about.AboutScreen()),
+              );
+            },
           ),
         ],
       ),

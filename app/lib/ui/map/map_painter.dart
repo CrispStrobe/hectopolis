@@ -53,7 +53,25 @@ class _MapPainter extends CustomPainter {
     required this.animateEffects,
     required this.cleanVisuals,
     required this.keyboardFocused,
-  });
+    this.stillRevision = 0,
+  }) : _stillKey = layer == _MapLayer.still
+           ? (
+               c.visualRevision,
+               identityHashCode(c.sim),
+               c.sim.state.tick,
+               c.width,
+               c.overlay,
+               scale,
+               // Theme.of hands out a new ThemeData on every rebuild; the
+               // painter reads only the colour scheme, which compares by value.
+               theme.colorScheme,
+               c.experience,
+               animateAmbient,
+               animateEffects,
+               cleanVisuals,
+               stillRevision,
+             )
+           : null;
 
   final GameController c;
   final ThemeData theme;
@@ -71,6 +89,17 @@ class _MapPainter extends CustomPainter {
   /// Whether the map holds the keyboard focus, and so whether the cursor keys
   /// currently do anything.
   final bool keyboardFocused;
+
+  /// Bumped when a finished building is handed from the moving layer back to
+  /// the still one, which changes what the still layer draws without any
+  /// model change.
+  final int stillRevision;
+
+  /// Everything the still layer's picture depends on. Hover, selection, the
+  /// cursor and the placement forecast are drawn on the moving layer and are
+  /// deliberately not in it: before this key the still layer repainted every
+  /// tile on every pointer move (48 ms a frame on an M1 in Chrome).
+  final Record? _stillKey;
 
   /// Per-cell readings the tile art responds to, each normalised against the
   /// range the field **actually occupies**, not against 0-1.
@@ -173,7 +202,14 @@ class _MapPainter extends CustomPainter {
         rect,
         construction: Curves.easeOutBack.transform(construction),
       );
-      if (_still) continue;
+      // Without an overlay the grid is as still as the ground under it, so it
+      // is paid once instead of one rectangle per cell in every frame. With an
+      // overlay it stays above the tint, where it was.
+      final gridOnStill = c.overlay == MapOverlay.none;
+      if (_still) {
+        if (gridOnStill) canvas.drawRect(rect, grid);
+        continue;
+      }
       if (c.overlay != MapOverlay.none &&
           i < overlayFrom.length &&
           i < overlayTo.length) {
@@ -218,7 +254,7 @@ class _MapPainter extends CustomPainter {
           );
         }
       }
-      canvas.drawRect(rect, grid);
+      if (!gridOnStill) canvas.drawRect(rect, grid);
     }
 
     if (_still) return;
@@ -602,8 +638,9 @@ class _MapPainter extends CustomPainter {
   }
 
   @override
-  // Both layers repaint whenever they are rebuilt, and the still layer is
-  // rebuilt only by the listenables it actually depends on -- the motion
-  // controller is not one of them.
-  bool shouldRepaint(covariant _MapPainter oldDelegate) => true;
+  // The moving layer repaints whenever it is rebuilt. The still layer is
+  // rebuilt by every controller notification, hover included, so it compares
+  // what it actually draws.
+  bool shouldRepaint(covariant _MapPainter oldDelegate) =>
+      !_still || oldDelegate._stillKey != _stillKey;
 }

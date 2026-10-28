@@ -157,7 +157,12 @@ class GameController extends ChangeNotifier {
   TileType? brush;
   MapOverlay overlay = MapOverlay.none;
   int? selectedCell;
+
+  /// The cell under the pointer. Changing it notifies [hoverChanges], not this
+  /// controller: a pointer sweeping the map moves it on every event, and a
+  /// controller notification rebuilds every panel that listens to the game.
   int? hoverCell;
+  final ValueNotifier<int?> hoverChanges = ValueNotifier<int?>(null);
 
   /// Increments after every successful model mutation. It lets animation code
   /// distinguish a simulation change from hover/selection notifications.
@@ -246,6 +251,7 @@ class GameController extends ChangeNotifier {
     brush = null;
     selectedCell = null;
     hoverCell = null;
+    hoverChanges.value = null;
     cursorCell = null;
     lastError = null;
     speed = 0;
@@ -587,7 +593,7 @@ class GameController extends ChangeNotifier {
   void setHover(int? cell) {
     if (hoverCell == cell) return;
     hoverCell = cell;
-    notifyListeners();
+    hoverChanges.value = cell;
   }
 
   bool place(int x, int y, TileType t) {
@@ -988,6 +994,7 @@ class GameController extends ChangeNotifier {
     _sourceRanking?.cancel();
     _saveTimer?.cancel();
     mapFocusRequests.dispose();
+    hoverChanges.dispose();
     super.dispose();
   }
 }
