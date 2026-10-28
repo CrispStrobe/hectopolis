@@ -327,6 +327,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   *Note 2026-09-18:* **The 16 ms desktop target is met** — 9–11 ms per tick on the loaded VPS, so a real desktop has margin. The 38 ms above was read at load ≈ 17 and is not comparable. `benchmark/field_profile.dart` now reports the cost of each field separately (minimum over many batches, since a mean on this box is mostly other people's work), which is what turned up the one remaining easy win: noise spent about a third of its time in `exp`, turning decibels into energies once per source-receiver pair. Source, divergence and path attenuation are now all table lookups — noise 3.60 → 2.42 ms, the whole field pass 8.90 → 7.43 ms. Phone target still to measure on real hardware.
   *Note 2026-09-15 (2):* Noise made reciprocal and halved (~8 → ~5 ms); `Simulation.copy()` clones fields and inherits the road network instead of recomputing, so the hover placement forecast drops from ~51 to ~26 ms, the cost of the one field stack it needs. `benchmark/tick_benchmark.dart` measures that forecast too.
   *Note 2026-09-15:* Another ~3.5× on the same benchmark (interleaved A/B on a loaded VPS). Profiled per stage: commute 24.3 → 3.1 ms (road network and BFS trees cached across ticks, dense trip matrix instead of a pair hash map, subtree accumulation instead of one path walk per origin-destination pair), access 7.7 → ~3 ms and noise ~9 → ~8 ms (flat per-tile-type lookup tables in `lib/src/lookup.dart`, precomputed Huff and distance tables, `exp` instead of `pow`, `Float64List` energy buffer). `Simulation.copy()` no longer recomputes the whole field stack twice, which halves the hover placement forecast. Desktop and phone targets still to measure on real hardware.
+  *Note 2026-10-28:* **Desktop measured on real hardware:** 3.3 ms per tick on the dense 24×24 benchmark on an Apple M1 (placement forecast 3.6 ms), a fifth of the 16 ms budget; the slowest stages are commute 1.15, noise 0.98 and access 0.79 ms (`benchmark/field_profile.dart`). The phone target is the one still unmeasured.
 
 ### Phase 2 — Game UI (`app/`)
 
@@ -351,10 +352,12 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   *Note 2026-09-05 (4):* Keyboard access done: focusable map with a cursor cell (arrows, Enter/Space place, Delete/Backspace clear, 1–9/0 pick a tile, Esc drops the brush), shortcut digits on the palette cards, `Semantics` label on the map. Tests in `app/test/map_view_test.dart`.
   *Note 2026-09-07:* Build/remove actions now have bounded undo/redo history, toolbar and keyboard controls, plus a persistent, cancellable placement-mode chip on the map. Simulation ticks intentionally close editing history so undo never rewinds time implicitly.
   *Note 2026-09-07 (2):* Simple mode is now an end-to-end kid-friendly presentation: plain-language goals, smiley indicators and cell conditions, friendly forecasts/results, goal-aware suggestions and no technical detail sheets or management values. Expert mode retains exact values and adds indicator sparklines with build-event markers.
+  *Note 2026-10-28:* Keyboard access is done (T-701): arrow keys move the map cursor, Enter or Space places the brush, Delete clears, Escape drops the brush, and palette cards are Tab stops.
 - [x] **T-204 Indicator panel.** Ten gauges with trend arrows, tap opens detail sheet
   with raw values, units and a "Quelle / Source" link into `docs/model`.
   *Note 2026-09-05:* Ten gauges with detail line and tooltip hint. Source links into docs/model still open.
   *Note 2026-09-05 (4):* Tapping a gauge (long-press or tap in the compact strip) opens a detail sheet with hint, raw values, a one-line "how it is computed" sentence per indicator and a `url_launcher` link into the matching `docs/model` file.
+  *Note 2026-10-28:* The source links are done: each indicator's detail links into its `docs/model` page.
 - [x] **T-205 Overlays.** Toggleable heat-map overlays for noise, air, heat, green access,
   retail access, habitat quality. Colour-blind-safe palettes; legend with units.
   *Note 2026-09-05:* Nine overlays with colour-blind-safe ramps and legend.
@@ -367,10 +370,12 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   ("Lärm: 62 dB, davon Hauptstraße (2 Felder) 58 dB…").
   *Note 2026-09-05:* Inspector shows all per-cell fields. Breakdown by contributing emitters still open.
   *Note 2026-09-05 (3):* `Simulation.explainNoise/explainAir` list contributing tile types (count, nearest distance, level); shown in the inspector.
+  *Note 2026-10-28:* Partly done: selecting a cell draws lines on the map to the cells that contribute to its value, ranked by effect (`source_ranking.dart`). A ranked list inside the inspector itself is still open.
 - [x] **T-207 Game loop and pace.** Play/pause, 1×/3×/10× ticks, turn mode (tick only on
   "End turn"). Autosave to local storage (`shared_preferences` / file), load/new game.
   *Note 2026-09-05:* Play/pause, step, 1×/3×/10×, new game with size slider. Autosave/load still open.
   *Note 2026-09-05 (2):* Autosave (2 s debounce) and restore via `shared_preferences` (BSD-3); test covers the round trip.
+  *Note 2026-10-28:* Autosave and load are done: the game autosaves (`stadtbau.autosave.v2`) and the home screen offers to continue it.
 - [x] **T-208 Onboarding.** Three-step tutorial overlay explaining tiles, overlays and one
   feedback loop. Strings in ARB.
   *Note 2026-09-05:* `ui/onboarding.dart`: three steps (tiles, overlays and inspector, the housing → traffic → noise → attractiveness loop) with icon and colour illustrations, Skip/Next/Done, dismissible with Escape and by tapping outside. Shown once on first launch (`SaveStore.onboardingSeen`/`markOnboardingSeen`) and reachable again from the help icon in the level select app bar.
@@ -546,6 +551,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   `wetland` for biodiversity, `solar_field` for climate, or `tram_stop`/`cycle_path` for
   commuting. Adding one goal to a level with a modern palette surfaced it. The audit is down to
   one note, and that one is informational.
+  *Note 2026-10-28:* Staged mission beats are done (every level has beats and a prediction since 2026-09-20, checked by `learning_audit.dart`). Playtesting with people is what remains, tracked with T-705.
 - [x] **T-306 Counterfactual experiments.** Pin the current deterministic simulation,
   freely test builds and time, compare live indicator and overlay deltas, then keep or
   discard the branch without affecting the pinned city.
@@ -574,6 +580,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   checks the committed files and the shipped Apache-2.0 notice records the modification.
   The release build makes no third-party request, and the measured Chromium first load is
   now 3191 KB gzipped (155 KB shell/fonts, 879 KB program, 2157 KB engine).
+  *Note 2026-10-28:* The PWA manifest and own icons are done (`app/web/manifest.json`, 192 and 512 px plus maskable). `--wasm` is still not built by `pages.yml`.
   *Note 2026-10-28:* About (with Our apps and the licence registry) and co-op setup (lobby, LAN session, relay encryption) are deferred imports: on the web each is its own file, fetched the first time the screen opens. The first-load program drops from 1 090 to 959 KB gzipped (−12 %); the three parts are 22, 4 and 118 KB. The learning center stays eager because the mission briefing in it opens at the start of every mission.
 - [~] **T-402 Android.** SDK setup on a build machine, signing config outside the repo,
   `flutter build appbundle`. Verify AGPL notice screen (license text + sources) in-app.
