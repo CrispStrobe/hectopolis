@@ -78,6 +78,23 @@ void main() {
       expect(c.visualRevision, r1);
     });
 
+    test('hovering notifies its own listenable, not the whole game', () {
+      var game = 0;
+      var hover = 0;
+      void onGame() => game++;
+      void onHover() => hover++;
+      c.addListener(onGame);
+      c.hoverChanges.addListener(onHover);
+      c.setHover(5);
+      c.setHover(6);
+      c.setHover(6);
+      expect(hover, 2);
+      expect(game, 0);
+      expect(c.hoverChanges.value, 6);
+      c.removeListener(onGame);
+      c.hoverChanges.removeListener(onHover);
+    });
+
     test('the indicator timeline is bounded', () {
       for (var i = 0; i < 100; i++) {
         c.step();
