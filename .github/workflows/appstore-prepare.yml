@@ -7,7 +7,7 @@ on:
       action:
         description: 'Audit, prepare App Store listing, or submit a build for TestFlight review'
         type: choice
-        options: [audit, listing, ready-store, submit-external, submit-store, beta-links, beta-link-enable]
+        options: [audit, listing, ready-store, submit-internal, submit-external, submit-store, beta-links, beta-link-enable]
         default: audit
       build_number:
         description: 'Optional exact CFBundleVersion; blank selects the newest build'

@@ -260,6 +260,11 @@ both beta localizations, review contact, per-build test notes, assigns the build
 to the external **Public Beta** group and submits it to Beta App Review. The
 default `audit` action is read-only.
 
+For the internal testers only, run it with `action=submit-internal` instead: it
+sets export compliance and the per-build notes and assigns the build to the
+app's internal group(s). Internal builds need no Beta App Review, so testers
+see it as soon as Apple has processed it.
+
 Full App Store submission still has two deliberate browser gates: confirm
 **Data Not Collected** under App Privacy and make the final Submit for Review
 decision. Neither has a public App Store Connect API.
