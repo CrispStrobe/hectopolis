@@ -154,6 +154,51 @@ def audit(app_id: str) -> None:
             print(label, "HTTP", status, doc.get("data"))
 
 
+def prepare_build(build: dict) -> None:
+    """Export compliance and the per-build "What to Test" notes, DE and EN."""
+    build_id = build["id"]
+    if build["attributes"].get("usesNonExemptEncryption") is not False:
+        patch("builds", build_id, {"usesNonExemptEncryption": False})
+    else:
+        print("export compliance already resolved: exempt")
+    for locale, copy in META["locales"].items():
+        upsert_localization(
+            f"/v1/builds/{build_id}/betaBuildLocalizations?limit=200",
+            "betaBuildLocalizations",
+            locale,
+            {"whatsNew": copy["whatsNew"]},
+            "build",
+            "builds",
+            build_id,
+        )
+
+
+def prepare_internal(
+    app_id: str, build_number: str | None, wait_minutes: int, platform: str
+) -> None:
+    """Give a build to the internal testers. No Beta App Review is involved:
+    internal groups see a build as soon as it is assigned."""
+    build = newest_build(app_id, build_number, wait_minutes, platform)
+    prepare_build(build)
+    groups = client.paged(f"/v1/apps/{app_id}/betaGroups?limit=200")
+    internal = [g for g in groups if g["attributes"].get("isInternalGroup")]
+    if not internal:
+        raise SystemExit("no internal TestFlight group for this app")
+    for group in internal:
+        name = group["attributes"].get("name")
+        if group["attributes"].get("hasAccessToAllBuilds"):
+            print("internal group", name, "already sees every build")
+            continue
+        status, doc = client.call(
+            "POST",
+            f"/v1/betaGroups/{group['id']}/relationships/builds",
+            {"data": [{"type": "builds", "id": build["id"]}]},
+        )
+        if status not in (200, 204, 409):
+            raise SystemExit(f"assign build to {name} -> HTTP {status}: {doc}")
+        print("internal group", name, group["id"], "build", build["id"])
+
+
 def prepare_external(
     app_id: str, build_number: str | None, wait_minutes: int, platform: str
 ) -> None:
@@ -163,10 +208,7 @@ def prepare_external(
         raise SystemExit(f"metadata is missing primary locale {primary}")
     build = newest_build(app_id, build_number, wait_minutes, platform)
     build_id = build["id"]
-    if build["attributes"].get("usesNonExemptEncryption") is not False:
-        patch("builds", build_id, {"usesNonExemptEncryption": False})
-    else:
-        print("export compliance already resolved: exempt")
+    prepare_build(build)
 
     contact = META["contact"]
     patch(
@@ -195,15 +237,6 @@ def prepare_external(
             "app",
             "apps",
             app_id,
-        )
-        upsert_localization(
-            f"/v1/builds/{build_id}/betaBuildLocalizations?limit=200",
-            "betaBuildLocalizations",
-            locale,
-            {"whatsNew": copy["whatsNew"]},
-            "build",
-            "builds",
-            build_id,
         )
 
     group = external_group(app_id)
@@ -575,7 +608,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "action",
-        choices=("audit", "ready-store", "submit-external", "submit-store"),
+        choices=(
+            "audit",
+            "ready-store",
+            "submit-internal",
+            "submit-external",
+            "submit-store",
+        ),
     )
     parser.add_argument("--build-number")
     parser.add_argument("--platform", choices=("IOS", "MAC_OS"), default="IOS")
@@ -595,6 +634,8 @@ def main() -> None:
         prepare_store(app_id, args.build_number, args.wait_minutes, args.platform)
     elif args.action == "submit-store":
         submit_store(app_id, args.platform, args.confirm)
+    elif args.action == "submit-internal":
+        prepare_internal(app_id, args.build_number, args.wait_minutes, args.platform)
     else:
         prepare_external(app_id, args.build_number, args.wait_minutes, args.platform)
 
