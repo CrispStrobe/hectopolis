@@ -95,13 +95,45 @@ def sh(cmd, **kw):
     return subprocess.run(cmd, shell=True, capture_output=True, text=True, **kw)
 
 
+def failures_of(nodes, args):
+    """What the tree [nodes] still lacks; empty when the probe passes."""
+    labels = {name for _, _, name, _ in nodes if name}
+    labels |= {desc for _, _, _, desc in nodes if desc}
+    failures = []
+    if len(nodes) < args.min_nodes:
+        failures.append(
+            f"only {len(nodes)} node(s); the bridge exposed a window but "
+            f"little inside it (expected at least {args.min_nodes})"
+        )
+    for wanted in args.expect:
+        # The app follows the platform locale, and a CI runner's is not the
+        # developer's: this passed locally in English and failed on GitHub,
+        # which starts it in German. Rather than pin a locale -- which needs
+        # one generated on the machine and would stop testing what a real
+        # user sees -- any listed alternative satisfies the expectation.
+        alternatives = [w.strip() for w in wanted.split("|") if w.strip()]
+        if not any(
+            alt.lower() in label.lower()
+            for alt in alternatives
+            for label in labels
+        ):
+            failures.append(
+                f"no node announces any of {alternatives!r}"
+            )
+    return failures
+
+
 def main():
     p = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     p.add_argument("--bundle", default="app/build/linux/x64/debug/bundle/hectopolis")
     p.add_argument("--display", default=":97")
-    p.add_argument("--settle", type=float, default=20, help="seconds before reading")
+    p.add_argument("--settle", type=float, default=8,
+                   help="seconds before the first read")
+    p.add_argument("--timeout", type=float, default=120,
+                   help="keep re-reading the tree until it passes or this many "
+                        "seconds have gone by")
     p.add_argument("--limit", type=int, default=400)
     p.add_argument(
         "--expect",
@@ -188,12 +220,25 @@ def main():
             stdout=app_log, stderr=subprocess.STDOUT))
         time.sleep(args.settle)
 
+        # Poll rather than read once after a fixed wait. A debug build on a
+        # loaded CI runner can take longer than any fixed settle to publish its
+        # tree, and one read then sees a bare window: on 2026-10-27 a run found
+        # a single node and passed unchanged on a rerun.
         tree = Tree(addr)
         registry = ("org.a11y.atspi.Registry", "/org/a11y/atspi/accessible/root")
-        apps = tree.call(registry, "GetChildren")[0]
-        nodes = []
-        for app in apps:
-            nodes.extend(tree.walk(app, limit=args.limit))
+        deadline = time.time() + args.timeout
+        while True:
+            nodes = []
+            try:
+                for app in tree.call(registry, "GetChildren")[0]:
+                    nodes.extend(tree.walk(app, limit=args.limit))
+            except Exception as e:  # an app still registering; read again
+                if time.time() >= deadline:
+                    raise
+                print(f"a11y probe: tree not readable yet ({e})", flush=True)
+            if not failures_of(nodes, args) or time.time() >= deadline:
+                break
+            time.sleep(2)
     finally:
         for proc in reversed(procs):
             proc.send_signal(signal.SIGTERM)
@@ -226,27 +271,7 @@ def main():
     labels |= {desc for _, _, _, desc in nodes if desc}
     print(f"\n{len(nodes)} node(s), {len(labels)} labelled")
 
-    failures = []
-    if len(nodes) < args.min_nodes:
-        failures.append(
-            f"only {len(nodes)} node(s); the bridge exposed a window but "
-            f"little inside it (expected at least {args.min_nodes})"
-        )
-    for wanted in args.expect:
-        # The app follows the platform locale, and a CI runner's is not the
-        # developer's: this passed locally in English and failed on GitHub,
-        # which starts it in German. Rather than pin a locale -- which needs
-        # one generated on the machine and would stop testing what a real
-        # user sees -- any listed alternative satisfies the expectation.
-        alternatives = [w.strip() for w in wanted.split("|") if w.strip()]
-        if not any(
-            alt.lower() in label.lower()
-            for alt in alternatives
-            for label in labels
-        ):
-            failures.append(
-                f"no node announces any of {alternatives!r}"
-            )
+    failures = failures_of(nodes, args)
     if failures:
         for f in failures:
             print(f"a11y probe: {f}")
