@@ -573,6 +573,7 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
   checks the committed files and the shipped Apache-2.0 notice records the modification.
   The release build makes no third-party request, and the measured Chromium first load is
   now 3191 KB gzipped (155 KB shell/fonts, 879 KB program, 2157 KB engine).
+  *Note 2026-10-28:* About (with Our apps and the licence registry) and co-op setup (lobby, LAN session, relay encryption) are deferred imports: on the web each is its own file, fetched the first time the screen opens. The first-load program drops from 1 090 to 959 KB gzipped (−12 %); the three parts are 22, 4 and 118 KB. The learning center stays eager because the mission briefing in it opens at the start of every mission.
 - [~] **T-402 Android.** SDK setup on a build machine, signing config outside the repo,
   `flutter build appbundle`. Verify AGPL notice screen (license text + sources) in-app.
   *Note 2026-09-05:* `.github/workflows/android-release.yml` (dry run by default, tag `v*` publishes to a GitHub release), release signing in `build.gradle.kts` with debug fallback, `docs/release/android.md`. Open: first CI run, upload keystore secrets, Play Console record.
