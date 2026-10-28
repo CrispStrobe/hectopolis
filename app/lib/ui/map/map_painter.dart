@@ -61,7 +61,6 @@ class _MapPainter extends CustomPainter {
                c.sim.state.tick,
                c.width,
                c.overlay,
-               scale,
                // Theme.of hands out a new ThemeData on every rebuild; the
                // painter reads only the colour scheme, which compares by value.
                theme.colorScheme,
@@ -95,9 +94,10 @@ class _MapPainter extends CustomPainter {
   /// model change.
   final int stillRevision;
 
-  /// Everything the still layer's picture depends on. Hover, selection, the
-  /// cursor and the placement forecast are drawn on the moving layer and are
-  /// deliberately not in it: before this key the still layer repainted every
+  /// Everything the still layer's picture depends on apart from the zoom,
+  /// which [shouldRepaint] and [_StillRaster] each treat in their own way.
+  /// Hover, selection, the cursor and the placement forecast are drawn on the
+  /// moving layer and are deliberately not in it: before this key the still layer repainted every
   /// tile on every pointer move (48 ms a frame on an M1 in Chrome).
   final Record? _stillKey;
 
@@ -642,5 +642,7 @@ class _MapPainter extends CustomPainter {
   // rebuilt by every controller notification, hover included, so it compares
   // what it actually draws.
   bool shouldRepaint(covariant _MapPainter oldDelegate) =>
-      !_still || oldDelegate._stillKey != _stillKey;
+      !_still ||
+      oldDelegate._stillKey != _stillKey ||
+      oldDelegate.scale != scale;
 }

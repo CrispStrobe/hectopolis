@@ -18,6 +18,7 @@ import 'tile_style.dart';
 
 part 'map/map_cards.dart';
 part 'map/map_painter.dart';
+part 'map/still_raster.dart';
 part 'map/tiles_built.dart';
 part 'map/tiles_nature.dart';
 part 'map/tiles_transport.dart';
@@ -116,6 +117,13 @@ class MapViewController {
 /// [InteractiveViewer] (pinch / wheel zoom, drag pan), accepting drops from the
 /// palette, taps (brush placement / inspection), long-presses (clear) and
 /// keyboard input (task T-203).
+/// Whether the still map layer is drawn into an image and shown as one. On
+/// by default on the web, which has no raster cache (see [_StillRaster]);
+/// native renderers cache the layer themselves. Tests switch it on to cover
+/// the path a browser takes.
+@visibleForTesting
+bool rasterizeStillLayer = kIsWeb;
+
 class MapView extends StatefulWidget {
   const MapView({super.key, required this.controller, this.mapController});
 
@@ -693,13 +701,22 @@ class _MapViewState extends State<MapView> with TickerProviderStateMixin {
                                           m.transformation,
                                           _stillRevision,
                                         ]),
-                                        builder: (context, _) => CustomPaint(
-                                          size: size,
-                                          painter: _layerPainter(
-                                            context,
-                                            _MapLayer.still,
-                                          ),
-                                        ),
+                                        builder: (context, _) =>
+                                            rasterizeStillLayer
+                                            ? _StillRaster(
+                                                size: size,
+                                                painter: _layerPainter(
+                                                  context,
+                                                  _MapLayer.still,
+                                                ),
+                                              )
+                                            : CustomPaint(
+                                                size: size,
+                                                painter: _layerPainter(
+                                                  context,
+                                                  _MapLayer.still,
+                                                ),
+                                              ),
                                       ),
                                     ),
                                     ListenableBuilder(
