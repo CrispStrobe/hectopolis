@@ -2,9 +2,10 @@
 
 Read `PLAN.md` first. It holds the vision, constraints, architecture, the simulation model
 and the task roadmap. Work through roadmap tasks in order unless told otherwise; mark them
-done in `PLAN.md` with a one-line note.
+done in `PLAN.md` with a one-line note. **`PLAN.md` §9 is the scoped list of open work**
+(engineering items an agent can take, and owner items an agent must not act on alone).
 
-## Environment on this machine
+## Environment on the VPS
 
 ```bash
 export PATH="/mnt/volume1/toolchain/flutter/bin:$PATH"
@@ -20,6 +21,27 @@ export PUB_CACHE=/mnt/volume1/pub-cache
   (CIFS mount): `app/build/` is a symlink there, raw datasets live in
   `/mnt/storage/code/stadtbau/data`. Never put datasets or build output in the repo.
 - Scratch files go to the session scratchpad, not the repo.
+
+## Environment on the owner's Mac
+
+The repository also lives at `/Volumes/backups/code/hectopolis` on the owner's Mac (Apple
+M1, Homebrew Flutter 3.44.x; `~/code/hectopolis` is a symlink to it). That is an external
+volume and **can be unmounted mid-session**: if the working directory vanishes, stop and
+say so, do not recreate it elsewhere. CI pins Flutter 3.44.1.
+
+- **Never touch the macOS login keychain.** Any Chrome or Chromium you start must get
+  `--use-mock-keychain` (Playwright adds it; the repo's Python tools and `dart_test.yaml`
+  pass it). Never change the default keychain. Signing happens in CI, not here.
+- Python tools that need packages (fontTools for `tools/subset_fonts.py`, websockets for
+  `tools/web_frame_bench.py`): run them through
+  `uv run --no-project --python 3.12 --with fonttools --with brotli python tools/…`
+  rather than installing into the system Python. `subset_fonts.py --check` also needs
+  `--sdk-fonts <flutter>/bin/cache/artifacts/material_fonts` on the Mac.
+- Frame cost on real hardware: `tools/web_gpu_bench.mjs` (Playwright, Chrome on the GPU;
+  setup in its header). `tools/web_frame_bench.py` is software-rendered and only compares
+  two builds.
+- `dart format` only the files you touched; formatting a whole directory rewrites
+  unrelated files.
 
 ## Non-negotiables
 

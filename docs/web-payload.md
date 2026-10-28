@@ -34,6 +34,17 @@ costs about as much as the whole font subset saved.** Re-measure with
 `tools/web_payload.py` rather than quoting a figure from this table; both
 columns were true on the day.
 
+### Deferred: About and co-op setup (2026-10-28, #97)
+
+`about_screen.dart` (with Our apps and the licence registry) and
+`coop_setup_screen.dart` (lobby, LAN session, relay encryption) are deferred
+imports, so dart2js writes each to its own `main.dart.js_N.part.js`, fetched
+from our origin the first time the screen opens. Program on first load: 1 090
+→ 959 KB gzipped (−12 %); the parts are 22, 4 and 118 KB. The learning centre
+stays in the main file because the mission briefing in it opens at the start
+of every mission, where a fetch would show. There is no service worker, so an
+installed copy has nothing cached that could go stale.
+
 ### Removed: 15 KB of citations nobody reads
 
 `data/params/tiles.json` carries a `source` on every one of its 376 entries,
