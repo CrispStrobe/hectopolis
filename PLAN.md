@@ -8,6 +8,8 @@ the task roadmap. Agents work through the tasks in `## Roadmap` one by one. Ever
 an ID, a scope, acceptance criteria and the files it touches. Mark a task done by changing
 its checkbox and adding a one-line note (date, commit or summary).
 
+**Picking up work? Start with §9, the scoped list of everything open.**
+
 ---
 
 ## 1. Vision
@@ -1111,3 +1113,196 @@ Run `tools/check.sh` (analyze, test, i18n lint, license audit) before marking a 
 | Game model references | Micropolis (GPL-3), Citybound (AGPL-3), Forrester Urban Dynamics | Read only | Design inspiration |
 
 Anything not in this table must be added here with its license before it is used.
+
+---
+
+## 9. Open work — handoff (2026-10-28)
+
+The scoped list of everything still open, written so that an agent arriving
+fresh can pick any item without the conversation that produced it. Each item
+says what is true now, what to do, how to know it is done, and who has to act.
+**Owner** items need the project owner (a decision, an Apple or Google account,
+or people); do not attempt them alone. Everything else an agent can do. Keep
+this section current: strike an item when it lands, with a one-line note.
+
+Before starting anything: read `CLAUDE.md` (environment, non-negotiables, and
+the macOS keychain rule), run `tools/check.sh --list`, and check `gh pr list`
+for work already in flight.
+
+### 9.1 State at handoff
+
+- `main` builds and deploys to https://crispstrobe.github.io/hectopolis/ on
+  every push (`pages.yml`). Version in `app/pubspec.yaml`: **0.1.2+7**.
+- PRs open at handoff, all green or running, to be merged in this order with
+  merge commits (update each from main, wait for both checks, `check` and
+  `relay-image`, to pass on that head, then merge): **#96**
+  a11y probe polls; **#97** deferred About/co-op on the web; **#98** PLAN
+  notes; **#99** patch upgrades; and the PR carrying this section. If any is
+  already merged, skip it.
+- App Store Connect: macOS 0.1.1 **on sale**; iOS 0.1.1 **rejected under
+  guideline 4.3(a)**, the owner has replied in Resolution Center, filed an
+  App Review Board appeal and a Developer Support case (103008934917) — no
+  answer yet. TestFlight: build **6** in Public Beta, waiting for Beta App
+  Review; build **7** (adds About › Our apps) with the internal group.
+- Unpushed local state on the owner's machine that is not an agent's to touch:
+  an uncommitted edit to `docs/release/app-review-appeal-4.3a.md`.
+
+### 9.2 Engineering — an agent can do these
+
+**H-1 · T-202: rasterise the still map layer on the web.** *State:* branch
+`perf/still-raster-proto` (one WIP commit on top of #95). On the web there is
+no raster cache, so CanvasKit replays every draw call of the still layer in
+every frame; the prototype draws it once into an image (`_StillRaster`,
+`app/lib/ui/map/still_raster.dart`), switched by `rasterizeStillLayer`
+(`kIsWeb` by default, `@visibleForTesting`). Measured before the last change
+(Chrome, Apple M1, ANGLE/Metal): idle 16.7 → 5.4 ms, hover 17.1 → 5.5, pan
+16.9 → 5.4 ms a frame — but zoom p95 27 → 62 ms, because every zoom frame
+re-rasterised. The last commit steps the image resolution in powers of 1.25
+(re-rasterise only when the zoom crosses a step) and moved `scale` out of
+`_stillKey` into `shouldRepaint`; **that version is unmeasured.** *Do:*
+rebase on main; `flutter build web --release`; run `tools/web_gpu_bench.mjs`
+(see its header for setup) on main and on the branch, interleaved, three runs
+each. Screenshot the map at scale 1 and at maximum zoom (4×) on both builds
+and compare sharpness. Add a widget test that sets `rasterizeStillLayer =
+true` and asserts what `app_test.dart`'s hover test asserts for the
+CustomPaint path (hovering leaves `MapPaintCounters.still` at 0, placing a
+tile raises it), and that the image is disposed on unmount. *Done when:* idle,
+hover and pan medians ≤ 8 ms and zoom p95 ≤ 30 ms on the same machine, no
+visible blur at 1× and no worse than slight softening at 4× (the texture cap
+is 4096 px), all app tests pass, and a dated note with the numbers is added
+under T-202. If zoom cannot be brought under 30 ms, debounce instead: keep
+the old image during a gesture and re-rasterise 150 ms after it ends.
+*Note:* `tools/web_gpu_bench.mjs` is a port of the scratch script that took
+the numbers above; run it once on main first and check it reproduces them
+(about 16–17 ms idle) before trusting it.
+
+**H-2 · Split `app/lib/game/game_controller.dart` (≈ 1 000 lines).** The brief
+asks for small files. The class has clear seams (line numbers as of 4c936a7):
+co-op session glue (≈ 60–100), experience settings (≈ 104–150), lifecycle,
+levels and save (≈ 204–280, 393), missions, beats, predictions and
+experiments (≈ 282–390), brush, cursor, hover and the placement preview
+(≈ 413–597), world edits and undo/redo (≈ 599–735), the clock (≈ 735–755),
+build impact, timeline and haptics (≈ 755–812), guidance and overlay values
+(≈ 814–990). *Do:* move cohesive pieces into collaborators with their own
+state — the placement preview (`_cachedPreview`, `_previewCell`, …,
+`placementPreview`, `_buildPlacementPreview`) and goal guidance are the two
+largest and most self-contained — and keep `GameController` the one
+`ChangeNotifier` the UI listens to. Do not use `part` files to split a class
+(Dart cannot), and do not change behaviour: this is a pure refactor.
+*Done when:* no file in `app/lib/game` exceeds ~400 lines, `git diff` shows
+moved code rather than rewritten code, `flutter analyze` and the full app test
+suite pass unchanged (no test edits other than imports). Then do the same for
+`app/lib/ui/map_view.dart` (≈ 790 lines): the keyboard handling (`_onKey`,
+the key maps) and the gesture/hit-testing helpers are the natural first
+extractions, as `part` files under `app/lib/ui/map/` like the painter.
+
+**H-3 · T-206: a ranked source list in the tile inspector.** Selecting a cell
+already draws lines on the map to the cells that contribute to its value,
+ranked by effect (`app/lib/game/source_ranking.dart`,
+`GameController.selectedCausalSourceCells`, `Simulation.sources`). The
+inspector (`app/lib/ui/tile_inspector.dart`) shows the per-cell values but not
+that ranking. *Do:* for the active overlay's field, list the top five sources
+under the value: tile name (`tile_naming.dart`), distance in metres (cells ×
+100), and share of the total as a percentage; tapping a row selects that cell.
+Strings in both ARB files; run `tools/i18n_lint.dart` and the learning audit.
+*Done when:* a widget test checks the list for a known layout (a road beside
+housing, noise overlay) in DE and EN, and the list is reachable and read
+sensibly by a screen reader (`tools/web_a11y_probe.py` sees it).
+
+**H-4 · T-401: ship a `--wasm` web build.** `pages.yml` builds dart2js only
+(its comments discuss `--wasm` but no step passes it). Flutter serves the
+skwasm build to browsers that support WasmGC and falls back to dart2js +
+CanvasKit elsewhere. *Do:* build both ways, run `tools/web_payload.py` and
+`tools/web_gpu_bench.mjs` on each, and `tools/check.sh origin web-a11y
+test-web` against the wasm build. Adopt it only if first load is not larger
+for Chromium users, frame cost is not worse, the origin and accessibility
+checks pass, and the dart2js fallback still works (test in a browser without
+WasmGC, e.g. by disabling it with `--js-flags=--no-experimental-wasm-gc` or in
+Safari). *Done when:* a decision is recorded in `docs/web-payload.md` with the
+numbers, and `pages.yml` changed if adopted.
+
+**H-5 · T-115/T-202: measure on a phone.** Desktop is measured (3.3 ms a tick,
+frame figures above); the < 50 ms tick target on a mid-range Android phone
+and 60 fps on phones are not. *Do:* run `flutter run --profile` on a physical
+device with a 24×24 map, record tick time
+(`packages/stadtbau_sim/benchmark/tick_benchmark.dart` logic, or the DevTools
+timeline) and frame times for idle, pan and hover. Needs a device (owner, or a
+device farm). *Done when:* the numbers are in dated notes under T-115 and
+T-202, and anything over budget is a new scoped item here.
+
+**H-6 · Upgrade Flutter when a stable release past 3.44 is available.**
+`flutter pub outdated` shows 18 packages behind, but all except three (done
+in #99) are pinned by the SDK (analyzer 12 vs 14, test_api, matcher,
+vector_math, …). *Do:* bump `FLUTTER_VERSION` in every workflow
+(`grep -rn FLUTTER_VERSION .github/workflows`) and CLAUDE.md's version line
+together, `flutter pub upgrade`, `tools/license_audit.sh`, full
+`tools/check.sh` (stage by stage on a small machine), then one iOS and one
+macOS dry run (`ios-release`, `macos-appstore` with `dry_run=true`). *Done
+when:* CI green and both dry runs validate.
+
+### 9.3 Owner decisions and accounts — do not act alone
+
+**O-1 · School costs.** The design-value review (2026-10-27, see
+`docs/missions.md` › "Retuned after the design-value review") found real
+schools cost about €30 M per hectare to build and €450 k a year to run; the
+game uses 900 k€ and 45 k€ (`data/params/tiles.json`, `school`), against a
+25 M€ starting budget. Options: (a) keep, and say in the `source` field that
+it is scaled for play and what the real figure is; (b) charge the municipal
+share after Land school-building grants (needs research into the grant rates,
+then a retune); (c) real values, which makes a school cost more than the
+whole starting budget and needs every mission with schools retuned. Agent's
+part once decided: change `tiles.json`, run `dart run tools/gen_params.dart`,
+the learning audit and `packages/stadtbau_sim/tool/level_plans.dart`, retune missions until
+`level_solutions_test` passes, update `docs/model/tiles.md`.
+
+**O-2 · iOS App Store.** Waiting on Apple's answer to the 4.3(a) appeal and
+support case. When the owner says go: `appstore-prepare` with
+`action=ready-store` for IOS and the build number, then the owner checks App
+Privacy (**Data Not Collected**) in the browser and submits; there is also
+`action=submit-store` with `confirm=submit`. Do not resubmit before Apple
+answers unless the owner decides to.
+
+**O-3 · TestFlight Public Beta with build 7.** Build 6 is waiting for Beta
+App Review and lacks Our apps. To move external testers to 7:
+`gh workflow run appstore-prepare.yml --ref main -f action=submit-external -f
+platform=IOS -f build_number=7`. Owner's call whether to replace 6.
+
+**O-4 · macOS 0.1.2.** 0.1.1 is on sale; the 0.1.2 dry run validated. Upload
+without tagging: `gh workflow run macos-appstore.yml --ref main -f
+dry_run=false` (bump `+BUILD` first if the build number was already used on
+macOS; the highest macOS build so far is 4). A `v0.1.2` tag would upload too,
+but also starts the Android and desktop release workflows. Then
+`appstore-prepare` with `action=ready-store platform=MAC_OS`, and the owner
+submits.
+
+**O-5 · T-402 Android / Play.** The CI dry run passes; publishing needs the
+owner's Play Console account and an upload key (`docs/release/android.md`).
+
+**O-6 · T-404 Windows MSIX.** Needs a signing decision (Microsoft Store
+certificate vs self-signed) before the `msix` package is added; see the
+T-404 notes.
+
+**O-7 · T-705 screen-reader playtest with people.** Protocol in
+`docs/accessibility-playtest.md`; needs participants. The agent's part comes
+after: turn findings into scoped items here.
+
+**O-8 · Trademark search.** "register search at DPMA/EUIPO still open"
+(top of this file). Owner.
+
+**O-9 · Our apps: TestFlight-only apps.** About › Our apps lists only apps
+live in a store; `--dart-define=HECTOPOLIS_SHOWCASE_BETAS=true` brings back
+the eleven TestFlight-only apps and CrisperPlayer. The list itself
+(`app/lib/ui/app_showcase.dart`) is a copy of Brickwright's and goes stale as
+apps ship; refresh it from App Store Connect when the owner asks.
+
+### 9.4 Known constraints that bit this session
+
+- **The account's GitHub runners are shared** with the owner's other repos;
+  queues of an hour were normal on 2026-10-27/28. A queued run is not a stuck
+  run. Do not cancel runs in other repositories without the owner's say-so.
+- **A manual `ios-release` run with `dry_run=false`** uploads to App Store
+  Connect from whatever ref it runs on; since #93 it no longer creates a
+  GitHub release for a non-tag ref. Build numbers are burnt on upload: bump
+  `+BUILD` first.
+- **CI flake to watch:** the Linux `a11y` stage once read a one-node tree
+  (fixed by #96's polling); if it fails again, read its log before re-running.
