@@ -2,7 +2,7 @@
 
 Hectopolis ships to the App Store from GitHub Actions:
 [`.github/workflows/ios-release.yml`](../../.github/workflows/ios-release.yml)
-on a `macos-latest` runner, using the shared build script
+on the `xcode-27` runner (Xcode 27 / iOS 27 SDK, ITMS-90725), using the shared build script
 [`tools/ios/build-ios-appstore.sh`](../../tools/ios/build-ios-appstore.sh) so
 that CI and a developer Mac run the *same* steps.
 
